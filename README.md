@@ -1,6 +1,6 @@
-# apu_rideshare
+# APU Rideshare
 
-A new Flutter project.
+An GRAB-like ridesharing application for APU using the Flutter framework.
 
 ## Getting Started
 
