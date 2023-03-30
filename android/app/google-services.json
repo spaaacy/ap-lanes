@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "171552153953",
+    "project_id": "apu-rideshare",
+    "storage_bucket": "apu-rideshare.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:171552153953:android:f178ba74677b0ef6832520",
+        "android_client_info": {
+          "package_name": "com.example.apu_rideshare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "171552153953-6vvhu4dnvrf6spq1jbb6675mhm2qkmmt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUVQAX7SpwixexK7m7I4rqBAI1e3aAVHU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "171552153953-6vvhu4dnvrf6spq1jbb6675mhm2qkmmt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "171552153953-jfgp8414omsqrdo1k3b54ujekonqv5d9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.apuRideshare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
