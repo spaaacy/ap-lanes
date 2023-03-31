@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AppUser {
 
-  final String? id;
+  final String id;
   final String email;
   final String type;
 
   const AppUser({
-    this.id,
+    required this.id,
     required this.email,
     required this.type
   });

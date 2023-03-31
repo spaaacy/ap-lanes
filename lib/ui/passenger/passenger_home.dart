@@ -2,13 +2,18 @@ import 'package:apu_rideshare/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class PassengerHome extends StatelessWidget {
+class PassengerHome extends StatefulWidget {
   const PassengerHome({Key? key}) : super(key: key);
 
   @override
+  State<PassengerHome> createState() => _PassengerHomeState();
+}
+
+class _PassengerHomeState extends State<PassengerHome> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text("Home Screen")),
+        appBar: AppBar(title: Text("Welcome Passenger")),
         body: Padding(
             padding: EdgeInsets.all(12.0),
             child: Center(
@@ -16,8 +21,6 @@ class PassengerHome extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("Home!"),
-
-                // Spacer(flex: 8),
 
                 Align(
                   alignment: Alignment.bottomRight,

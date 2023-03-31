@@ -30,8 +30,8 @@ class MyApp extends StatelessWidget {
         )
       ],
         child: MaterialApp(
-          title: "AP Ride",
-          theme: ThemeData(backgroundColor: Colors.blue),
+          title: "AP Ride", // TODO: Check if this is necessary
+          theme: ThemeData(scaffoldBackgroundColor: Colors.white),
           home: AuthWrapper(context: context)
       )
     );

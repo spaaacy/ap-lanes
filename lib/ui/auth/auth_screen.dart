@@ -1,21 +1,12 @@
-import 'package:apu_rideshare/data/repo/user_repo.dart';
 import 'package:apu_rideshare/services/auth_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../data/model/app_user.dart';
-import '../../util/constants.dart';
 
 class AuthScreen extends StatelessWidget {
+  AuthScreen({Key? key}) : super(key: key);
 
-  final TextEditingController passwordController;
-  final TextEditingController emailController;
-
-  AuthScreen({
-    Key? key,
-    required this.passwordController,
-    required this.emailController,
-  }) : super(key: key);
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +50,7 @@ class AuthScreen extends StatelessWidget {
                             password: password
                         );
                       },
+
                       child: Text("Sign Up")
                   ),),
 
@@ -74,17 +66,14 @@ class AuthScreen extends StatelessWidget {
                             email: email,
                             password: password
                         );
-
-
                       },
+
                       child: Text("Sign In")
                   ),),
               ],
             )
-
           ],
         ),)
-
     );
   }
 }
