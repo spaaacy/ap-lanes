@@ -1,3 +1,6 @@
+// Google Maps API Key
+const String API_KEY = "AIzaSyBxzNQzM1OTbB0MsFsIconRZTZS2ajsSIM";
+
 // Firebase Authentication
 const String SIGNED_IN = "SIGNED_IN";
 const String SIGNED_UP = "SIGNED_UP";

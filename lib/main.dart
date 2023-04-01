@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'auth/auth_wrapper.dart';
+import 'ui/auth/auth_wrapper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +30,9 @@ class MyApp extends StatelessWidget {
         )
       ],
         child: MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: "AP Ride", // TODO: Check if this is necessary
-          theme: ThemeData(scaffoldBackgroundColor: Colors.white),
+          theme: ThemeData(useMaterial3: true, scaffoldBackgroundColor: Colors.white),
           home: AuthWrapper(context: context)
       )
     );
