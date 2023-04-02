@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           title: "AP Ride", // TODO: Check if this is necessary
-          theme: ThemeData(useMaterial3: true, scaffoldBackgroundColor: Colors.white),
+          theme: ThemeData(useMaterial3: true, scaffoldBackgroundColor: Colors.white, primaryColor: Colors.black),
           home: AuthWrapper(context: context)
       )
     );
