@@ -16,7 +16,7 @@ class AuthService {
     try {
       await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
 
-      // _registerUser(); // Temporary
+      _registerUser(); // Temporary
 
       return SIGNED_IN;
     } on FirebaseAuthException catch (e) {

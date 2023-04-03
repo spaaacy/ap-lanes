@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AuthScreen extends StatelessWidget {
-  AuthScreen({Key? key}) : super(key: key);
+  AuthScreen({super.key});
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();

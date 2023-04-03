@@ -9,7 +9,7 @@ class AuthWrapper extends StatelessWidget {
 
   final BuildContext context;
 
-  AuthWrapper({required this.context});
+  AuthWrapper({super.key, required this.context});
 
 
   @override
