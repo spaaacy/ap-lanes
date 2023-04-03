@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+
+import 'package:apu_rideshare/util/resize_asset.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
@@ -17,17 +21,23 @@ class DriverHome extends StatefulWidget {
 class _DriverHomeState extends State<DriverHome> {
 
   late GoogleMapController _mapController;
-  final LatLng _center = const LatLng(25.2888083, 55.3779617);
 
   @override
   void initState() {
     _getCustomIcon();
+
+    // Fetches map style
+    rootBundle.loadString('assets/map_style.txt').then((string) {
+      _mapStyle = string;
+    });
+
     _getCurrentPosition();
     super.initState();
   }
 
   LatLng? _currentPosition;
   BitmapDescriptor _markerIcon = BitmapDescriptor.defaultMarker;
+  late String _mapStyle;
 
   void _getCurrentPosition() async {
     final hasPermissions = await LocationPermissions.handleLocationPermission(context);
@@ -43,19 +53,15 @@ class _DriverHomeState extends State<DriverHome> {
     }
   }
 
-  void _getCustomIcon() {
-    BitmapDescriptor.fromAssetImage(const ImageConfiguration(), "assets/marker_icon.png")
-        .then(
-        (icon) {
-          setState(() {
-            _markerIcon = icon;
-          });
-        }
-    );
+  void _getCustomIcon() async {
+    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset('assets/images/marker_icon.png', 150);
+    _markerIcon =
+      resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
+    _mapController.setMapStyle(_mapStyle);
   }
 
   @override
@@ -70,10 +76,11 @@ class _DriverHomeState extends State<DriverHome> {
       _currentPosition == null ? Center(child: CircularProgressIndicator()) :
       Stack(children: [
                 GoogleMap(
+
                   zoomControlsEnabled: false,
                   onMapCreated: _onMapCreated,
                   initialCameraPosition:
-                      CameraPosition(target: _currentPosition!, zoom: 15.0),
+                      CameraPosition(target: _currentPosition!, zoom: 17.0),
                   markers: {
                     Marker(
                         icon: _markerIcon,
@@ -84,11 +91,17 @@ class _DriverHomeState extends State<DriverHome> {
                 ),
 
                 Positioned.fill(
-                    bottom: 50.0,
+                    bottom: 100.0,
                     child: Align(alignment: Alignment.bottomCenter,
-                        child: ElevatedButton(onPressed: () {}, child: Text("Go"),
-                            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor)))
-                )
+                        child: ElevatedButton(
+                          onPressed: () {}, // TODO: Add GO functionality
+                          child: Text("GO"),
+                          style: ElevatedButtonTheme.of(context).style?.copyWith(
+                            shape: MaterialStatePropertyAll(CircleBorder()),
+                            padding: MaterialStatePropertyAll(EdgeInsets.all(24.0))
+                          )
+                    )
+                ))
 
               ]
       )
