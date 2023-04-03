@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User {
+  // TODO: Change to first name/last name
+
   final String id;
   final String userType;
   final String email;

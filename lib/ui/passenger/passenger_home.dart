@@ -3,6 +3,8 @@ import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../util/greeting.dart';
+
 class PassengerHome extends StatefulWidget {
   const PassengerHome({super.key});
 
@@ -14,7 +16,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text("Welcome Passenger")),
+        appBar: AppBar(title: Text(Greeting.getGreeting())),
         body:
         Stack(children: [
           CustomMap(),
