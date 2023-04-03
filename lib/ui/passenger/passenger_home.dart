@@ -19,6 +19,24 @@ class _PassengerHomeState extends State<PassengerHome> {
         Stack(children: [
           CustomMap(),
 
+          Positioned.fill(
+              child:
+              Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Align(
+                  alignment: Alignment.topCenter,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: "Where do you want to go?",
+                      filled: true,
+                      fillColor: Colors.white
+                    ),
+                  )
+              ))
+          ),
+
+
         ])
     );
   }
