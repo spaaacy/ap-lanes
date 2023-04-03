@@ -70,7 +70,12 @@ class _DriverHomeState extends State<DriverHome> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Welcome Driver")
+        title: Text("Welcome Driver"),
+        actions: <Widget>[
+          IconButton(onPressed: () {
+            context.read<AuthService>().signOut();
+          }, icon: Icon(Icons.logout_rounded))
+        ]
       ),
       body:
       _currentPosition == null ? Center(child: CircularProgressIndicator()) :

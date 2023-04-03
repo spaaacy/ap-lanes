@@ -1,6 +1,7 @@
+import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-import '../data/model/app_user.dart';
+import '../data/model/driver.dart';
+import '../data/model/user.dart' as model;
 import '../data/repo/user_repo.dart';
 import '../util/constants.dart';
 
@@ -15,8 +16,7 @@ class AuthService {
     try {
       await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
 
-      // final userId = _firebaseAuth.currentUser?.uid;
-      // _userRepo.createUser(AppUser(id: userId, email: email, type: PASSENGER));
+      // _registerUser(); // Temporary
 
       return SIGNED_IN;
     } on FirebaseAuthException catch (e) {
@@ -27,17 +27,21 @@ class AuthService {
   Future<String> signUp({required String email, required String password}) async {
     try {
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-
-      final userId = _firebaseAuth.currentUser?.uid;
-
-      // Uncomment when looking to register a driver
-      // _userRepo.createUser(AppUser(id: userId!, email: email, type: DRIVER));
-      _userRepo.createUser(AppUser(id: userId!, email: email, type: PASSENGER));
-
+      _registerUser();
       return SIGNED_IN;
     } on FirebaseAuthException catch (e) {
       return e.message ?? "";
     }
+  }
+
+  void _registerUser() {
+    final userId = _firebaseAuth.currentUser?.uid;
+    final userEmail = _firebaseAuth.currentUser?.email;
+    _userRepo.createUser(model.User(id: userId!, userType: PASSENGER, email: userEmail!, fullName: "FirstName LastName"));
+
+    // Temporary
+    // final driverRepo = DriverRepo();
+    // driverRepo.createDriver(Driver(id: userId!, licensePlate: "ABC1234", isAvailable: false));
   }
 
   Future<void> signOut() async {

@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../model/app_user.dart';
+import '../model/user.dart' as model;
+
 
 class UserRepo {
 
   final _userRef = FirebaseFirestore.instance.collection("user").withConverter(
-  fromFirestore: AppUser.fromFirestore, toFirestore: (AppUser appUser, _) => appUser.toFirestore());
+  fromFirestore: model.User.fromFirestore, toFirestore: (model.User user, _) => user.toFirestore());
 
-  void createUser(AppUser user) {
+  void createUser(model.User user) async {
     _userRef.add(user);
   }
 
@@ -14,7 +15,7 @@ class UserRepo {
     final snapshot = await _userRef.where('id', isEqualTo: id).get();
     final firstDoc = snapshot.docs.first;
     final user = firstDoc.data();
-    return user.type;
+    return(user.userType);
   }
 
 }
