@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../model/user.dart' as model;
+import '../model/firestore/user.dart' as model;
 
 
 class UserRepo {

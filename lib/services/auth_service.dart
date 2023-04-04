@@ -1,7 +1,7 @@
 import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../data/model/driver.dart';
-import '../data/model/user.dart' as model;
+import '../data/model/firestore/driver.dart';
+import '../data/model/firestore/user.dart' as model;
 import '../data/repo/user_repo.dart';
 import '../util/constants.dart';
 
