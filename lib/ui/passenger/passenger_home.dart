@@ -1,6 +1,6 @@
 import 'package:apu_rideshare/services/auth_service.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
-import 'package:apu_rideshare/ui/passenger/components/journey_input_field.dart';
+import 'package:apu_rideshare/ui/passenger/components/search_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +14,8 @@ class PassengerHome extends StatefulWidget {
 }
 
 class _PassengerHomeState extends State<PassengerHome> {
+  final _searchController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,13 +38,10 @@ class _PassengerHomeState extends State<PassengerHome> {
                   child: Align(
                   alignment: Alignment.topCenter,
                   child:
-                      JourneyInputField();
+                      SearchTextField(controller: _searchController)
                   )
               ))
-          ),
-
-
-        ])
+          ])
     );
   }
 }

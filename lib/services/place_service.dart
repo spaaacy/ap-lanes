@@ -2,42 +2,53 @@
 import 'dart:convert';
 
 import 'package:apu_rideshare/data/model/map/suggestion.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart';
+import 'package:logger/logger.dart';
 
 import '../util/constants.dart';
 
 class PlaceService {
   final sessionToken;
+
   PlaceService({this.sessionToken = ""});
 
   final client = Client();
 
-  Future<List<Suggestion>> fetchSuggestions(String input, String lang) async {
+  Future<List<Suggestion>> fetchSuggestions(BuildContext context,
+      String input) async {
+
+    if (input.isEmpty) {
+      return [];
+    }
+
+    final lang = Localizations
+        .localeOf(context)
+        .languageCode;
     final request =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=address&language=$lang&components=country:ch&key=$ANDROID_API_KEY&sessiontoken=$sessionToken';
-    final response = await client.get(request as Uri);
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=address&language=$lang&components=country:my&key=$ANDROID_API_KEY'; // &sessiontoken=$sessionToken
+        // 'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&key=$ANDROID_API_KEY'; // &sessiontoken=$sessionToken
+    final response = await client.get(Uri.parse(request));
 
     if (response.statusCode == 200) {
-
       final result = json.decode(response.body);
+
       if (result['status'] == 'OK') {
-        return result['prediction']
-            .map<Suggestion>((prediction) =>
-              Suggestion(placeId: prediction['place_id'],
-              description: prediction['description'])
-            )
-            .toList();
+        return result['predictions'].map<Suggestion>((prediction) {
+          return Suggestion(placeId: prediction['place_id'], description: prediction['description']);
+        }).toList();
       }
 
       if (result['status'] == 'ZERO_RESULTS') {
         return [];
       }
+
       throw Exception(result['error_message']);
 
-    } else {
-      throw Exception('Failed to fetch suggestion');
     }
 
+    else {
+      throw Exception('Failed to fetch suggestion');
+    }
   }
-
 }
