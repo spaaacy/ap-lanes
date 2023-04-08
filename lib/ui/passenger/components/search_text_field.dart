@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../data/model/map/suggestion.dart';
 import '../../../services/place_service.dart';
@@ -11,6 +12,7 @@ class SearchTextField extends StatelessWidget{
     required this.controller
   });
 
+  String _sessionToken = Uuid().v4();
   final _placeService = PlaceService();
 
   @override
@@ -26,7 +28,7 @@ class SearchTextField extends StatelessWidget{
         ),
 
       suggestionsCallback: (pattern) async {
-          final results = await _placeService.fetchSuggestions(context, pattern);
+          final results = await _placeService.fetchSuggestions(context, pattern, _sessionToken);
           return results.take(4);
         },
         itemBuilder: (context, suggestion) {
@@ -39,7 +41,9 @@ class SearchTextField extends StatelessWidget{
               )
           );
         },
-        onSuggestionSelected: (suggestion) {},
+        onSuggestionSelected: (suggestion) {
+          _sessionToken = Uuid().v4();
+        },
 
       textFieldConfiguration:
       const TextFieldConfiguration(

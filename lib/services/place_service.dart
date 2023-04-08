@@ -9,14 +9,9 @@ import 'package:logger/logger.dart';
 import '../util/constants.dart';
 
 class PlaceService {
-  final sessionToken;
-
-  PlaceService({this.sessionToken = ""});
-
   final client = Client();
 
-  Future<List<Suggestion>> fetchSuggestions(BuildContext context,
-      String input) async {
+  Future<List<Suggestion>> fetchSuggestions(BuildContext context, String input, String sessionToken) async {
 
     if (input.isEmpty) {
       return [];
@@ -26,8 +21,7 @@ class PlaceService {
         .localeOf(context)
         .languageCode;
     final request =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=address&language=$lang&components=country:my&key=$ANDROID_API_KEY'; // &sessiontoken=$sessionToken
-        // 'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&key=$ANDROID_API_KEY'; // &sessiontoken=$sessionToken
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=establishment&language=$lang&components=country:my&key=$ANDROID_API_KEY&sessiontoken=$sessionToken';
     final response = await client.get(Uri.parse(request));
 
     if (response.statusCode == 200) {
