@@ -15,7 +15,6 @@ class Journey {
     this.isCompleted = false,
     this.hasDriver = false,
     this.driverId = "",
-
   });
 
   Map<String, dynamic> toFirestore() {
@@ -30,18 +29,17 @@ class Journey {
   }
 
   factory Journey.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> snapshot,
-      SnapshotOptions? options,
-      ) {
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? options,
+  ) {
     final data = snapshot.data();
     return Journey(
-        userId: data?['userId'],
-        startPoint: data?['startPoint'],
-        destination: data?['destination'],
-        isCompleted: data?['isCompleted'],
-        hasDriver: data?['hasDriver'],
-        driverId: data?['driverId'],
+      userId: data?['userId'],
+      startPoint: data?['startPoint'],
+      destination: data?['destination'],
+      isCompleted: data?['isCompleted'],
+      hasDriver: data?['hasDriver'],
+      driverId: data?['driverId'],
     );
   }
-
 }

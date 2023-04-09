@@ -8,12 +8,7 @@ class User {
   final String email;
   final String fullName;
 
-  User({
-    required this.id,
-    required this.userType,
-    required this.email,
-    required this.fullName
-  });
+  User({required this.id, required this.userType, required this.email, required this.fullName});
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -25,16 +20,15 @@ class User {
   }
 
   factory User.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> snapshot,
-      SnapshotOptions? options,
-      ) {
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? options,
+  ) {
     final data = snapshot.data();
     return User(
-        id: data?['id'],
-        userType: data?['userType'],
-        email: data?['email'],
-        fullName: data?['fullName'],
+      id: data?['id'],
+      userType: data?['userType'],
+      email: data?['email'],
+      fullName: data?['fullName'],
     );
   }
-
 }

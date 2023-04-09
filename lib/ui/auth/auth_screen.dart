@@ -11,69 +11,47 @@ class AuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Sign In")),
+      appBar: AppBar(title: const Text("Sign In")),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
+            TextField(controller: emailController, decoration: const InputDecoration(hintText: "Email")),
             TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                hintText: "Email"
-              )
-            ),
-
-            TextField(
-              obscureText: true,
-              controller: passwordController,
-              decoration: InputDecoration(
-                hintText: "Password"
-              )
-            ),
-
-            SizedBox(height: 8.0),
-
+                obscureText: true,
+                controller: passwordController,
+                decoration: const InputDecoration(hintText: "Password")),
+            const SizedBox(height: 8.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 Expanded(
                   child: ElevatedButton(
                       onPressed: () {
                         String email = emailController.text.trim();
                         String password = passwordController.text.trim();
 
-                        context.read<AuthService>().signUp(
-                            email: email,
-                            password: password
-                        );
+                        context.read<AuthService>().signUp(email: email, password: password);
                       },
-
-                      child: Text("Sign Up")
-                  ),),
-
-                SizedBox(width: 8.0),
-
+                      child: const Text("Sign Up")),
+                ),
+                const SizedBox(width: 8.0),
                 Expanded(
                   child: ElevatedButton(
                       onPressed: () {
                         String email = emailController.text.trim();
                         String password = passwordController.text.trim();
 
-                        context.read<AuthService>().signIn(
-                            email: email,
-                            password: password
-                        );
+                        context.read<AuthService>().signIn(email: email, password: password);
                       },
-
-                      child: Text("Sign In")
-                  ),),
+                      child: const Text("Sign In")),
+                ),
               ],
             )
           ],
-        ),)
+        ),
+      ),
     );
   }
 }

@@ -19,29 +19,30 @@ class _PassengerHomeState extends State<PassengerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text(Greeting.getGreeting()),
-            actions: <Widget>[
-        IconButton(
-        onPressed: () {
-    context.read<AuthService>().signOut();
-    },
-        icon: Icon(Icons.logout_rounded))
-    ]),
-        body:
-        Stack(children: [
-          CustomMap(),
-
+      appBar: AppBar(
+        title: Text(Greeting.getGreeting()),
+        actions: <Widget>[
+          IconButton(
+              onPressed: () {
+                context.read<AuthService>().signOut();
+              },
+              icon: const Icon(Icons.logout_rounded))
+        ],
+      ),
+      body: Stack(
+        children: [
+          const CustomMap(),
           Positioned.fill(
-              child:
-              Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Align(
-                  alignment: Alignment.topCenter,
-                  child:
-                      SearchTextField(controller: _searchController)
-                  )
-              ))
-          ])
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: SearchTextField(controller: _searchController),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
