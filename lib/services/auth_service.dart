@@ -16,7 +16,7 @@ class AuthService {
     try {
       await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
 
-      _registerUser(); // Temporary
+      // _registerUser(); // Temporary
 
       return SIGNED_IN;
     } on FirebaseAuthException catch (e) {
@@ -24,21 +24,31 @@ class AuthService {
     }
   }
 
-  Future<String> signUp({required String email, required String password}) async {
+  Future<String> signUp({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+  }) async {
     try {
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-      _registerUser();
+      _registerUser(firstName: firstName, lastName: lastName);
       return SIGNED_IN;
     } on FirebaseAuthException catch (e) {
       return e.message ?? "";
     }
   }
 
-  void _registerUser() {
+  void _registerUser({required String firstName, required String lastName}) {
     final userId = _firebaseAuth.currentUser?.uid;
     final userEmail = _firebaseAuth.currentUser?.email;
     _userRepo.createUser(
-      model.User(id: userId!, userType: PASSENGER, email: userEmail!, fullName: "FirstName LastName"),
+      model.User(
+        id: userId!,
+        userType: PASSENGER,
+        email: userEmail!,
+        fullName: "$firstName $lastName",
+      ),
     );
 
     // Temporary
