@@ -7,7 +7,9 @@ import 'driver/driver_home.dart';
 
 class UserWrapper extends StatelessWidget {
   final String userId;
-  UserWrapper({required this.userId});
+  UserWrapper({
+    super.key,
+    required this.userId});
 
   final _userRepo = UserRepo();
 
