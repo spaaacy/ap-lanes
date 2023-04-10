@@ -122,78 +122,85 @@ class _DriverHomeState extends State<DriverHome> {
               ),
             ),
           ),
-          Visibility(
-            visible: _isMatchmaking,
-            child: Positioned.fill(
-              left: 24,
-              right: 24,
-              top: 24,
-              child: Column(
-                children: [
-                  Material(
-                    elevation: 2,
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(5),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      width: double.infinity,
-                      decoration: const BoxDecoration(color: Colors.transparent),
-                      height: 100,
-                      child: _journey == null
-                          ? const Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Name: Name Here',
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                                Text(
-                                  'Location: APU',
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                              ],
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+          TweenAnimationBuilder(
+            curve: Curves.easeInOut,
+            duration: const Duration(milliseconds: 250),
+            tween: Tween<double>(begin: _isMatchmaking ? 0 : 1, end: _isMatchmaking ? 1 : 0),
+            builder: (_, double scale, w) {
+              return Positioned.fill(
+                left: 24,
+                right: 24,
+                top: 24 - (200 * scale),
+                child: Visibility(
+                  visible: scale != 1,
+                  child: Column(
                     children: [
-                      FilledButton(
-                        style: matchmakingButtonTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.red),
+                      Material(
+                        elevation: 2,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(5),
                         ),
-                        onPressed: _journey == null ? null : () {},
-                        child: Text(
-                          'REJECT',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          width: double.infinity,
+                          decoration: const BoxDecoration(color: Colors.transparent),
+                          height: 100,
+                          child: _journey == null
+                              ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Name: Name Here',
+                                      style: Theme.of(context).textTheme.bodyLarge,
+                                    ),
+                                    Text(
+                                      'Location: APU',
+                                      style: Theme.of(context).textTheme.bodyLarge,
+                                    ),
+                                  ],
+                                ),
                         ),
                       ),
-                      FilledButton(
-                        style: matchmakingButtonTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.green),
-                        ),
-                        onPressed: _journey == null ? null : () {},
-                        child: Text(
-                          'ACCEPT',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          FilledButton(
+                            style: matchmakingButtonTheme?.copyWith(
+                              backgroundColor: const MaterialStatePropertyAll(Colors.red),
+                            ),
+                            onPressed: _journey == null ? null : () {},
+                            child: Text(
+                              'REJECT',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                          FilledButton(
+                            style: matchmakingButtonTheme?.copyWith(
+                              backgroundColor: const MaterialStatePropertyAll(Colors.green),
+                            ),
+                            onPressed: _journey == null ? null : () {},
+                            child: Text(
+                              'ACCEPT',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           )
         ],
       ),
