@@ -1,7 +1,6 @@
 import 'package:apu_rideshare/services/auth_service.dart';
 import 'package:apu_rideshare/util/constants.dart' as constants;
 import 'package:apu_rideshare/util/ui_helper.dart' as ui_helper;
-import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +13,7 @@ class SignUpScreen extends StatelessWidget {
   final lastNameController = TextEditingController();
 
   final _signUpFormKey = GlobalKey<FormState>();
+  final _emailRegExp = RegExp(r'tp\d{6}@mail\.apu\.edu\.my', caseSensitive: false);
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +50,8 @@ class SignUpScreen extends StatelessWidget {
               ),
               TextFormField(
                 validator: (value) {
-                  if (value == null || value.isEmpty || !EmailValidator.validate(value)) {
-                    return 'Please enter a valid email';
+                  if (value == null || value.isEmpty || !_emailRegExp.hasMatch(value)) {
+                    return 'Your email must be a TP email';
                   }
                   return null;
                 },
@@ -92,10 +92,10 @@ class SignUpScreen extends StatelessWidget {
 
                           if (context.mounted) {
                             if (result == constants.SIGNED_IN) {
-                              Navigator.of(context).pop();
-                              Navigator.of(context).pop();
+                              Navigator.of(context).pop(); // pop loader
+                              Navigator.of(context).pop(); // pop signup page
                             } else {
-                              Navigator.of(context).pop();
+                              Navigator.of(context).pop(); // pop loader
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Something went wrong when signing up.')),
                               );
