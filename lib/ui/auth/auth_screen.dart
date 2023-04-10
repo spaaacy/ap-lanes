@@ -10,60 +10,81 @@ class AuthScreen extends StatelessWidget {
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final _signInFormKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Sign In")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(hintText: "Email"),
-            ),
-            TextField(
+      body: Form(
+        key: _signInFormKey,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextFormField(
+                controller: emailController,
+                decoration: const InputDecoration(hintText: "Email"),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+
+                  return null;
+                },
+              ),
+              TextFormField(
                 obscureText: true,
                 controller: passwordController,
-                decoration: const InputDecoration(hintText: "Password")),
-            const SizedBox(height: 8.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SignUpScreen()),
-                      );
-                    },
-                    child: const Text("Sign Up"),
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Expanded(
-                  child: ElevatedButton(
-                      onPressed: () async {
-                        String email = emailController.text.trim();
-                        String password = passwordController.text.trim();
+                decoration: const InputDecoration(hintText: "Password"),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
 
-                        String result = await context.read<AuthService>().signIn(email: email, password: password);
-                        if (context.mounted && result != SIGNED_IN) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(result),
-                            ),
-                          );
-                        }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUpScreen()),
+                        );
                       },
-                      child: const Text("Sign In")),
-                ),
-              ],
-            )
-          ],
+                      child: const Text("Sign Up"),
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: ElevatedButton(
+                        onPressed: () async {
+                          String email = emailController.text.trim();
+                          String password = passwordController.text.trim();
+
+                          if (_signInFormKey.currentState!.validate()) {
+                            String result = await context.read<AuthService>().signIn(email: email, password: password);
+                            if (context.mounted && result != SIGNED_IN) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(result),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text("Sign In")),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );

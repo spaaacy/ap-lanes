@@ -46,7 +46,7 @@ class _CustomMapState extends State<CustomMap> {
         final latLng = LatLng(location.latitude, location.longitude);
         setState(() => _currentPosition = latLng);
         if (_cameraShouldCenter) {
-          _mapController.animateCamera(CameraUpdate.newLatLng(latLng));
+          _mapController.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
         }
       });
     }
@@ -98,9 +98,8 @@ class _CustomMapState extends State<CustomMap> {
               },
               style: ElevatedButtonTheme.of(context).style?.copyWith(
                     shape: const MaterialStatePropertyAll(CircleBorder()),
-                    padding: const MaterialStatePropertyAll(
-                      EdgeInsets.all(16.0),
-                    ),
+                    padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
+                    elevation: const MaterialStatePropertyAll(4.0),
                   ),
               child: const Icon(
                 Icons.my_location,
