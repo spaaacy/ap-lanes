@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../data/repo/user_repo.dart';
 import '../../services/auth_service.dart';
 import '../../util/greeting.dart';
+import '../auth/auth_wrapper.dart';
 
 class PassengerHome extends StatefulWidget {
   const PassengerHome({super.key});
@@ -24,7 +25,10 @@ class _PassengerHomeState extends State<PassengerHome> {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<firebase_auth.User?>();
     final userRepo = UserRepo();
-    final userFuture = userRepo.getUser(firebaseUser!.uid);
+    Future<User>? userFuture;
+    if (firebaseUser != null) {
+      userFuture = userRepo.getUser(firebaseUser.uid);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -40,42 +44,41 @@ class _PassengerHomeState extends State<PassengerHome> {
                 color: Colors.black,
               ),
               child: FutureBuilder<User>(
-                  future: userFuture,
-                  builder: (ctx, userSnapshot) => Column(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey.shade200,
-                              ),
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  userSnapshot.data?.fullName.characters.first.toUpperCase() ?? '?',
-                                  style: const TextStyle(fontSize: 48),
-                                ),
-                              ),
-                            ),
+                future: userFuture,
+                builder: (ctx, userSnapshot) => Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey.shade200,
+                        ),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            userSnapshot.data?.fullName.characters.first.toUpperCase() ?? '?',
+                            style: const TextStyle(fontSize: 48),
                           ),
-                          Text(
-                            userSnapshot.data?.fullName ?? 'Unknown User',
-                            style: const TextStyle(color: Colors.white),
-                          )
-                        ],
-                      )),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      userSnapshot.data?.fullName ?? 'Unknown User',
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  ],
+                ),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.drive_eta),
               title: const Text('Driver Mode'),
               onTap: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => const DriverHome(),
-                  ),
-                );
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (BuildContext context) => const DriverHome(),
+                ));
               },
             ),
             const Divider(),
@@ -84,6 +87,11 @@ class _PassengerHomeState extends State<PassengerHome> {
               title: const Text('Log out'),
               onTap: () {
                 context.read<AuthService>().signOut();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => AuthWrapper(context: context),
+                  ),
+                );
               },
             ),
           ],

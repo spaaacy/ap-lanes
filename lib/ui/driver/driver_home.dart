@@ -1,4 +1,5 @@
 import 'package:apu_rideshare/data/model/firestore/journey.dart';
+import 'package:apu_rideshare/ui/auth/auth_wrapper.dart';
 import 'package:apu_rideshare/ui/passenger/passenger_home.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -30,7 +31,10 @@ class _DriverHomeState extends State<DriverHome> {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<firebase_auth.User?>();
     final userRepo = UserRepo();
-    final userFuture = userRepo.getUser(firebaseUser!.uid);
+    Future<User>? userFuture;
+    if (firebaseUser != null) {
+      userFuture = userRepo.getUser(firebaseUser.uid);
+    }
     final matchmakingButtonTheme = FilledButtonTheme.of(context).style?.copyWith(
           elevation: const MaterialStatePropertyAll(2),
           padding: const MaterialStatePropertyAll(
@@ -50,41 +54,43 @@ class _DriverHomeState extends State<DriverHome> {
                 color: Colors.black,
               ),
               child: FutureBuilder<User>(
-                  future: userFuture,
-                  builder: (ctx, userSnapshot) => Column(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey.shade200,
-                              ),
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  userSnapshot.data?.fullName.characters.first.toUpperCase() ?? '?',
-                                  style: const TextStyle(fontSize: 48),
-                                ),
-                              ),
-                            ),
+                future: userFuture,
+                builder: (ctx, userSnapshot) => Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey.shade200,
+                        ),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            userSnapshot.data?.fullName.characters.first.toUpperCase() ?? '?',
+                            style: const TextStyle(fontSize: 48),
                           ),
-                          Text(
-                            userSnapshot.data?.fullName ?? 'Unknown User',
-                            style: const TextStyle(color: Colors.white),
-                          )
-                        ],
-                      )),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      userSnapshot.data?.fullName ?? 'Unknown User',
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  ],
+                ),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.drive_eta),
               title: const Text('Passenger Mode'),
               onTap: () {
-                Navigator.of(context).pushReplacement(
+                Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
                     builder: (BuildContext context) => const PassengerHome(),
                   ),
+                  (_) => false,
                 );
               },
             ),
@@ -94,6 +100,11 @@ class _DriverHomeState extends State<DriverHome> {
               title: const Text('Log out'),
               onTap: () {
                 context.read<AuthService>().signOut();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => AuthWrapper(context: context),
+                  ),
+                );
               },
             ),
           ],
@@ -125,7 +136,7 @@ class _DriverHomeState extends State<DriverHome> {
           TweenAnimationBuilder(
             curve: Curves.easeInOut,
             duration: const Duration(milliseconds: 250),
-            tween: Tween<double>(begin: _isMatchmaking ? 0 : 1, end: _isMatchmaking ? 1 : 0),
+            tween: Tween<double>(begin: _isMatchmaking ? 1 : 0, end: _isMatchmaking ? 0 : 1),
             builder: (_, double scale, w) {
               return Positioned.fill(
                 left: 24,
