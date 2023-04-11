@@ -12,10 +12,14 @@ class UserRepo {
   }
 
   Future<String> getUserType(String id) async {
+    final user = await getUser(id);
+    return (user.userType);
+  }
+
+  Future<model.User> getUser(String id) async {
     final snapshot = await _userRef.where('id', isEqualTo: id).get();
     final firstDoc = snapshot.docs.first;
-    final user = firstDoc.data();
-    return (user.userType);
+    return firstDoc.data();
   }
 
 // TODO: Get last name
