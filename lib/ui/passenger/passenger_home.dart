@@ -2,6 +2,7 @@ import 'package:apu_rideshare/data/model/firestore/user.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:apu_rideshare/ui/driver/driver_home.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_text_field.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +26,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<firebase_auth.User?>();
     final userRepo = UserRepo();
-    Future<User>? userFuture;
+    Future<QueryDocumentSnapshot<User>>? userFuture;
     if (firebaseUser != null) {
       userFuture = userRepo.getUser(firebaseUser.uid);
     }
@@ -43,7 +44,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               decoration: const BoxDecoration(
                 color: Colors.black,
               ),
-              child: FutureBuilder<User>(
+              child: FutureBuilder<QueryDocumentSnapshot<User>>(
                 future: userFuture,
                 builder: (ctx, userSnapshot) => Column(
                   children: [
@@ -58,14 +59,14 @@ class _PassengerHomeState extends State<PassengerHome> {
                         child: Align(
                           alignment: Alignment.center,
                           child: Text(
-                            userSnapshot.data?.fullName.characters.first.toUpperCase() ?? '?',
+                            userSnapshot.data?.data().fullName.characters.first.toUpperCase() ?? '?',
                             style: const TextStyle(fontSize: 48),
                           ),
                         ),
                       ),
                     ),
                     Text(
-                      userSnapshot.data?.fullName ?? 'Unknown User',
+                      userSnapshot.data?.data().fullName ?? 'Unknown User',
                       style: const TextStyle(color: Colors.white),
                     )
                   ],

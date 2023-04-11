@@ -9,7 +9,16 @@ class DriverRepo {
       .collection("driver")
       .withConverter(fromFirestore: Driver.fromFirestore, toFirestore: (Driver driver, _) => driver.toFirestore());
 
-  void createDriver(Driver driver) {
-    _driverRef.add(driver);
+  Future<DocumentReference<Driver>> createDriver(Driver driver) async {
+    return await _driverRef.add(driver);
+  }
+
+  Future<QueryDocumentSnapshot<Driver>?> getDriver(String id) async {
+    final snapshot = await _driverRef.where('id', isEqualTo: id).get();
+    return snapshot.docs.first;
+  }
+
+  Future<void> updateDriver(QueryDocumentSnapshot<Driver> driver, Map<Object, Object?> updatedValues) async {
+    await driver.reference.update(updatedValues);
   }
 }
