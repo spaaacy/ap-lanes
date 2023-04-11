@@ -56,6 +56,8 @@ class _DriverHomeState extends State<DriverHome> {
             .then((driverData) {
               setState(() {
                 _driver = driverData;
+                // todo: maybe make this check for ongoing journeys instead
+                _isMatchmaking = _driver?.data().isAvailable == true;
               });
             })
             .catchError((e) async {
