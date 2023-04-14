@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Passenger {
-  final String userId;
+  final String id;
   final bool isSearching;
 
-  Passenger({required this.userId, required this.isSearching});
+  Passenger({required this.id, this.isSearching = false});
 
   Map<String, dynamic> toFirestore() {
     return {
-      if (userId != null) "userId": userId,
+      if (id != null) "id": id,
       if (isSearching != null) "isSearching": isSearching,
     };
   }
@@ -19,7 +19,7 @@ class Passenger {
   ) {
     final data = snapshot.data();
     return Passenger(
-      userId: data?['userId'],
+      id: data?['id'],
       isSearching: data?['isSearching'],
     );
   }

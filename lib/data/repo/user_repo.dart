@@ -11,16 +11,15 @@ class UserRepo {
     _userRef.add(user);
   }
 
-  Future<QueryDocumentSnapshot<model.User>> getUser(String id) async {
-    final snapshot = await _userRef.where('id', isEqualTo: id).get();
+  Future<QueryDocumentSnapshot<model.User>> getUser(String userId) async {
+    final snapshot = await _userRef.where('id', isEqualTo: userId).get();
     return snapshot.docs.first;
   }
 
-  Future<String> getUserType(String id) async {
-    final user = await getUser(id);
-    return (user.data().userType);
+  Future<String> getUserType(String userId) async {
+    final user = await getUser(userId);
+    return user.get("userType");
   }
 
   // TODO: Get last name
-
 }

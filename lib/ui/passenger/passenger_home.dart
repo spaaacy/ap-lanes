@@ -1,4 +1,5 @@
 import 'package:apu_rideshare/data/model/firestore/user.dart';
+import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:apu_rideshare/ui/driver/driver_home.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
@@ -8,7 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/repo/user_repo.dart';
+import '../../data/model/firestore/passenger.dart';
 import '../../services/auth_service.dart';
 import '../../util/greeting.dart';
 import '../auth/auth_wrapper.dart';
@@ -22,20 +23,32 @@ class PassengerHome extends StatefulWidget {
 
 class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
+  final _passengerRepo = PassengerRepo();
+  late Stream<QuerySnapshot<Passenger?>> _passenger;
 
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.watch<firebase_auth.User?>();
+
+      if (user != null) {
+        _passenger = _passengerRepo.listenForPassenger(user.uid);
+        _passenger.listen((passenger) {
+          if (passenger.docs.isEmpty) {
+            _passengerRepo.createPassenger(Passenger(id: user.uid));
+          } else {
+            _passenger = passenger.docs.first.data();
+          }
+        });
+      };
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = context.watch<firebase_auth.User?>();
-    final userRepo = UserRepo();
     Future<QueryDocumentSnapshot<User>>? userFuture;
-    if (firebaseUser != null) {
-      userFuture = userRepo.getUser(firebaseUser.uid);
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -111,7 +124,10 @@ class _PassengerHomeState extends State<PassengerHome> {
           ],
         ),
       ),
-      body: Stack(
+      body:
+      _passenger == null ?
+          const Align(child: CircularProgressIndicator()) :
+      Stack(
         children: [
           const CustomMap(),
           Positioned.fill(
@@ -127,7 +143,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             bottom: 100.0,
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: PassengerGoButton(passenger: _passenger),
+              child: PassengerGoButton(passenger: _passenger!),
             ),
           )
         ],

@@ -13,13 +13,18 @@ class PassengerRepo {
     _passengerRef.add(passenger);
   }
 
-  Future<QueryDocumentSnapshot<Passenger>?> getPassenger(String userId) async {
-    final passenger = await _passengerRef.where("userId", isEqualTo: userId).get();
+  Future<QueryDocumentSnapshot<Passenger?>> getPassenger(String userId) async {
+    final passenger =
+        await _passengerRef.where("id", isEqualTo: userId).get();
     return passenger.docs.first;
   }
 
-  Future<void> updateIsSearching(QueryDocumentSnapshot<Passenger> passenger, Map<Object, Object?> isSearching) async {
-    passenger.reference.update({"isSearching": isSearching});
+  Stream<QuerySnapshot<Passenger?>> listenForPassenger(String userId) {
+    return _passengerRef.where("id", isEqualTo: userId).snapshots();
   }
 
+  Future<void> updateIsSearching(QueryDocumentSnapshot<Passenger> passenger,
+      Map<Object, Object?> isSearching) async {
+    passenger.reference.update({"isSearching": isSearching});
+  }
 }

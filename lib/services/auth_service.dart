@@ -43,11 +43,11 @@ class AuthService {
   }
 
   void _registerUser({required String firstName, required String lastName}) {
-    final userId = _firebaseAuth.currentUser?.uid;
+    final id = _firebaseAuth.currentUser?.uid;
     final userEmail = _firebaseAuth.currentUser?.email;
     _userRepo.createUser(
       model.User(
-        userId: userId!,
+        id: id!,
         userType: PASSENGER,
         email: userEmail!,
         fullName: "$firstName $lastName",
@@ -56,7 +56,7 @@ class AuthService {
 
     // Temporary
     // final driverRepo = DriverRepo();
-    // driverRepo.createDriver(Driver(id: userId!, licensePlate: "ABC1234", isAvailable: false));
+    // driverRepo.createDriver(Driver(id: id!, licensePlate: "ABC1234", isAvailable: false));
   }
 
   Future<void> signOut() async {

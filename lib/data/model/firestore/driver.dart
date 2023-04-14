@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Driver {
-  final String userId;
+  final String id;
   final String licensePlate;
   final bool isAvailable;
 
   const Driver(
-      {required this.userId,
+      {required this.id,
       required this.licensePlate,
       required this.isAvailable});
 
   Map<String, dynamic> toFirestore() {
     return {
-      if (userId != null) "userId": userId,
+      if (id != null) "id": id,
       if (licensePlate != null) "licensePlate": licensePlate,
       if (isAvailable != null) "isAvailable": isAvailable,
     };
@@ -24,7 +24,7 @@ class Driver {
   ) {
     final data = snapshot.data();
     return Driver(
-        userId: data?['userId'],
+        id: data?['id'],
         licensePlate: data?['licensePlate'],
         isAvailable: data?['isAvailable']);
   }
