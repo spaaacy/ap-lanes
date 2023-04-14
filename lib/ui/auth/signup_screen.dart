@@ -13,7 +13,10 @@ class SignUpScreen extends StatelessWidget {
   final lastNameController = TextEditingController();
 
   final _signUpFormKey = GlobalKey<FormState>();
-  final _emailRegExp = RegExp(r'tp\d{6}@mail\.apu\.edu\.my', caseSensitive: false);
+  final _emailRegExp = RegExp(
+    r"(tp\d{6}@mail\.apu\.edu\.my|[\w\d.!#$%&'*+/=?^_`{|}~-]+@apu\.edu\.my)",
+    caseSensitive: false,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +54,7 @@ class SignUpScreen extends StatelessWidget {
               TextFormField(
                 validator: (value) {
                   if (value == null || value.isEmpty || !_emailRegExp.hasMatch(value)) {
-                    return 'Your email must be a TP email';
+                    return 'Your email must belong to APU.';
                   }
                   return null;
                 },

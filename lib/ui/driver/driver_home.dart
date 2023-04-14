@@ -252,30 +252,35 @@ class _DriverHomeState extends State<DriverHome> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          FilledButton(
-                            style: matchmakingButtonTheme?.copyWith(
-                              backgroundColor: const MaterialStatePropertyAll(Colors.red),
-                            ),
-                            onPressed: _journey == null ? null : () {},
-                            child: Text(
-                              'REJECT',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          Expanded(
+                            child: FilledButton(
+                              style: matchmakingButtonTheme?.copyWith(
+                                backgroundColor: const MaterialStatePropertyAll(Colors.red),
+                              ),
+                              onPressed: _journey == null ? null : () {},
+                              child: Text(
+                                'REJECT',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
                             ),
                           ),
-                          FilledButton(
-                            style: matchmakingButtonTheme?.copyWith(
-                              backgroundColor: const MaterialStatePropertyAll(Colors.green),
-                            ),
-                            onPressed: _journey == null ? null : () {},
-                            child: Text(
-                              'ACCEPT',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: FilledButton(
+                              style: matchmakingButtonTheme?.copyWith(
+                                backgroundColor: const MaterialStatePropertyAll(Colors.green),
+                              ),
+                              onPressed: _journey == null ? null : () {},
+                              child: Text(
+                                'ACCEPT',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
                             ),
                           ),
                         ],
