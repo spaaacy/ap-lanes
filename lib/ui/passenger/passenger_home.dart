@@ -1,6 +1,7 @@
 import 'package:apu_rideshare/data/model/firestore/user.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:apu_rideshare/ui/driver/driver_home.dart';
+import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_text_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -101,6 +102,7 @@ class _PassengerHomeState extends State<PassengerHome> {
       body: Stack(
         children: [
           const CustomMap(),
+
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -110,6 +112,15 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             ),
           ),
+
+          Positioned.fill(
+            bottom: 100.0,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: PassengerGoButton(),
+            ),
+          )
+
         ],
       ),
     );

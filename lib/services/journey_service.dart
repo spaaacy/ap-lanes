@@ -1,3 +1,0 @@
-class JourneyService {
-  JourneyService();
-}
