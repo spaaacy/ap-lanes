@@ -7,7 +7,9 @@ class DriverRepo {
 
   final _driverRef = FirebaseFirestore.instance
       .collection("driver")
-      .withConverter(fromFirestore: Driver.fromFirestore, toFirestore: (Driver driver, _) => driver.toFirestore());
+      .withConverter(
+          fromFirestore: Driver.fromFirestore,
+          toFirestore: (Driver driver, _) => driver.toFirestore());
 
   Future<DocumentReference<Driver>> createDriver(Driver driver) async {
     return await _driverRef.add(driver);
@@ -18,7 +20,8 @@ class DriverRepo {
     return snapshot.docs.first;
   }
 
-  Future<void> updateDriver(QueryDocumentSnapshot<Driver> driver, Map<Object, Object?> updatedValues) async {
+  Future<void> updateDriver(QueryDocumentSnapshot<Driver> driver,
+      Map<Object, Object?> updatedValues) async {
     await driver.reference.update(updatedValues);
   }
 }

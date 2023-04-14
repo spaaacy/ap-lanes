@@ -24,6 +24,11 @@ class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<firebase_auth.User?>();
     final userRepo = UserRepo();
@@ -60,7 +65,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                         child: Align(
                           alignment: Alignment.center,
                           child: Text(
-                            userSnapshot.data?.data().fullName.characters.first.toUpperCase() ?? '?',
+                            userSnapshot.data
+                                    ?.data()
+                                    .fullName
+                                    .characters
+                                    .first
+                                    .toUpperCase() ??
+                                '?',
                             style: const TextStyle(fontSize: 48),
                           ),
                         ),
@@ -91,7 +102,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                 context.read<AuthService>().signOut();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (BuildContext context) => AuthWrapper(context: context),
+                    builder: (BuildContext context) =>
+                        AuthWrapper(context: context),
                   ),
                 );
               },
@@ -102,7 +114,6 @@ class _PassengerHomeState extends State<PassengerHome> {
       body: Stack(
         children: [
           const CustomMap(),
-
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -112,15 +123,13 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             ),
           ),
-
           Positioned.fill(
             bottom: 100.0,
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: PassengerGoButton(),
+              child: PassengerGoButton(passenger: _passenger),
             ),
           )
-
         ],
       ),
     );

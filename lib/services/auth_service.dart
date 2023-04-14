@@ -12,9 +12,11 @@ class AuthService {
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
   final _userRepo = UserRepo();
 
-  Future<String> signIn({required String email, required String password}) async {
+  Future<String> signIn(
+      {required String email, required String password}) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+      await _firebaseAuth.signInWithEmailAndPassword(
+          email: email, password: password);
 
       // _registerUser(); // Temporary
 
@@ -31,7 +33,8 @@ class AuthService {
     required String lastName,
   }) async {
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
+      await _firebaseAuth.createUserWithEmailAndPassword(
+          email: email, password: password);
       _registerUser(firstName: firstName, lastName: lastName);
       return SIGNED_IN;
     } on FirebaseAuthException catch (e) {
@@ -44,7 +47,7 @@ class AuthService {
     final userEmail = _firebaseAuth.currentUser?.email;
     _userRepo.createUser(
       model.User(
-        id: userId!,
+        userId: userId!,
         userType: PASSENGER,
         email: userEmail!,
         fullName: "$firstName $lastName",

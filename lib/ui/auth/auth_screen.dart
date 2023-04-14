@@ -55,7 +55,8 @@ class AuthScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => SignUpScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => SignUpScreen()),
                         );
                       },
                       child: const Text("Sign Up"),
@@ -69,7 +70,9 @@ class AuthScreen extends StatelessWidget {
                           String password = passwordController.text.trim();
 
                           if (_signInFormKey.currentState!.validate()) {
-                            String result = await context.read<AuthService>().signIn(email: email, password: password);
+                            String result = await context
+                                .read<AuthService>()
+                                .signIn(email: email, password: password);
                             if (context.mounted && result != SIGNED_IN) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
