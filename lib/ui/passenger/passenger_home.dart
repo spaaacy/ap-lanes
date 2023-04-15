@@ -40,23 +40,25 @@ class _PassengerHomeState extends State<PassengerHome> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = Provider.of<firebase_auth.User?>(context, listen: false);
-      if (user != null) {
-        _passengerRepo.getPassenger(user.uid).then((passenger) {
+      firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
+      if (firebaseUser != null) {
+        _passengerRepo.getPassenger(firebaseUser!.uid).then((passenger) {
           setState(() {
             _passenger = passenger;
             _isSearching = _passenger?.data().isSearching == true;
           });
         });
 
-        _userRepo.getUser(user.uid).then((userData) {
+        _userRepo.getUser(firebaseUser!.uid).then((userData) {
           setState(() {
             _user = userData;
           });
         });
 
-        _journeyRepo.listenForJourney(user.uid, (journey) {
-          _journey = journey;
+        _journeyRepo.listenForJourney(firebaseUser!.uid, (journey) {
+          setState(() {
+            _journey = journey;
+          });
         });
       }
     });
@@ -90,7 +92,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             bottom: 100.0,
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: PassengerGoButton(passenger: _passenger!, isSearching: _isSearching, journey: _journey,),
+              child: PassengerGoButton(passenger: _passenger!, isSearching: _isSearching, journey: _journey, firebaseUser: firebaseUser),
             ),
           )
         ],

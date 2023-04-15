@@ -2,6 +2,7 @@ import 'package:apu_rideshare/data/model/firestore/journey.dart';
 import 'package:apu_rideshare/data/repo/journey_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +13,11 @@ import '../../../data/repo/passenger_repo.dart';
 
 class PassengerGoButton extends StatefulWidget {
   final QueryDocumentSnapshot<Passenger> passenger;
-  late final bool isSearching;
+  bool isSearching;
   QueryDocumentSnapshot<Journey>? journey;
+  firebase_auth.User? firebaseUser;
 
-  PassengerGoButton({super.key, required this.passenger, required this.isSearching, required this.journey});
+  PassengerGoButton({super.key, required this.passenger, required this.isSearching, required this.journey, required this.firebaseUser});
 
   @override
   State<PassengerGoButton> createState() => _PassengerGoButtonState();
@@ -27,39 +29,38 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<firebase_auth.User?>();
-
     return ElevatedButton(
       onPressed: () {
-        !widget.isSearching
-            ?
-            // Create a journey
-            () {
-                _journeyRepo.createJourney(Journey(
-                    userId: user!.uid,
-                    // TODO: Implement actual locations
-                    startPoint:
-                        "3.055513736582056, 101.69617610900454", // Parkhill
-                    destination:
-                        "3.0557922212826236, 101.70035141013787", // APU
-                    isCompleted: false)
-                );
+        if (!widget.isSearching) {
+          if (widget.firebaseUser != null) {
+              // Create a journey
+              _journeyRepo.createJourney(
+                  Journey(
+                  userId: widget.firebaseUser!.uid,
+                  // TODO: Implement actual locations
+                  startPoint: "3.055513736582056, 101.69617610900454", // Parkhill
+                  destination: "3.0557922212826236, 101.70035141013787", // APU
+                  isCompleted: false
+                  )
+              );
 
-                // Update passenger to isSearching true
-                _passengerRepo.updateIsSearching(
-                    widget.passenger, !widget.isSearching);
+              // Update passenger to isSearching true
+              _passengerRepo.updateIsSearching(widget.passenger, true);
 
+              setState(() {
                 widget.isSearching = true;
-              }
-            : ()
-        {
-          _journeyRepo.deleteJourney(widget.journey);
+              });
+            }
+          } else {
+            _journeyRepo.deleteJourney(widget.journey);
 
-          _passengerRepo.updateIsSearching(widget.passenger, false);
+            _passengerRepo.updateIsSearching(widget.passenger, false);
 
-          widget.isSearching = false;
-        };
-      },
+            setState(() {
+              widget.isSearching = false;
+            });
+          }
+        },
       style: ElevatedButtonTheme.of(context).style?.copyWith(
             shape: const MaterialStatePropertyAll(CircleBorder()),
             padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
@@ -67,7 +68,7 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
           ),
       child:
           !widget.isSearching ? const Text("GO")
-              : const Icon(Icons.close, semanticLabel: "Cancel Search",)
+              : const Icon(Icons.close, semanticLabel: "Cancel Search", size: 20,)
     );
   }
 }
