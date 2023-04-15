@@ -53,10 +53,8 @@ class SignUpScreen extends StatelessWidget {
               ),
               TextFormField(
                 validator: (value) {
-                  if (value == null ||
-                      value.isEmpty ||
-                      !_emailRegExp.hasMatch(value)) {
-                    return 'Your email must belong to APU.';
+                  if (value == null || value.isEmpty || !_emailRegExp.hasMatch(value)) {
+                    return 'Your email must belong to APU';
                   }
                   return null;
                 },

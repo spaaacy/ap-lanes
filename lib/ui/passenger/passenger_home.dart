@@ -1,4 +1,6 @@
 import 'package:apu_rideshare/data/model/firestore/user.dart';
+import 'package:apu_rideshare/ui/common/app_drawer.dart';
+import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:apu_rideshare/ui/driver/driver_home.dart';
@@ -7,12 +9,13 @@ import 'package:apu_rideshare/ui/passenger/components/search_text_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/repo/user_repo.dart';
 import '../../data/model/firestore/passenger.dart';
 import '../../services/auth_service.dart';
 import '../../util/greeting.dart';
-import '../auth/auth_wrapper.dart';
 
 class PassengerHome extends StatefulWidget {
   const PassengerHome({super.key});
@@ -25,7 +28,10 @@ class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
   final _passengerRepo = PassengerRepo();
   QueryDocumentSnapshot<Passenger?>? _passenger;
-
+  final _userRepo = UserRepo();
+  QueryDocumentSnapshot<User>? _user;
+  late final firebase_auth.User? firebaseUser;
+  
   @override
   void initState() {
     super.initState();
@@ -38,88 +44,24 @@ class _PassengerHomeState extends State<PassengerHome> {
               setState(() => _passenger = passenger);
             }
         );
+        _userRepo.getUser(firebaseUser!.uid).then((userData) {
+          setState(() {
+            _user = userData;
+          });
+        });
       };
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    Future<QueryDocumentSnapshot<User>>? userFuture;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
           Greeting.getGreeting(),
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.black,
-              ),
-              child: FutureBuilder<QueryDocumentSnapshot<User>>(
-                future: userFuture,
-                builder: (ctx, userSnapshot) => Column(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        width: 96,
-                        height: 96,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey.shade200,
-                        ),
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            userSnapshot.data
-                                    ?.data()
-                                    .fullName
-                                    .characters
-                                    .first
-                                    .toUpperCase() ??
-                                '?',
-                            style: const TextStyle(fontSize: 48),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Text(
-                      userSnapshot.data?.data().fullName ?? 'Unknown User',
-                      style: const TextStyle(color: Colors.white),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.drive_eta),
-              title: const Text('Driver Mode'),
-              onTap: () {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (BuildContext context) => const DriverHome(),
-                ));
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Log out'),
-              onTap: () {
-                context.read<AuthService>().signOut();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        AuthWrapper(context: context),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(user: _user, isDriver: false),
       body:
       _passenger == null ?
           const Align(child: CircularProgressIndicator()) :

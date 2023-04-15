@@ -41,26 +41,22 @@ class _CustomMapState extends State<CustomMap> {
         await LocationPermissions.handleLocationPermission(context);
 
     if (hasPermissions) {
-      try {
-        _locationSubscription = Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.bestForNavigation),
-        ).listen((location) {
-          final latLng = LatLng(location.latitude, location.longitude);
-          /*
-          fixme: Can't fix this shit no matter what.
-            Putting a WillPopScope fixes this sometimes, but not all the time.
-            Ignoring for now.
-          */
-          setState(() => _currentPosition = latLng);
-          if (_cameraShouldCenter) {
-            _mapController
-                ?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
-          }
-        });
-      } catch (e, s) {
-        print(s);
-      }
+      _locationSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
+      ).listen((location) {
+        final latLng = LatLng(location.latitude, location.longitude);
+        /*
+          fixme: Problem with this `setState` getting called after
+           the widget disposes because the dispose function and
+           WillPopScope callback that cancels this `StreamSubscription`
+           doesn't run all the time. Can't fix this shit no matter what.
+           Ignoring for now.
+        */
+        setState(() => _currentPosition = latLng);
+        if (_cameraShouldCenter) {
+          _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
+        }
+      });
     }
   }
 

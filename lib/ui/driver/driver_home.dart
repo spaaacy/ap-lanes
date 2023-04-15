@@ -9,8 +9,7 @@ import '../../data/model/firestore/driver.dart';
 import '../../data/model/firestore/journey.dart';
 import '../../data/model/firestore/user.dart';
 import '../../data/repo/user_repo.dart';
-import '../../services/auth_service.dart';
-import '../auth/auth_wrapper.dart';
+import '../common/app_drawer.dart';
 import '../common/custom_map.dart';
 import '../passenger/passenger_home.dart';
 import 'setup_driver_profile_dialog.dart';
@@ -120,74 +119,7 @@ class _DriverHomeState extends State<DriverHome> {
       appBar: AppBar(
         title: const Text("Welcome Driver"),
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.black,
-              ),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.grey.shade200,
-                      ),
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          _user
-                                  ?.data()
-                                  .fullName
-                                  .characters
-                                  .first
-                                  .toUpperCase() ??
-                              '?',
-                          style: const TextStyle(fontSize: 48),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    _user?.data().fullName ?? 'Unknown User',
-                    style: const TextStyle(color: Colors.white),
-                  )
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.drive_eta),
-              title: const Text('Passenger Mode'),
-              onTap: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => const PassengerHome(),
-                  ),
-                  (_) => false,
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Log out'),
-              onTap: () {
-                context.read<AuthService>().signOut();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        AuthWrapper(context: context),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(user: _user, isDriver: true),
       body: Stack(
         children: [
           const CustomMap(),
