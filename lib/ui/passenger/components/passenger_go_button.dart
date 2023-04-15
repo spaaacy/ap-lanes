@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/model/firestore/passenger.dart';
@@ -26,15 +27,23 @@ class PassengerGoButton extends StatefulWidget {
 class _PassengerGoButtonState extends State<PassengerGoButton> {
   final _journeyRepo = JourneyRepo();
   final _passengerRepo = PassengerRepo();
+  final logger = Logger();
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        if (!widget.isSearching) {
-          if (widget.firebaseUser != null) {
-              // Create a journey
-              _journeyRepo.createJourney(
+        if (widget.firebaseUser != null) {
+          if (!widget.isSearching) {
+
+            setState(() {
+              widget.isSearching = true;
+            });
+
+            // Update passenger to isSearching true
+            _passengerRepo.updateIsSearching(widget.passenger, true);
+
+            _journeyRepo.createJourney(
                   Journey(
                   userId: widget.firebaseUser!.uid,
                   // TODO: Implement actual locations
@@ -44,31 +53,26 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
                   )
               );
 
-              // Update passenger to isSearching true
-              _passengerRepo.updateIsSearching(widget.passenger, true);
-
-              setState(() {
-                widget.isSearching = true;
-              });
-            }
-          } else {
-            _journeyRepo.deleteJourney(widget.journey);
-
-            _passengerRepo.updateIsSearching(widget.passenger, false);
-
+            } else {
             setState(() {
               widget.isSearching = false;
             });
+
+            _passengerRepo.updateIsSearching(widget.passenger, false);
+
+            _journeyRepo.deleteJourney(widget.journey);
           }
-        },
+        }
+      },
       style: ElevatedButtonTheme.of(context).style?.copyWith(
             shape: const MaterialStatePropertyAll(CircleBorder()),
             padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
             elevation: const MaterialStatePropertyAll(6.0),
           ),
       child:
-          !widget.isSearching ? const Text("GO")
-              : const Icon(Icons.close, semanticLabel: "Cancel Search", size: 20,)
+          !widget.isSearching ?
+            const Text("GO")
+            : const Icon(Icons.close, semanticLabel: "Cancel Search", size: 20,)
     );
   }
 }

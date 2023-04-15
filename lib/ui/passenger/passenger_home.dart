@@ -8,6 +8,7 @@ import 'package:apu_rideshare/ui/passenger/components/search_text_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/model/firestore/passenger.dart';
@@ -56,9 +57,7 @@ class _PassengerHomeState extends State<PassengerHome> {
         });
 
         _journeyRepo.listenForJourney(firebaseUser!.uid, (journey) {
-          setState(() {
-            _journey = journey;
-          });
+          _journey = journey;
         });
       }
     });
