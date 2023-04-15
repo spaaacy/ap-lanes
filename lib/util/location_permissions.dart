@@ -10,7 +10,8 @@ class LocationPermissions {
     if (!serviceEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Location services are disabled. Please enable the services'),
+          content: Text(
+              'Location services are disabled. Please enable the services'),
         ),
       );
       return false;
@@ -30,7 +31,8 @@ class LocationPermissions {
     if (permission == LocationPermission.deniedForever) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Location permissions are permanently denied, we cannot request permissions.'),
+          content: Text(
+              'Location permissions are permanently denied, we cannot request permissions.'),
         ),
       );
       return false;

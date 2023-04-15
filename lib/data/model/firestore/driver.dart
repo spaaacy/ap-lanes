@@ -5,7 +5,10 @@ class Driver {
   final String licensePlate;
   final bool isAvailable;
 
-  const Driver({required this.id, required this.licensePlate, required this.isAvailable});
+  const Driver(
+      {required this.id,
+      required this.licensePlate,
+      required this.isAvailable});
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -20,6 +23,9 @@ class Driver {
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
-    return Driver(id: data?['id'], licensePlate: data?['licensePlate'], isAvailable: data?['isAvailable']);
+    return Driver(
+        id: data?['id'],
+        licensePlate: data?['licensePlate'],
+        isAvailable: data?['isAvailable']);
   }
 }

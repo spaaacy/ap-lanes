@@ -17,7 +17,8 @@ class UserWrapper extends StatelessWidget {
     return FutureBuilder<String>(
       future: _userRepo.getUserType(userId),
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
           final userType = snapshot.data!;
           if (userType == DRIVER) {
             return const DriverHome();

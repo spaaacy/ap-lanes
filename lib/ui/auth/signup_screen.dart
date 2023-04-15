@@ -86,12 +86,13 @@ class SignUpScreen extends StatelessWidget {
                           String firstName = firstNameController.text.trim();
                           String lastName = lastNameController.text.trim();
 
-                          String result = await context.read<AuthService>().signUp(
-                                email: email,
-                                password: password,
-                                firstName: firstName,
-                                lastName: lastName,
-                              );
+                          String result =
+                              await context.read<AuthService>().signUp(
+                                    email: email,
+                                    password: password,
+                                    firstName: firstName,
+                                    lastName: lastName,
+                                  );
 
                           if (context.mounted) {
                             if (result == constants.SIGNED_IN) {
@@ -100,7 +101,9 @@ class SignUpScreen extends StatelessWidget {
                             } else {
                               Navigator.of(context).pop(); // pop loader
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Something went wrong when signing up.')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Something went wrong when signing up.')),
                               );
                             }
                           }

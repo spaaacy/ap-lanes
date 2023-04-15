@@ -37,7 +37,8 @@ class _CustomMapState extends State<CustomMap> {
   }
 
   void _getCurrentPosition() async {
-    final hasPermissions = await LocationPermissions.handleLocationPermission(context);
+    final hasPermissions =
+        await LocationPermissions.handleLocationPermission(context);
 
     if (hasPermissions) {
       _locationSubscription = Geolocator.getPositionStream(
@@ -66,8 +67,11 @@ class _CustomMapState extends State<CustomMap> {
   }
 
   void _getCustomIcon() async {
-    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset('assets/images/marker_icon.png', 150);
-    _markerIcon = resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
+    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset(
+        'assets/images/marker_icon.png', 150);
+    _markerIcon = resizedIcon == null
+        ? BitmapDescriptor.defaultMarker
+        : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -94,7 +98,8 @@ class _CustomMapState extends State<CustomMap> {
                   },
                   zoomControlsEnabled: false,
                   onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(target: _currentPosition!, zoom: 17.0),
+                  initialCameraPosition:
+                      CameraPosition(target: _currentPosition!, zoom: 17.0),
                   markers: {
                     Marker(
                       icon: _markerIcon,
@@ -113,8 +118,10 @@ class _CustomMapState extends State<CustomMap> {
                         setState(() => _cameraShouldCenter = true);
                       },
                       style: ElevatedButtonTheme.of(context).style?.copyWith(
-                            shape: const MaterialStatePropertyAll(CircleBorder()),
-                            padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
+                            shape:
+                                const MaterialStatePropertyAll(CircleBorder()),
+                            padding: const MaterialStatePropertyAll(
+                                EdgeInsets.all(16.0)),
                             elevation: const MaterialStatePropertyAll(4.0),
                           ),
                       child: const Icon(
