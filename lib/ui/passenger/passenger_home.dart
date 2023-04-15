@@ -44,7 +44,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               setState(() => _passenger = passenger);
             }
         );
-        _userRepo.getUser(firebaseUser!.uid).then((userData) {
+        _userRepo.getUser(user.uid).then((userData) {
           setState(() {
             _user = userData;
           });
