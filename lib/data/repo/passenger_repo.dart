@@ -1,3 +1,4 @@
+import 'package:apu_rideshare/data/model/firestore/journey.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../model/firestore/passenger.dart';
@@ -13,14 +14,15 @@ class PassengerRepo {
     _passengerRef.add(passenger);
   }
 
-  Future<QueryDocumentSnapshot<Passenger?>> getPassenger(String userId) async {
+  Future<QueryDocumentSnapshot<Passenger>> getPassenger(String userId) async {
     final passenger =
         await _passengerRef.where("id", isEqualTo: userId).get();
     return passenger.docs.first;
   }
 
-  Future<void> updateIsSearching(QueryDocumentSnapshot<Passenger?> passenger,
+  Future<void> updateIsSearching(QueryDocumentSnapshot<Passenger> passenger,
       bool isSearching) async {
     passenger.reference.update({"isSearching": isSearching});
   }
+
 }

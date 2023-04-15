@@ -20,7 +20,7 @@ class Journey {
   Map<String, dynamic> toFirestore() {
     return {
       if (userId != null) "userId": userId,
-      if (startPoint != null) "userId": startPoint,
+      if (startPoint != null) "startPoint": startPoint,
       if (destination != null) "destination": destination,
       if (isCompleted != null) "isCompleted": isCompleted,
       if (hasDriver != null) "hasDriver": hasDriver,
