@@ -9,7 +9,8 @@ import '../util/constants.dart';
 class PlaceService {
   final client = Client();
 
-  Future<List<Suggestion>> fetchSuggestions(BuildContext context, String input, String sessionToken) async {
+  Future<List<Suggestion>> fetchSuggestions(
+      BuildContext context, String input, String sessionToken) async {
     if (input.isEmpty) {
       return [];
     }
@@ -24,7 +25,9 @@ class PlaceService {
 
       if (result['status'] == 'OK') {
         return result['predictions'].map<Suggestion>((prediction) {
-          return Suggestion(placeId: prediction['place_id'], description: prediction['description']);
+          return Suggestion(
+              placeId: prediction['place_id'],
+              description: prediction['description']);
         }).toList();
       }
 

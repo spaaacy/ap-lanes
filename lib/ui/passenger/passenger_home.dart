@@ -1,13 +1,15 @@
 import 'package:apu_rideshare/data/model/firestore/user.dart';
+import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:apu_rideshare/ui/driver/driver_home.dart';
+import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_text_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/repo/user_repo.dart';
+import '../../data/model/firestore/passenger.dart';
 import '../../services/auth_service.dart';
 import '../../util/greeting.dart';
 import '../auth/auth_wrapper.dart';
@@ -21,15 +23,28 @@ class PassengerHome extends StatefulWidget {
 
 class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
+  final _passengerRepo = PassengerRepo();
+  QueryDocumentSnapshot<Passenger?>? _passenger;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = Provider.of<firebase_auth.User?>(context, listen: false);
+      if (user != null) {
+        _passengerRepo.getPassenger(user.uid).then(
+            (passenger) {
+              setState(() => _passenger = passenger);
+            }
+        );
+      };
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = context.watch<firebase_auth.User?>();
-    final userRepo = UserRepo();
     Future<QueryDocumentSnapshot<User>>? userFuture;
-    if (firebaseUser != null) {
-      userFuture = userRepo.getUser(firebaseUser.uid);
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +74,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                         child: Align(
                           alignment: Alignment.center,
                           child: Text(
-                            userSnapshot.data?.data().fullName.characters.first.toUpperCase() ?? '?',
+                            userSnapshot.data
+                                    ?.data()
+                                    .fullName
+                                    .characters
+                                    .first
+                                    .toUpperCase() ??
+                                '?',
                             style: const TextStyle(fontSize: 48),
                           ),
                         ),
@@ -90,7 +111,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                 context.read<AuthService>().signOut();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (BuildContext context) => AuthWrapper(context: context),
+                    builder: (BuildContext context) =>
+                        AuthWrapper(context: context),
                   ),
                 );
               },
@@ -98,7 +120,10 @@ class _PassengerHomeState extends State<PassengerHome> {
           ],
         ),
       ),
-      body: Stack(
+      body:
+      _passenger == null ?
+          const Align(child: CircularProgressIndicator()) :
+      Stack(
         children: [
           const CustomMap(),
           Positioned.fill(
@@ -110,6 +135,13 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             ),
           ),
+          Positioned.fill(
+            bottom: 100.0,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: PassengerGoButton(passenger: _passenger!),
+            ),
+          )
         ],
       ),
     );

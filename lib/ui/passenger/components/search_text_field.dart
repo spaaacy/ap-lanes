@@ -23,7 +23,8 @@ class SearchTextField extends StatelessWidget {
         elevation: 0.0,
       ),
       suggestionsCallback: (pattern) async {
-        final results = await _placeService.fetchSuggestions(context, pattern, _sessionToken);
+        final results = await _placeService.fetchSuggestions(
+            context, pattern, _sessionToken);
         return results.take(4);
       },
       itemBuilder: (context, suggestion) {

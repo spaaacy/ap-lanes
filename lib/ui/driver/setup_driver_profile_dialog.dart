@@ -46,7 +46,10 @@ class SetupDriverProfileDialog extends StatelessWidget {
             if (_driverSetupFormKey.currentState!.validate()) {
               ui_helper.showLoaderDialog(context, 'Loading...');
               String licensePlate = _licensePlateController.text.trim();
-              await _driverRepo.createDriver(Driver(id: userId, licensePlate: licensePlate, isAvailable: false));
+              await _driverRepo.createDriver(Driver(
+                  id: userId,
+                  licensePlate: licensePlate,
+                  isAvailable: false));
 
               if (context.mounted) {
                 Navigator.of(context).pop();
