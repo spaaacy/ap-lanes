@@ -1,3 +1,4 @@
+import 'package:apu_rideshare/data/model/firestore/journey.dart';
 import 'package:apu_rideshare/data/model/firestore/user.dart';
 import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:apu_rideshare/ui/common/app_drawer.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/model/firestore/passenger.dart';
+import '../../data/repo/journey_repo.dart';
 import '../../data/repo/user_repo.dart';
 import '../../util/greeting.dart';
 
@@ -24,9 +26,13 @@ class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
   final _passengerRepo = PassengerRepo();
   final _userRepo = UserRepo();
+  final _journeyRepo = JourneyRepo();
+
   late final firebase_auth.User? firebaseUser;
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
+  QueryDocumentSnapshot<Journey>? _journey;
+
   late final bool _isSearching;
 
   @override
@@ -36,20 +42,23 @@ class _PassengerHomeState extends State<PassengerHome> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = Provider.of<firebase_auth.User?>(context, listen: false);
       if (user != null) {
-        _passengerRepo.getPassenger(user.uid).then(
-            (passenger) {
-              setState(() {
-                _passenger = passenger;
-                _isSearching = _passenger?.data().isSearching == true;
-              });
-            }
-        );
+        _passengerRepo.getPassenger(user.uid).then((passenger) {
+          setState(() {
+            _passenger = passenger;
+            _isSearching = _passenger?.data().isSearching == true;
+          });
+        });
+
         _userRepo.getUser(user.uid).then((userData) {
           setState(() {
             _user = userData;
           });
         });
-      };
+
+        _journeyRepo.listenForJourney(user.uid, (journey) {
+          _journey = journey;
+        });
+      }
     });
   }
 
@@ -81,7 +90,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             bottom: 100.0,
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: PassengerGoButton(passenger: _passenger!, isSearching: _isSearching),
+              child: PassengerGoButton(passenger: _passenger!, isSearching: _isSearching, journey: _journey,),
             ),
           )
         ],

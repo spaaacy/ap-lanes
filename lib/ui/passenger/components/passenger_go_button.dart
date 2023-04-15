@@ -13,8 +13,9 @@ import '../../../data/repo/passenger_repo.dart';
 class PassengerGoButton extends StatefulWidget {
   final QueryDocumentSnapshot<Passenger> passenger;
   late final bool isSearching;
+  QueryDocumentSnapshot<Journey>? journey;
 
-  PassengerGoButton({super.key, required this.passenger, required this.isSearching});
+  PassengerGoButton({super.key, required this.passenger, required this.isSearching, required this.journey});
 
   @override
   State<PassengerGoButton> createState() => _PassengerGoButtonState();
@@ -30,7 +31,7 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
 
     return ElevatedButton(
       onPressed: () {
-        widget.isSearching == false
+        !widget.isSearching
             ?
             // Create a journey
             () {
@@ -41,7 +42,8 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
                         "3.055513736582056, 101.69617610900454", // Parkhill
                     destination:
                         "3.0557922212826236, 101.70035141013787", // APU
-                    isCompleted: false));
+                    isCompleted: false)
+                );
 
                 // Update passenger to isSearching true
                 _passengerRepo.updateIsSearching(
@@ -51,7 +53,7 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
               }
             : ()
         {
-          // TODO: Delete journey request
+          _journeyRepo.deleteJourney(widget.journey);
 
           _passengerRepo.updateIsSearching(widget.passenger, false);
 
@@ -63,7 +65,9 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
             padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
             elevation: const MaterialStatePropertyAll(6.0),
           ),
-      child: const Text("GO"),
+      child:
+          !widget.isSearching ? const Text("GO")
+              : const Icon(Icons.close, semanticLabel: "Cancel Search",)
     );
   }
 }
