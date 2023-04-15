@@ -10,7 +10,8 @@ import '../../../data/model/firestore/passenger.dart';
 import '../../../data/repo/passenger_repo.dart';
 
 class PassengerGoButton extends StatefulWidget {
-  final QueryDocumentSnapshot<Passenger> passenger;
+  final QueryDocumentSnapshot<Passenger?> passenger;
+
   PassengerGoButton({super.key, required this.passenger});
 
   @override
@@ -37,7 +38,7 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
 
         // Update passenger to isSearching true
         _passengerRepo
-            .updateIsSearching(widget.passenger, {"isSearching": true});
+            .updateIsSearching(widget.passenger, true);
       },
       style: ElevatedButtonTheme.of(context).style?.copyWith(
             shape: const MaterialStatePropertyAll(CircleBorder()),

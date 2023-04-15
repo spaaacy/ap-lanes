@@ -1,3 +1,5 @@
+import 'package:apu_rideshare/data/model/firestore/passenger.dart';
+import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/model/firestore/user.dart' as model;
@@ -11,6 +13,7 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
   final _userRepo = UserRepo();
+  final _passengerRepo = PassengerRepo();
 
   Future<String> signIn(
       {required String email, required String password}) async {
@@ -54,9 +57,7 @@ class AuthService {
       ),
     );
 
-    // Temporary
-    // final driverRepo = DriverRepo();
-    // driverRepo.createDriver(Driver(id: id!, licensePlate: "ABC1234", isAvailable: false));
+    _passengerRepo.createPassenger(Passenger(id: id));
   }
 
   Future<void> signOut() async {

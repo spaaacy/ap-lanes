@@ -19,12 +19,8 @@ class PassengerRepo {
     return passenger.docs.first;
   }
 
-  Stream<QuerySnapshot<Passenger?>> listenForPassenger(String userId) {
-    return _passengerRef.where("id", isEqualTo: userId).snapshots();
-  }
-
-  Future<void> updateIsSearching(QueryDocumentSnapshot<Passenger> passenger,
-      Map<Object, Object?> isSearching) async {
+  Future<void> updateIsSearching(QueryDocumentSnapshot<Passenger?> passenger,
+      bool isSearching) async {
     passenger.reference.update({"isSearching": isSearching});
   }
 }

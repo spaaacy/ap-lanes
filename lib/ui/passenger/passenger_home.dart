@@ -24,24 +24,20 @@ class PassengerHome extends StatefulWidget {
 class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
   final _passengerRepo = PassengerRepo();
-  late Stream<QuerySnapshot<Passenger?>> _passenger;
+  QueryDocumentSnapshot<Passenger?>? _passenger;
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = context.watch<firebase_auth.User?>();
-
+      final user = Provider.of<firebase_auth.User?>(context, listen: false);
       if (user != null) {
-        _passenger = _passengerRepo.listenForPassenger(user.uid);
-        _passenger.listen((passenger) {
-          if (passenger.docs.isEmpty) {
-            _passengerRepo.createPassenger(Passenger(id: user.uid));
-          } else {
-            _passenger = passenger.docs.first.data();
-          }
-        });
+        _passengerRepo.getPassenger(user.uid).then(
+            (passenger) {
+              setState(() => _passenger = passenger);
+            }
+        );
       };
     });
   }
