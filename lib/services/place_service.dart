@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:apu_rideshare/data/model/map/suggestion.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart';
 
 import '../util/constants.dart';
@@ -40,4 +41,5 @@ class PlaceService {
       throw Exception('Failed to fetch suggestion');
     }
   }
+
 }

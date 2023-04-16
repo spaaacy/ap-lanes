@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:apu_rideshare/data/model/firestore/journey.dart';
 import 'package:apu_rideshare/data/model/firestore/user.dart';
 import 'package:apu_rideshare/data/repo/passenger_repo.dart';
@@ -34,7 +36,9 @@ class _PassengerHomeState extends State<PassengerHome> {
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
 
-  late final bool _isSearching;
+  late bool _isSearching;
+
+  late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
 
   @override
   void initState() {
@@ -44,10 +48,8 @@ class _PassengerHomeState extends State<PassengerHome> {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
       if (firebaseUser != null) {
         _passengerRepo.getPassenger(firebaseUser!.uid).then((passenger) {
-          setState(() {
-            _passenger = passenger;
-            _isSearching = _passenger?.data().isSearching == true;
-          });
+          _passenger = passenger;
+          _isSearching = _passenger?.data().isSearching == true;
         });
 
         _userRepo.getUser(firebaseUser!.uid).then((userData) {
@@ -56,11 +58,17 @@ class _PassengerHomeState extends State<PassengerHome> {
           });
         });
 
-        _journeyRepo.listenForJourney(firebaseUser!.uid, (journey) {
+        _journeyStream = _journeyRepo.listenForJourney(firebaseUser!.uid, (journey) {
           _journey = journey;
         });
       }
     });
+  }
+
+  @override
+  void dispose() async {
+    await _journeyStream.cancel();
+    super.dispose();
   }
 
   @override
@@ -91,7 +99,21 @@ class _PassengerHomeState extends State<PassengerHome> {
             bottom: 100.0,
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: PassengerGoButton(passenger: _passenger!, isSearching: _isSearching, journey: _journey, firebaseUser: firebaseUser),
+              child: PassengerGoButton(
+                      isSearching: _isSearching,
+                      updateIsSearching: (isSearching) {
+                        _passengerRepo.updateIsSearching(_passenger!, isSearching);
+                        setState((){
+                            _isSearching = isSearching;
+                        });
+                      },
+                      createJourney: (journey) {
+                        _journeyRepo.createJourney(journey);
+                      },
+                      deleteJourney: () {
+                        _journeyRepo.deleteJourney(_journey);
+                      },
+                    ),
             ),
           )
         ],

@@ -13,54 +13,45 @@ import '../../../data/model/firestore/passenger.dart';
 import '../../../data/repo/passenger_repo.dart';
 
 class PassengerGoButton extends StatefulWidget {
-  final QueryDocumentSnapshot<Passenger> passenger;
   bool isSearching;
-  QueryDocumentSnapshot<Journey>? journey;
-  firebase_auth.User? firebaseUser;
+  Function(bool) updateIsSearching;
+  Function(Journey) createJourney;
+  Function() deleteJourney;
 
-  PassengerGoButton({super.key, required this.passenger, required this.isSearching, required this.journey, required this.firebaseUser});
+  PassengerGoButton(
+      {super.key,
+      required this.isSearching,
+      required this.updateIsSearching,
+      required this.createJourney,
+      required this.deleteJourney
+      });
 
   @override
   State<PassengerGoButton> createState() => _PassengerGoButtonState();
 }
 
 class _PassengerGoButtonState extends State<PassengerGoButton> {
-  final _journeyRepo = JourneyRepo();
-  final _passengerRepo = PassengerRepo();
-  final logger = Logger();
-
   @override
   Widget build(BuildContext context) {
+    final firebaseUser = context.watch<User?>();
+
     return ElevatedButton(
       onPressed: () {
-        if (widget.firebaseUser != null) {
+        if (firebaseUser != null) {
           if (!widget.isSearching) {
-
-            setState(() {
-              widget.isSearching = true;
-            });
-
-            // Update passenger to isSearching true
-            _passengerRepo.updateIsSearching(widget.passenger, true);
-
-            _journeyRepo.createJourney(
+            widget.updateIsSearching(true);
+            widget.createJourney(
                   Journey(
-                  userId: widget.firebaseUser!.uid,
+                  userId: firebaseUser.uid,
                   // TODO: Implement actual locations
                   startPoint: "3.055513736582056, 101.69617610900454", // Parkhill
                   destination: "3.0557922212826236, 101.70035141013787", // APU
                   isCompleted: false
                   )
               );
-
             } else {
-            setState(() {
-              widget.isSearching = false;
-            });
-
-            _passengerRepo.updateIsSearching(widget.passenger, false);
-
-            _journeyRepo.deleteJourney(widget.journey);
+            widget.updateIsSearching(false);
+            widget.deleteJourney();
           }
         }
       },
