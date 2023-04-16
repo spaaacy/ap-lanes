@@ -41,5 +41,21 @@ class PlaceService {
       throw Exception('Failed to fetch suggestion');
     }
   }
+  Future<String> getLatLong(String placeId) async {
+    if (placeId.isEmpty) {
+      return "";
+    }
+
+    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId";
+
+    final response = await client.get(Uri.parse(request));
+
+    if (response.statusCode == 200) {
+      final results = json.decode(response.body);
+
+      
+    }
+
+  }
 
 }
