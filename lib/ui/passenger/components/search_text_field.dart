@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../services/place_service.dart';
@@ -38,6 +39,10 @@ class SearchTextField extends StatelessWidget {
       },
       onSuggestionSelected: (suggestion) {
         _sessionToken = const Uuid().v4();
+        _placeService.getLatLong(suggestion.placeId).then((results) =>
+            print("HIPER: ${results.first.latitude}, ${results.first.longitude}")
+        );
+
       },
       textFieldConfiguration: const TextFieldConfiguration(
         decoration: InputDecoration(

@@ -38,21 +38,33 @@ class PlaceService {
       throw Exception('Failed to fetch suggestion');
     }
   }
-  Future<String> getLatLong(String placeId) async {
+
+  Future<List<LatLng>> getLatLong(String placeId) async {
     if (placeId.isEmpty) {
-      return "";
+      return [];
     }
 
-    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId";
+    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$ANDROID_API_KEY";
 
     final response = await client.get(Uri.parse(request));
 
     if (response.statusCode == 200) {
-      final results = json.decode(response.body);
+      final result = json.decode(response.body);
 
-      
+      if (result["status"] == "OK") {
+        return result["result"].map<LatLng>((result) {
+          return LatLng(result["geometry"]["location"]["lat"], result["geometry"]["location"]["lng"]);
+        }).toList();
+      }
+
+      if (result["status"] == "ZERO_RESULTS") {
+        return [];
+      }
+
+      throw Exception(result['error_message']);
+    } else {
+      throw Exception('Failed to fetch suggestion');
     }
-
   }
 
   Future<List<String>> fetchAddressFromLatLng(BuildContext context, LatLng latLng) async {
