@@ -10,9 +10,17 @@ class SearchBar extends StatelessWidget {
   final Function(LatLng) onSearch;
   final Function(bool) updateToApu;
   bool toApu;
+  LatLng? userLocation;
+  final Function() clearUserLocation;
 
   SearchBar(
-      {super.key, required this.controller, required this.onSearch, required this.updateToApu, required this.toApu});
+      {super.key,
+      required this.controller,
+      required this.onSearch,
+      required this.updateToApu,
+      required this.toApu,
+      required this.userLocation,
+      required this.clearUserLocation});
 
   String _sessionToken = const Uuid().v4();
   final _placeService = PlaceService();
@@ -21,6 +29,10 @@ class SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(children: [
       TypeAheadField(
+        keepSuggestionsOnLoading: true,
+        hideOnEmpty: true,
+        hideOnLoading: true,
+        hideOnError: true,
         suggestionsBoxDecoration: const SuggestionsBoxDecoration(
           color: Colors.white70,
           borderRadius: BorderRadius.vertical(
@@ -44,9 +56,20 @@ class SearchBar extends StatelessWidget {
         onSuggestionSelected: (suggestion) {
           _sessionToken = const Uuid().v4();
           _placeService.getLatLong(context, suggestion.placeId).then((latLng) => onSearch(latLng));
+          controller.text = suggestion.description;
         },
-        textFieldConfiguration: const TextFieldConfiguration(
+        textFieldConfiguration: TextFieldConfiguration(
+          controller: controller,
           decoration: InputDecoration(
+            suffixIcon: userLocation != null
+                ? IconButton(
+                    icon: Icon(Icons.close),
+                    color: Colors.black,
+                    onPressed: () {
+                      clearUserLocation();
+                      controller.text = "";
+                    })
+                : null,
             border: OutlineInputBorder(borderSide: BorderSide.none),
             hintText: "Where do you wish to go?",
             filled: true,
