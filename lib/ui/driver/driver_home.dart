@@ -62,13 +62,11 @@ class _DriverHomeState extends State<DriverHome> {
             .catchError((e) async {
               var result = await showDialog<String?>(
                 context: context,
-                builder: (ctx) =>
-                    SetupDriverProfileDialog(userId: _user!.get('id')),
+                builder: (ctx) => SetupDriverProfileDialog(userId: _user!.get('id')),
               );
 
               if (result == 'Save') {
-                var driverSnapshot =
-                    await _driverRepo.getDriver(_user?.get('id'));
+                var driverSnapshot = await _driverRepo.getDriver(_user?.get('id'));
                 setState(() {
                   _driver = driverSnapshot;
                 });
@@ -78,8 +76,7 @@ class _DriverHomeState extends State<DriverHome> {
                 await showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    content: const Text(
-                        'You need to set up a driver profile before you can start driving.'),
+                    content: const Text('You need to set up a driver profile before you can start driving.'),
                     title: const Text('Driver profile not set up'),
                     actions: [
                       TextButton(
@@ -107,13 +104,12 @@ class _DriverHomeState extends State<DriverHome> {
 
   @override
   Widget build(BuildContext context) {
-    final matchmakingButtonTheme =
-        FilledButtonTheme.of(context).style?.copyWith(
-              elevation: const MaterialStatePropertyAll(2),
-              padding: const MaterialStatePropertyAll(
-                EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-              ),
-            );
+    final matchmakingButtonTheme = FilledButtonTheme.of(context).style?.copyWith(
+          elevation: const MaterialStatePropertyAll(2),
+          padding: const MaterialStatePropertyAll(
+            EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          ),
+        );
 
     return Scaffold(
       appBar: AppBar(
@@ -129,20 +125,15 @@ class _DriverHomeState extends State<DriverHome> {
               alignment: Alignment.bottomCenter,
               child: ElevatedButton(
                 onPressed: () {
-                  _driverRepo
-                      .updateDriver(_driver!, {'isAvailable': !_isMatchmaking});
+                  _driverRepo.updateDriver(_driver!, {'isAvailable': !_isMatchmaking});
                   setState(() {
                     _isMatchmaking = !_isMatchmaking;
-                    _journey = Journey(
-                        userId: 'swag',
-                        startPoint: 'startPoint',
-                        destination: 'destination');
+                    _journey = Journey(userId: 'swag', startPoint: 'startPoint', destination: 'destination');
                   });
                 },
                 style: ElevatedButtonTheme.of(context).style?.copyWith(
                       shape: const MaterialStatePropertyAll(CircleBorder()),
-                      padding:
-                          const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
+                      padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
                       elevation: const MaterialStatePropertyAll(6.0),
                     ),
                 child: _isMatchmaking
@@ -157,15 +148,14 @@ class _DriverHomeState extends State<DriverHome> {
           TweenAnimationBuilder(
             curve: Curves.bounceInOut,
             duration: const Duration(milliseconds: 250),
-            tween: Tween<double>(
-                begin: _isMatchmaking ? 0 : 1, end: _isMatchmaking ? 1 : 0),
+            tween: Tween<double>(begin: _isMatchmaking ? 1 : 0, end: _isMatchmaking ? 0 : 1),
             builder: (_, topOffset, w) {
               return Positioned.fill(
-                left: 24,
-                right: 24,
-                top: -200 + (224 * topOffset),
+                left: 12,
+                right: 12,
+                top: 12 - (200 * topOffset),
                 child: Visibility(
-                  visible: topOffset != 0,
+                  visible: topOffset != 1,
                   child: Column(
                     children: [
                       Material(
@@ -176,25 +166,32 @@ class _DriverHomeState extends State<DriverHome> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           width: double.infinity,
-                          decoration:
-                              const BoxDecoration(color: Colors.transparent),
-                          height: 100,
+                          decoration: const BoxDecoration(color: Colors.transparent),
                           child: _journey == null
                               ? const Center(
                                   child: CircularProgressIndicator(),
                                 )
                               : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Name: Name Here',
-                                      style:
-                                          Theme.of(context).textTheme.bodyLarge,
+                                      'FROM',
+                                      style: Theme.of(context).textTheme.bodyMedium,
                                     ),
                                     Text(
-                                      'Location: APU',
-                                      style:
-                                          Theme.of(context).textTheme.bodyLarge,
+                                      textAlign: TextAlign.center,
+                                      'No. 45 Jalan PT 5, Taman Prima Tropika, 43300, Seri Kembangan, Selangor',
+                                      style: Theme.of(context).textTheme.titleLarge,
+                                    ),
+                                    const Icon(Icons.arrow_downward),
+                                    Text(
+                                      'TO',
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                    Text(
+                                      textAlign: TextAlign.center,
+                                      'End Location Here',
+                                      style: Theme.of(context).textTheme.titleLarge,
                                     ),
                                   ],
                                 ),
@@ -207,16 +204,12 @@ class _DriverHomeState extends State<DriverHome> {
                           Expanded(
                             child: FilledButton(
                               style: matchmakingButtonTheme?.copyWith(
-                                backgroundColor:
-                                    const MaterialStatePropertyAll(Colors.red),
+                                backgroundColor: const MaterialStatePropertyAll(Colors.red),
                               ),
                               onPressed: _journey == null ? null : () {},
                               child: Text(
                                 'REJECT',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -227,16 +220,12 @@ class _DriverHomeState extends State<DriverHome> {
                           Expanded(
                             child: FilledButton(
                               style: matchmakingButtonTheme?.copyWith(
-                                backgroundColor: const MaterialStatePropertyAll(
-                                    Colors.green),
+                                backgroundColor: const MaterialStatePropertyAll(Colors.green),
                               ),
                               onPressed: _journey == null ? null : () {},
                               child: Text(
                                 'ACCEPT',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),

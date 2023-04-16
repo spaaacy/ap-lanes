@@ -4,8 +4,8 @@ class Journey {
   final String userId;
   final String startPoint;
   final String destination;
+  bool isPickedUp;
   bool isCompleted;
-  bool hasDriver;
   String driverId;
 
   Journey({
@@ -13,7 +13,7 @@ class Journey {
     required this.startPoint,
     required this.destination,
     this.isCompleted = false,
-    this.hasDriver = false,
+    this.isPickedUp = false,
     this.driverId = "",
   });
 
@@ -23,7 +23,7 @@ class Journey {
       if (startPoint != null) "startPoint": startPoint,
       if (destination != null) "destination": destination,
       if (isCompleted != null) "isCompleted": isCompleted,
-      if (hasDriver != null) "hasDriver": hasDriver,
+      if (isPickedUp != null) "isPickedUp": isPickedUp,
       if (driverId != null) "driverId": driverId,
     };
   }
@@ -38,7 +38,7 @@ class Journey {
       startPoint: data?['startPoint'],
       destination: data?['destination'],
       isCompleted: data?['isCompleted'],
-      hasDriver: data?['hasDriver'],
+      isPickedUp: data?['isPickedUp'],
       driverId: data?['driverId'],
     );
   }
