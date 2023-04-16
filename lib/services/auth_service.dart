@@ -23,7 +23,7 @@ class AuthService {
 
       // _registerUser(); // Temporary
 
-      return SIGNED_IN;
+      return signedIn;
     } on FirebaseAuthException catch (e) {
       return e.message ?? "";
     }
@@ -39,7 +39,7 @@ class AuthService {
       await _firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
       _registerUser(firstName: firstName, lastName: lastName);
-      return SIGNED_IN;
+      return signedIn;
     } on FirebaseAuthException catch (e) {
       return e.message ?? "";
     }
@@ -51,7 +51,7 @@ class AuthService {
     _userRepo.createUser(
       model.User(
         id: id!,
-        userType: PASSENGER,
+        userType: passenger,
         email: userEmail!,
         fullName: "$firstName $lastName",
       ),

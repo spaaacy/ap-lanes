@@ -73,7 +73,7 @@ class AuthScreen extends StatelessWidget {
                             String result = await context
                                 .read<AuthService>()
                                 .signIn(email: email, password: password);
-                            if (context.mounted && result != SIGNED_IN) {
+                            if (context.mounted && result != signedIn) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(result),
