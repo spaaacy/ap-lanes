@@ -104,9 +104,15 @@ class _PassengerHomeState extends State<PassengerHome> {
                             });
                           },
                           controller: _searchController,
+                          userLocation: _userLocation,
                           onSearch: (latLng) {
                             setState(() {
                               _userLocation = latLng;
+                            });
+                          },
+                          clearUserLocation: () {
+                            setState(() {
+                              _userLocation = null;
                             });
                           },
                         ),
