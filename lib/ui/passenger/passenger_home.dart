@@ -95,7 +95,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                       padding: const EdgeInsets.all(24.0),
                       child: Align(
                         alignment: Alignment.topCenter,
-                        child: SearchBar(
+                        child:
+                        SearchBar(
                           toApu: _toApu,
                           updateToApu: (toApu) {
                             setState(() {

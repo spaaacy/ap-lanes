@@ -11,15 +11,15 @@ class SearchBar extends StatelessWidget {
   final Function(bool) updateToApu;
   bool toApu;
 
-  SearchBar({super.key, required this.controller, required this.onSearch, required this.updateToApu, required this.toApu});
+  SearchBar(
+      {super.key, required this.controller, required this.onSearch, required this.updateToApu, required this.toApu});
 
   String _sessionToken = const Uuid().v4();
   final _placeService = PlaceService();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-        children: [
+    return Column(children: [
       TypeAheadField(
         suggestionsBoxDecoration: const SuggestionsBoxDecoration(
           color: Colors.white70,
@@ -54,28 +54,20 @@ class SearchBar extends StatelessWidget {
           ),
         ),
       ),
-
       const SizedBox(
         height: 8.0,
       ),
-
-      Center(child: Align(
-          alignment: Alignment.centerRight,
-          child: Row(children:
-          [
-            Text(toApu ? "TO APU" : "FROM APU", style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 16.0)),
-
-            const SizedBox(width: 8.0,),
-
-            Switch(
-                value: toApu,
-                onChanged: (value) => updateToApu(value),
-            ),
-
-          ]
-          )
-      ))
-
+      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        Text(toApu ? "TO APU" : "FROM APU", style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 16.0)),
+        const SizedBox(
+          width: 8.0,
+        ),
+        Switch(
+          activeColor: Colors.black,
+          value: toApu,
+          onChanged: (value) => updateToApu(value),
+        ),
+      ])
     ]);
   }
 }
