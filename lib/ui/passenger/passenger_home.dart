@@ -6,7 +6,7 @@ import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:apu_rideshare/ui/common/app_drawer.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
-import 'package:apu_rideshare/ui/passenger/components/search_text_field.dart';
+import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
 import 'package:apu_rideshare/util/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -84,60 +84,63 @@ class _PassengerHomeState extends State<PassengerHome> {
         ),
       ),
       drawer: AppDrawer(user: _user, isDriver: false),
-      body:
-      _passenger == null ?
-          const Align(child: CircularProgressIndicator()) :
-      Stack(
-        children: [
-          const CustomMap(),
-
-          if (!_isSearching)
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: SearchTextField(controller: _searchController, onSearch: (latLng) {
-                    setState(() {
-                      _userLocation = latLng;
-                    });
-                  },),
-                ),
-              ),
+      body: _passenger == null
+          ? const Align(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                const CustomMap(),
+                if (!_isSearching)
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: SearchBar(
+                          toApu: _toApu,
+                          updateToApu: (toApu) {
+                            setState(() {
+                              _toApu = toApu;
+                            });
+                          },
+                          controller: _searchController,
+                          onSearch: (latLng) {
+                            setState(() {
+                              _userLocation = latLng;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                if (_userLocation != null || _isSearching)
+                  Positioned.fill(
+                    bottom: 100.0,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: PassengerGoButton(
+                        isSearching: _isSearching,
+                        updateIsSearching: (isSearching) {
+                          _passengerRepo.updateIsSearching(_passenger!, isSearching);
+                          setState(() {
+                            _isSearching = isSearching;
+                          });
+                        },
+                        createJourney: () {
+                          final userLocation = "${_userLocation!.latitude}, ${_userLocation!.longitude}";
+                          _journeyRepo.createJourney(Journey(
+                            userId: firebaseUser!.uid,
+                            startPoint: _toApu ? userLocation : apuLatLng, // APU
+                            destination: _toApu ? apuLatLng : userLocation,
+                          ));
+                        },
+                        deleteJourney: () {
+                          _journeyRepo.deleteJourney(_journey);
+                        },
+                      ),
+                    ),
+                  )
+              ],
             ),
-
-          if (_userLocation != null || _isSearching)
-            Positioned.fill(
-              bottom: 100.0,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: PassengerGoButton(
-                  isSearching: _isSearching,
-                  updateIsSearching: (isSearching) {
-                    _passengerRepo.updateIsSearching(_passenger!, isSearching);
-                    setState(() {
-                      _isSearching = isSearching;
-                    });
-                  },
-                  createJourney: () {
-                    final userLocation = "${_userLocation!.latitude}, ${_userLocation!.longitude}";
-                    _journeyRepo.createJourney(
-                      Journey(
-                        userId: firebaseUser!.uid,
-                        startPoint: _toApu ? userLocation : apuLatLng, // APU
-                        destination: _toApu ? apuLatLng : userLocation,
-                      )
-                    );
-                  },
-                  deleteJourney: () {
-                    _journeyRepo.deleteJourney(_journey);
-                  },
-                ),
-              ),
-            )
-
-        ],
-      ),
     );
   }
 }
