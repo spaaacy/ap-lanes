@@ -20,7 +20,7 @@ class UserWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
           final userType = snapshot.data!;
-          if (userType == DRIVER) {
+          if (userType == driver) {
             return const DriverHome();
           } else {
             return const PassengerHome();

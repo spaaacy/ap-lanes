@@ -95,7 +95,7 @@ class SignUpScreen extends StatelessWidget {
                                   );
 
                           if (context.mounted) {
-                            if (result == constants.SIGNED_IN) {
+                            if (result == constants.signedIn) {
                               Navigator.of(context).pop(); // pop loader
                               Navigator.of(context).pop(); // pop signup page
                             } else {

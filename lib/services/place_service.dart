@@ -17,7 +17,7 @@ class PlaceService {
 
     final lang = Localizations.localeOf(context).languageCode;
     final request =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=establishment&language=$lang&components=country:my&key=$ANDROID_API_KEY&sessiontoken=$sessionToken';
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=establishment&language=$lang&components=country:my&key=$androidApiKey&sessiontoken=$sessionToken';
     final response = await client.get(Uri.parse(request));
 
     if (response.statusCode == 200) {
@@ -39,12 +39,14 @@ class PlaceService {
     }
   }
 
-  Future<List<LatLng>> getLatLong(String placeId) async {
+  Future<LatLng> getLatLong(BuildContext context, String placeId) async { // String sessionToken
     if (placeId.isEmpty) {
-      return [];
+      return const LatLng(0.0, 0.0);
     }
 
-    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$ANDROID_API_KEY";
+    final lang = Localizations.localeOf(context).languageCode;
+
+    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey";
 
     final response = await client.get(Uri.parse(request));
 
@@ -52,13 +54,11 @@ class PlaceService {
       final result = json.decode(response.body);
 
       if (result["status"] == "OK") {
-        return result["result"].map<LatLng>((result) {
-          return LatLng(result["geometry"]["location"]["lat"], result["geometry"]["location"]["lng"]);
-        }).toList();
+        return LatLng(result["result"]["geometry"]["location"]["lat"], result["result"]["geometry"]["location"]["lng"]);
       }
 
       if (result["status"] == "ZERO_RESULTS") {
-        return [];
+        return const LatLng(0.0, 0.0);
       }
 
       throw Exception(result['error_message']);
@@ -70,7 +70,7 @@ class PlaceService {
   Future<List<String>> fetchAddressFromLatLng(BuildContext context, LatLng latLng) async {
     final lang = Localizations.localeOf(context).languageCode;
     final request =
-        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=$ANDROID_API_KEY&language=$lang&result_type=street_address';
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=$androidApiKey&language=$lang&result_type=street_address';
     final response = await client.get(Uri.parse(request));
     if (response.statusCode == 200) {
       final result = json.decode(response.body);

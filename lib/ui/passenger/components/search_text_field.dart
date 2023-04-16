@@ -7,8 +7,9 @@ import '../../../services/place_service.dart';
 
 class SearchTextField extends StatelessWidget {
   final TextEditingController controller;
+  final Function(LatLng) onSearch;
 
-  SearchTextField({super.key, required this.controller});
+  SearchTextField({super.key, required this.controller, required this.onSearch});
 
   String _sessionToken = const Uuid().v4();
   final _placeService = PlaceService();
@@ -39,8 +40,8 @@ class SearchTextField extends StatelessWidget {
       },
       onSuggestionSelected: (suggestion) {
         _sessionToken = const Uuid().v4();
-        _placeService.getLatLong(suggestion.placeId).then((results) =>
-            print("HIPER: ${results.first.latitude}, ${results.first.longitude}")
+        _placeService.getLatLong(context, suggestion.placeId).then((latLng) =>
+            onSearch(latLng)
         );
 
       },
