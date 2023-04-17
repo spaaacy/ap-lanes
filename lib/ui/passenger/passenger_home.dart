@@ -54,8 +54,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   final List<String> _journeyDetails = ["Finding a driver..."];
 
   late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
-
-
+  
   @override
   void initState() {
     super.initState();
