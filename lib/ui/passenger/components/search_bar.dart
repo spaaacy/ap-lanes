@@ -22,11 +22,13 @@ class SearchBar extends StatelessWidget {
       required this.userLocation,
       required this.clearUserLocation});
 
-  String _sessionToken = const Uuid().v4();
+  String _sessionToken = Uuid().v4();
   final _placeService = PlaceService();
 
   @override
   Widget build(BuildContext context) {
+    String lang = Localizations.localeOf(context).languageCode;
+
     return Column(children: [
       TypeAheadField(
         keepSuggestionsOnLoading: true,
@@ -41,7 +43,7 @@ class SearchBar extends StatelessWidget {
           elevation: 0.0,
         ),
         suggestionsCallback: (pattern) async {
-          final results = await _placeService.fetchSuggestions(context, pattern, _sessionToken);
+          final results = await _placeService.fetchSuggestions(lang, pattern, _sessionToken);
           return results.take(4);
         },
         itemBuilder: (context, suggestion) {
@@ -54,9 +56,9 @@ class SearchBar extends StatelessWidget {
           );
         },
         onSuggestionSelected: (suggestion) {
-          _sessionToken = const Uuid().v4();
-          _placeService.getLatLong(context, suggestion.placeId).then((latLng) => onSearch(latLng));
+          _placeService.getLatLong(lang, suggestion.placeId, _sessionToken).then((latLng) => onSearch(latLng));
           controller.text = suggestion.description;
+          _sessionToken = Uuid().v4();
         },
         textFieldConfiguration: TextFieldConfiguration(
           controller: controller,

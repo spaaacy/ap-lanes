@@ -27,6 +27,7 @@ class JourneyRequestPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PlaceService placeService = PlaceService();
+    String lang = Localizations.localeOf(context).languageCode;
 
     final matchmakingButtonTheme = FilledButtonTheme.of(context).style?.copyWith(
           elevation: const MaterialStatePropertyAll(2),
@@ -80,7 +81,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               FutureBuilder(
                                 future: isMatchmaking
                                     ? placeService.fetchAddressFromLatLng(
-                                        context,
+                                        lang,
                                         getLatLngFromString(journey!.data().startPoint),
                                       )
                                     : Future.value(null),
@@ -100,7 +101,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               FutureBuilder(
                                 future: isMatchmaking
                                     ? placeService.fetchAddressFromLatLng(
-                                        context,
+                                        lang,
                                         getLatLngFromString(journey!.data().destination),
                                       )
                                     : Future.value(null),

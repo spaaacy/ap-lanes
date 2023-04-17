@@ -10,12 +10,11 @@ import '../util/constants.dart';
 class PlaceService {
   final client = Client();
 
-  Future<List<Suggestion>> fetchSuggestions(BuildContext context, String input, String sessionToken) async {
+  Future<List<Suggestion>> fetchSuggestions(String lang, String input, String sessionToken) async {
     if (input.isEmpty) {
       return [];
     }
 
-    final lang = Localizations.localeOf(context).languageCode;
     final request =
         'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=establishment&language=$lang&components=country:my&key=$androidApiKey&sessiontoken=$sessionToken';
     final response = await client.get(Uri.parse(request));
@@ -39,12 +38,10 @@ class PlaceService {
     }
   }
 
-  Future<LatLng> getLatLong(BuildContext context, String placeId) async { // String sessionToken
+  Future<LatLng> getLatLong(String lang, String placeId, String sessionToken) async { // String sessionToken
     if (placeId.isEmpty) {
       return const LatLng(0.0, 0.0);
     }
-
-    final lang = Localizations.localeOf(context).languageCode;
 
     final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey";
 
@@ -67,8 +64,7 @@ class PlaceService {
     }
   }
 
-  Future<String> fetchAddressFromLatLng(BuildContext context, LatLng latLng) async {
-    final lang = Localizations.localeOf(context).languageCode;
+  Future<String> fetchAddressFromLatLng(String lang, LatLng latLng) async {
     final request =
         'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&region=my&key=$androidApiKey&language=$lang'; // &result_type=subpremise|neighborhood|colloquial_area|establishment|point_of_interest|street_address
     final response = await client.get(Uri.parse(request));
