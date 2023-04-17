@@ -1,6 +1,6 @@
 import 'package:apu_rideshare/data/model/firestore/driver.dart';
 import 'package:apu_rideshare/data/repo/driver_repo.dart';
-import 'package:apu_rideshare/util/ui_helper.dart' as ui_helper;
+import 'package:apu_rideshare/util/ui_helpers.dart' as ui_helper;
 import 'package:flutter/material.dart';
 
 class SetupDriverProfileDialog extends StatelessWidget {

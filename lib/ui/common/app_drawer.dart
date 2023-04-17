@@ -1,3 +1,5 @@
+import 'package:apu_rideshare/data/model/firestore/driver.dart';
+import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,37 +22,64 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final DriverRepo driverRepo = DriverRepo();
+
     return Drawer(
       child: ListView(
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.black,
-            ),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey.shade200,
-                    ),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        user?.data().fullName.characters.first.toUpperCase() ?? '?',
-                        style: const TextStyle(fontSize: 48),
+          SizedBox(
+            height: 200,
+            child: DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Colors.black,
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.grey.shade200,
+                      ),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                          user?.data().fullName.characters.first.toUpperCase() ?? '?',
+                          style: const TextStyle(fontSize: 48),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Text(
-                  user?.data().fullName ?? 'Unknown User',
-                  style: const TextStyle(color: Colors.white),
-                )
-              ],
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                    child: Text(
+                      user?.data().fullName ?? 'Unknown User',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  ...?(() {
+                    if (isDriver) {
+                      return [
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                          decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 2)),
+                          child: FutureBuilder<QueryDocumentSnapshot<Driver>?>(
+                              future: driverRepo.getDriver(user!.data().id),
+                              builder: (context, driverSnapshot) {
+                                return Text(
+                                  driverSnapshot.data?.get('licensePlate') ?? '??? ????',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "monospace",
+                                  ),
+                                );
+                              }),
+                        )
+                      ];
+                    }
+                  }())
+                ],
+              ),
             ),
           ),
           (() {

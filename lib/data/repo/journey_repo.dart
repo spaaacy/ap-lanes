@@ -19,7 +19,14 @@ class JourneyRepo {
     journey?.reference.delete();
   }
 
-  StreamSubscription<QuerySnapshot<Journey>> listenForJourney(String userId, Function(QueryDocumentSnapshot<Journey>) onFound) {
+  Future<void> updateJourney(QueryDocumentSnapshot<Journey> journey, Map<Object, Object?> updatedValues) async {
+    await journey.reference.update(updatedValues);
+  }
+
+  StreamSubscription<QuerySnapshot<Journey>> listenForJourney(
+    String userId,
+    Function(QueryDocumentSnapshot<Journey>) onFound,
+  ) {
     final journeyQuery =
         _journeyRef.where("userId", isEqualTo: userId).where("isCompleted", isEqualTo: false).snapshots();
     return journeyQuery.listen((results) {
@@ -29,4 +36,15 @@ class JourneyRepo {
     });
   }
 
+  Stream<QuerySnapshot<Journey>> getOngoingJourney(String driverId) {
+    return _journeyRef
+        .where("driverId", isEqualTo: driverId)
+        .where("isCompleted", isEqualTo: false)
+        .limit(1)
+        .snapshots();
+  }
+
+  Stream<QuerySnapshot<Journey>> getJourneyRequestStream() {
+    return _journeyRef.where("driverId", isEqualTo: "").limit(5).snapshots();
+  }
 }
