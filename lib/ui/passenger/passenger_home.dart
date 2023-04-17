@@ -10,6 +10,7 @@ import 'package:apu_rideshare/ui/passenger/components/journey_detail.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
 import 'package:apu_rideshare/util/constants.dart';
+import 'package:apu_rideshare/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -55,40 +56,7 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
 
-  void _drawRoute() {
-    if (_userLatLng != null && _toApu != null) {
-      LatLng start = _toApu ? _userLatLng! : apuLatLng;
-      LatLng end = _toApu ? apuLatLng : _userLatLng!;
 
-      _polylines.clear();
-      _placeService.generateRoute(start, end).then((polyline) {
-        setState(() {
-          _polylines.add(polyline);
-          _setCameraToRoute();
-        });
-      });
-    }
-  }
-
-  void _setCameraToRoute() {
-    double minLat = _polylines.first.points.first.latitude;
-    double minLong = _polylines.first.points.first.longitude;
-    double maxLat = _polylines.first.points.first.latitude;
-    double maxLong = _polylines.first.points.first.longitude;
-    _polylines.forEach((poly) {
-      poly.points.forEach((point) {
-        if(point.latitude < minLat) minLat = point.latitude;
-        if(point.latitude > maxLat) maxLat = point.latitude;
-        if(point.longitude < minLong) minLong = point.longitude;
-        if(point.longitude > maxLong) maxLong = point.longitude;
-      });
-    });
-
-    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(LatLngBounds(
-        southwest: LatLng(minLat, minLong),
-        northeast: LatLng(maxLat,maxLong)
-    ), 20));
-  }
   @override
   void initState() {
     super.initState();
@@ -184,7 +152,12 @@ class _PassengerHomeState extends State<PassengerHome> {
                           updateToApu: (toApu) {
                             setState(() {
                               _toApu = toApu;
-                              _drawRoute();
+                              MapHelper.drawRoute(_userLatLng!, _toApu, _polylines, (polylines) {
+                                setState(() {
+                                  _polylines.add(polylines);
+                                  MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                });
+                              });
                             });
                           },
                           controller: _searchController,
@@ -192,7 +165,12 @@ class _PassengerHomeState extends State<PassengerHome> {
                           onLatLng: (latLng) {
                             setState(() {
                               _userLatLng = latLng;
-                              _drawRoute();
+                              MapHelper.drawRoute(_userLatLng!, _toApu, _polylines, (polylines) {
+                                setState(() {
+                                  _polylines.add(polylines);
+                                  MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                });
+                              });
                             });
                           },
                           clearUserLocation: () {
