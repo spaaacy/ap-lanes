@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/model/firestore/driver.dart';
@@ -13,7 +14,7 @@ import '../../data/model/firestore/journey.dart';
 import '../../data/model/firestore/user.dart';
 import '../../data/repo/user_repo.dart';
 import '../common/app_drawer.dart';
-import '../common/custom_map.dart';
+import '../common/map_view.dart';
 import '../passenger/passenger_home.dart';
 import 'components/journey_request_popup.dart';
 import 'components/ongoing_journey_popup.dart';
@@ -42,6 +43,8 @@ class _DriverHomeState extends State<DriverHome> {
   QuerySnapshot<Journey>? _availableJourneysSnapshot;
 
   late StreamSubscription<QuerySnapshot<Journey>> _activeJourneyListener;
+
+  GoogleMapController? _mapController;
 
   void _updateJourneyRequestListener() {
     if (_journeyRequestListener != null) {
@@ -251,7 +254,12 @@ class _DriverHomeState extends State<DriverHome> {
           }),
       body: Stack(
         children: [
-          const CustomMap(),
+          MapView(
+            mapController: _mapController,
+            setMapController: (controller) => setState(() {
+              _mapController = controller;
+            }),
+          ),
           Positioned.fill(
             bottom: 100.0,
             child: Align(

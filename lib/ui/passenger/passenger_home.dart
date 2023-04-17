@@ -5,7 +5,7 @@ import 'package:apu_rideshare/data/model/firestore/user.dart';
 import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:apu_rideshare/ui/common/app_drawer.dart';
-import 'package:apu_rideshare/ui/common/custom_map.dart';
+import 'package:apu_rideshare/ui/common/map_view.dart';
 import 'package:apu_rideshare/ui/passenger/components/journey_detail.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
@@ -19,6 +19,7 @@ import 'package:provider/provider.dart';
 import '../../data/model/firestore/passenger.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/user_repo.dart';
+import '../../services/place_service.dart';
 import '../../util/greeting.dart';
 
 class PassengerHome extends StatefulWidget {
@@ -30,17 +31,22 @@ class PassengerHome extends StatefulWidget {
 
 class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
+  GoogleMapController? _mapController;
+
   final _passengerRepo = PassengerRepo();
   final _userRepo = UserRepo();
   final _journeyRepo = JourneyRepo();
   final _driverRepo = DriverRepo();
+  final _placeService = PlaceService();
 
   late final firebase_auth.User? firebaseUser;
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
+
   LatLng? _userLatLng;
   String? _userLocationDescription;
+  final Set<Polyline> _polylines = Set<Polyline>();
 
   bool _isSearching = false;
   bool _toApu = false;
@@ -48,6 +54,40 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
 
+  void _drawRoute() {
+    if (_userLatLng != null && _toApu != null) {
+      LatLng start = _toApu ? _userLatLng! : apuLatLng;
+      LatLng end = _toApu ? apuLatLng : _userLatLng!;
+
+      _polylines.clear();
+      _placeService.generateRoute(start, end).then((polyline) {
+        setState(() {
+          _polylines.add(polyline);
+          _setCameraToRoute();
+        });
+      });
+    }
+  }
+
+  void _setCameraToRoute() {
+    double minLat = _polylines.first.points.first.latitude;
+    double minLong = _polylines.first.points.first.longitude;
+    double maxLat = _polylines.first.points.first.latitude;
+    double maxLong = _polylines.first.points.first.longitude;
+    _polylines.forEach((poly) {
+      poly.points.forEach((point) {
+        if(point.latitude < minLat) minLat = point.latitude;
+        if(point.latitude > maxLat) maxLat = point.latitude;
+        if(point.longitude < minLong) minLong = point.longitude;
+        if(point.longitude > maxLong) maxLong = point.longitude;
+      });
+    });
+
+    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(LatLngBounds(
+        southwest: LatLng(minLat, minLong),
+        northeast: LatLng(maxLat,maxLong)
+    ), 20));
+  }
   @override
   void initState() {
     super.initState();
@@ -117,19 +157,29 @@ class _PassengerHomeState extends State<PassengerHome> {
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [
-                const CustomMap(),
+                MapView(
+                  userLatLng: _userLatLng,
+                  userLocationDescription: _userLocationDescription,
+                  toApu: _toApu,
+                  polylines: _polylines,
+                  setMapController: (controller) {
+                    setState((){
+                      _mapController = controller;
+                    });
+                  },
+                  mapController: _mapController,
+                ),
+
                 Positioned(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: JourneyDetail(
-                        isSearching: _isSearching,
-                        journey: _journey,
-                        journeyDetails: _journeyDetails,
-                      ),
-                    ),
-                  ),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                        child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: JourneyDetail(
+                              isSearching: _isSearching,
+                              journey: _journey,
+                              journeyDetails: _journeyDetails,
+                            )))
                 ),
                 if (!_isSearching)
                   Positioned.fill(
@@ -142,6 +192,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                           updateToApu: (toApu) {
                             setState(() {
                               _toApu = toApu;
+                              _drawRoute();
                             });
                           },
                           controller: _searchController,
@@ -149,11 +200,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                           onLatLng: (latLng) {
                             setState(() {
                               _userLatLng = latLng;
+                              _drawRoute();
                             });
                           },
                           clearUserLocation: () {
                             setState(() {
                               _userLatLng = null;
+                              _polylines.clear();
                             });
                           },
                           onDescription: (description) {
@@ -177,16 +230,15 @@ class _PassengerHomeState extends State<PassengerHome> {
                           });
                         },
                         createJourney: () {
-                          final userLatLng = "${_userLatLng!.latitude}, ${_userLatLng!.longitude}";
-                          _journeyRepo.createJourney(
-                            Journey(
-                              userId: firebaseUser!.uid,
-                              startLatLng: _toApu ? userLatLng : apuLatLng,
-                              endLatLng: _toApu ? apuLatLng : userLatLng,
-                              startDescription: _toApu ? _userLocationDescription! : apuDescription,
-                              endDescription: _toApu ? apuDescription : _userLocationDescription!,
-                            ),
-                          );
+                          final String userLatLng = "${_userLatLng!.latitude}, ${_userLatLng!.longitude}";
+                          final String apuLatLngString = "${apuLatLng.latitude}, ${apuLatLng.longitude}";
+                          _journeyRepo.createJourney(Journey(
+                            userId: firebaseUser!.uid,
+                            startLatLng: _toApu ? userLatLng : apuLatLngString,
+                            endLatLng: _toApu ? apuLatLngString : userLatLng,
+                            startDescription: _toApu ? _userLocationDescription! : apuDescription,
+                            endDescription: _toApu ? apuDescription : _userLocationDescription!
+                          ));
                         },
                         deleteJourney: () {
                           _journeyRepo.deleteJourney(_journey);
