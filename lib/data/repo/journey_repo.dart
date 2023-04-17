@@ -36,10 +36,12 @@ class JourneyRepo {
     });
   }
 
-  Future<QuerySnapshot<Journey>> getOngoingJourney(String driverId) async {
-    var ongoingJourney =
-        await _journeyRef.where("driverId", isEqualTo: driverId).where("isCompleted", isEqualTo: false).limit(1).get();
-    return ongoingJourney;
+  Stream<QuerySnapshot<Journey>> getOngoingJourney(String driverId) {
+    return _journeyRef
+        .where("driverId", isEqualTo: driverId)
+        .where("isCompleted", isEqualTo: false)
+        .limit(1)
+        .snapshots();
   }
 
   Stream<QuerySnapshot<Journey>> getJourneyRequestStream() {

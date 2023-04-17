@@ -72,11 +72,11 @@ class JourneyRequestPopup extends StatelessWidget {
                             ),
                           )
                         : Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'FROM',
-                                style: Theme.of(context).textTheme.titleSmall!.copyWith(color: Colors.grey.shade500),
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
                               ),
                               FutureBuilder(
                                 future: isMatchmaking
@@ -88,15 +88,14 @@ class JourneyRequestPopup extends StatelessWidget {
                                 builder: (context, addressSnapshot) {
                                   return Text(
                                     addressSnapshot.data ?? "Loading...",
-                                    textAlign: TextAlign.center,
                                     style: Theme.of(context).textTheme.titleMedium,
                                   );
                                 },
                               ),
-                              const Icon(Icons.arrow_downward),
+                              const SizedBox(height: 16),
                               Text(
                                 'TO',
-                                style: Theme.of(context).textTheme.titleSmall!.copyWith(color: Colors.grey.shade500),
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
                               ),
                               FutureBuilder(
                                 future: isMatchmaking
@@ -107,7 +106,6 @@ class JourneyRequestPopup extends StatelessWidget {
                                     : Future.value(null),
                                 builder: (context, addressSnapshot) {
                                   return Text(
-                                    textAlign: TextAlign.center,
                                     addressSnapshot.data ?? "Loading...",
                                     style: Theme.of(context).textTheme.titleMedium,
                                   );

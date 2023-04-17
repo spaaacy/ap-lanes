@@ -16,6 +16,7 @@ import '../common/app_drawer.dart';
 import '../common/custom_map.dart';
 import '../passenger/passenger_home.dart';
 import 'components/journey_request_popup.dart';
+import 'components/ongoing_journey_popup.dart';
 import 'components/setup_driver_profile_dialog.dart';
 
 class DriverHome extends StatefulWidget {
@@ -40,7 +41,9 @@ class _DriverHomeState extends State<DriverHome> {
   int _currentJourneyRequestIndex = 0;
   QuerySnapshot<Journey>? _availableJourneysSnapshot;
 
-  void updateJourneyRequestListener() {
+  late StreamSubscription<QuerySnapshot<Journey>> _activeJourneyListener;
+
+  void _updateJourneyRequestListener() {
     if (_journeyRequestListener != null) {
       _journeyRequestListener!.cancel();
     }
@@ -67,13 +70,17 @@ class _DriverHomeState extends State<DriverHome> {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
       if (firebaseUser != null) {
-        var existingJourney = await _journeyRepo.getOngoingJourney(firebaseUser!.uid);
-        if (existingJourney.size > 0) {
-          setState(() {
-            _activeJourney = existingJourney.docs.first;
-          });
-          return;
-        }
+        _activeJourneyListener = _journeyRepo.getOngoingJourney(firebaseUser!.uid).listen((ss) {
+          if (ss.size > 0) {
+            setState(() {
+              _activeJourney = ss.docs.first;
+            });
+          } else {
+            setState(() {
+              _activeJourney = null;
+            });
+          }
+        });
 
         var userData = await _userRepo.getUser(firebaseUser!.uid);
         setState(() {
@@ -86,7 +93,7 @@ class _DriverHomeState extends State<DriverHome> {
             // todo: maybe make this check for ongoing journeys instead
             _isMatchmaking = _driver?.data().isAvailable == true;
 
-            updateJourneyRequestListener();
+            _updateJourneyRequestListener();
           });
         } catch (e) {
           if (!context.mounted) return;
@@ -133,9 +140,10 @@ class _DriverHomeState extends State<DriverHome> {
   }
 
   @override
-  void dispose() async {
+  void dispose() {
+    _journeyRequestListener?.cancel();
+    _activeJourneyListener.cancel();
     super.dispose();
-    await _journeyRequestListener?.cancel();
   }
 
   void toggleIsMatchmaking() {
@@ -147,12 +155,83 @@ class _DriverHomeState extends State<DriverHome> {
 
   @override
   Widget build(BuildContext context) {
-    final buttonBarTheme = FilledButtonTheme.of(context).style?.copyWith(
-          elevation: const MaterialStatePropertyAll(2),
-          padding: const MaterialStatePropertyAll(
-            EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-          ),
-        );
+    void onJourneyDropOff(DocumentSnapshot<Journey>? activeJourney) async {
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        if (activeJourney == null) return;
+
+        var ss = await transaction.get<Journey>(activeJourney.reference);
+        if (!ss.exists) {
+          throw Exception("Error occurred when trying to update drop-off status of given Journey.");
+        }
+
+        if (ss.data()!.isCompleted) {
+          throw Exception("Cannot update drop-off status of completed Journey.");
+        }
+
+        transaction.update(ss.reference, {'isCompleted': true, 'isPickedUp': true});
+      });
+    }
+
+    void onJourneyPickUp(DocumentSnapshot<Journey>? activeJourney) async {
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        if (activeJourney == null) return;
+
+        var ss = await transaction.get<Journey>(activeJourney.reference);
+        if (!ss.exists) {
+          throw Exception("Error occurred when trying to update picked-up status of given Journey.");
+        }
+
+        if (ss.data()!.isCompleted) {
+          throw Exception("Cannot update picked-up status of completed Journey.");
+        }
+
+        if (ss.data()!.isPickedUp) {
+          transaction.update(ss.reference, {'isPickedUp': false});
+        } else {
+          transaction.update(ss.reference, {'isPickedUp': true});
+        }
+      });
+    }
+
+    void onJourneyAccept(QueryDocumentSnapshot<Journey> acceptedJourney) async {
+      toggleIsMatchmaking();
+      await _journeyRequestListener?.cancel();
+
+      try {
+        DocumentSnapshot<Journey>? updatedJourney =
+            await FirebaseFirestore.instance.runTransaction((transaction) async {
+          if (_availableJourneysSnapshot == null || _availableJourneysSnapshot?.size == 0) {
+            return null;
+          }
+
+          var ss = await transaction.get<Journey>(acceptedJourney.reference);
+          if (!ss.exists) {
+            throw Exception("Journey does not exist!");
+          }
+
+          if (ss.data()!.isCompleted || ss.data()!.driverId.isNotEmpty) {
+            throw Exception("Journey already has a driver!");
+          }
+
+          transaction.update(ss.reference, {'driverId': firebaseUser!.uid});
+
+          return ss;
+        });
+        setState(() {
+          _activeJourney = updatedJourney;
+        });
+      } catch (e) {
+        print("Failed to accept journey request: $e");
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('A problem occurred when accepting this request: $e'),
+            ),
+          );
+        }
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -172,7 +251,7 @@ class _DriverHomeState extends State<DriverHome> {
                     onPressed: () {
                       toggleIsMatchmaking();
 
-                      updateJourneyRequestListener();
+                      _updateJourneyRequestListener();
                     },
                     style: ElevatedButtonTheme.of(context).style?.copyWith(
                           shape: const MaterialStatePropertyAll(CircleBorder()),
@@ -186,105 +265,35 @@ class _DriverHomeState extends State<DriverHome> {
                           )
                         : const Text("GO"),
                   );
-                } else {
-                  // todo: create pick-up/drop-off buttons here
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: FilledButton(
-                          style: buttonBarTheme?.copyWith(
-                            backgroundColor: const MaterialStatePropertyAll(Colors.blue),
-                          ),
-                          onPressed: () {
-                            // handle pick up
-                            // mark journey isPickedUp = true
-                          },
-                          child: Text(
-                            'Pick-Up',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: FilledButton(
-                          style: buttonBarTheme?.copyWith(
-                            backgroundColor: const MaterialStatePropertyAll(Colors.green),
-                          ),
-                          onPressed: () {
-                            // handle drop off
-                            // mark journey as complete
-                          },
-                          child: Text(
-                            'Drop-Off',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
                 }
               }()),
             ),
           ),
-          JourneyRequestPopup(
-            isMatchmaking: _isMatchmaking,
-            journey: _availableJourneysSnapshot?.size != 0
-                ? _availableJourneysSnapshot?.docs.elementAt(_currentJourneyRequestIndex)
-                : null,
-            onReject: () {
-              setState(() {
-                if (_availableJourneysSnapshot != null) {
-                  _currentJourneyRequestIndex = (_currentJourneyRequestIndex + 1) % _availableJourneysSnapshot!.size;
-                }
-              });
-            },
-            onAccept: (acceptedJourney) async {
-              toggleIsMatchmaking();
-              await _journeyRequestListener?.cancel();
-
-              try {
-                DocumentSnapshot<Journey>? updatedJourney =
-                    await FirebaseFirestore.instance.runTransaction((transaction) async {
-                  if (_availableJourneysSnapshot == null || _availableJourneysSnapshot?.size == 0) {
-                    return null;
-                  }
-
-                  var ss = await transaction.get<Journey>(acceptedJourney.reference);
-                  if (!ss.exists) {
-                    throw Exception("Journey does not exist!");
-                  }
-
-                  if (ss.data()!.isCompleted || ss.data()!.driverId.isNotEmpty) {
-                    throw Exception("Journey already has a driver!");
-                  }
-
-                  transaction.update(ss.reference, {'driverId': firebaseUser!.uid});
-
-                  return ss;
-                });
-                setState(() {
-                  _activeJourney = updatedJourney;
-                });
-              } catch (e) {
-                print("Failed to accept journey request: $e");
-
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('A problem occurred when accepting this request: $e'),
-                    ),
-                  );
-                }
-              }
-            },
-          )
+          (() {
+            if (_activeJourney != null) {
+              return OngoingJourneyPopup(
+                activeJourney: _activeJourney,
+                onDropOff: onJourneyDropOff,
+                onPickUp: onJourneyPickUp,
+              );
+            } else {
+              return JourneyRequestPopup(
+                isMatchmaking: _isMatchmaking,
+                journey: _availableJourneysSnapshot?.size != 0
+                    ? _availableJourneysSnapshot?.docs.elementAt(_currentJourneyRequestIndex)
+                    : null,
+                onReject: () {
+                  setState(() {
+                    if (_availableJourneysSnapshot != null) {
+                      _currentJourneyRequestIndex =
+                          (_currentJourneyRequestIndex + 1) % _availableJourneysSnapshot!.size;
+                    }
+                  });
+                },
+                onAccept: onJourneyAccept,
+              );
+            }
+          }()),
         ],
       ),
     );
