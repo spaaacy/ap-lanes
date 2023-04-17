@@ -1,10 +1,8 @@
 import 'package:apu_rideshare/services/place_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../data/model/firestore/journey.dart';
-import '../../../util/location_helpers.dart';
 
 class JourneyRequestPopup extends StatelessWidget {
   const JourneyRequestPopup({
@@ -74,38 +72,18 @@ class JourneyRequestPopup extends StatelessWidget {
                                 'FROM',
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
                               ),
-                              FutureBuilder(
-                                future: isMatchmaking
-                                    ? placeService.fetchAddressFromLatLng(
-                                        lang,
-                                        getLatLngFromString(journey!.data().startLatLng),
-                                      )
-                                    : Future.value(null),
-                                builder: (context, addressSnapshot) {
-                                  return Text(
-                                    addressSnapshot.data ?? "Loading...",
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  );
-                                },
+                              Text(
+                                journey!.data().startDescription,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 16),
                               Text(
                                 'TO',
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
                               ),
-                              FutureBuilder(
-                                future: isMatchmaking
-                                    ? placeService.fetchAddressFromLatLng(
-                                        lang,
-                                        getLatLngFromString(journey!.data().endLatLng),
-                                      )
-                                    : Future.value(null),
-                                builder: (context, addressSnapshot) {
-                                  return Text(
-                                    addressSnapshot.data ?? "Loading...",
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  );
-                                },
+                              Text(
+                                journey!.data().endDescription,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ],
                           ),

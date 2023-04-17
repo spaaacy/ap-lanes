@@ -240,7 +240,18 @@ class _DriverHomeState extends State<DriverHome> {
       appBar: AppBar(
         title: const Text("Welcome Driver"),
       ),
-      drawer: AppDrawer(user: _user, isDriver: true),
+      drawer: AppDrawer(
+          user: _user,
+          isDriver: true,
+          isNavigationLocked: _isMatchmaking || _activeJourney != null,
+          onNavigateWhenLocked: () {
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("You cannot change to passenger mode while you are searching or carrying out a job."),
+              ),
+            );
+          }),
       body: Stack(
         children: [
           MapView(
