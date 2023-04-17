@@ -67,22 +67,20 @@ class PlaceService {
     }
   }
 
-  Future<List<String>> fetchAddressFromLatLng(BuildContext context, LatLng latLng) async {
+  Future<String> fetchAddressFromLatLng(BuildContext context, LatLng latLng) async {
     final lang = Localizations.localeOf(context).languageCode;
     final request =
-        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=$androidApiKey&language=$lang&result_type=street_address';
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&region=my&key=$androidApiKey&language=$lang'; // &result_type=subpremise|neighborhood|colloquial_area|establishment|point_of_interest|street_address
     final response = await client.get(Uri.parse(request));
     if (response.statusCode == 200) {
       final result = json.decode(response.body);
 
       if (result['status'] == 'OK') {
-        return result['results'].map<String>((result) {
-          return result['formatted_address'];
-        }).toList();
+        return result['results'][0]['formatted_address'];
       }
 
       if (result['status'] == 'ZERO_RESULTS') {
-        return [];
+        return 'Unknown Location';
       }
 
       throw Exception(result['error_message']);

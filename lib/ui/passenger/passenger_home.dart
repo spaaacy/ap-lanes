@@ -71,8 +71,8 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   @override
   void dispose() async {
-    await _journeyStream.cancel();
     super.dispose();
+    await _journeyStream.cancel();
   }
 
   @override

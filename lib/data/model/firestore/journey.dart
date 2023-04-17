@@ -37,8 +37,8 @@ class Journey {
       userId: data?['userId'],
       startPoint: data?['startPoint'],
       destination: data?['destination'],
-      isCompleted: data?['isCompleted'],
-      isPickedUp: data?['isPickedUp'],
+      isCompleted: data?['isCompleted'] ?? false,
+      isPickedUp: data?['isPickedUp'] ?? false,
       driverId: data?['driverId'],
     );
   }
