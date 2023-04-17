@@ -13,11 +13,15 @@ import '../passenger/passenger_home.dart';
 class AppDrawer extends StatelessWidget {
   final QueryDocumentSnapshot<User>? user;
   final bool isDriver;
+  final bool isNavigationLocked;
+  final void Function() onNavigateWhenLocked;
 
   const AppDrawer({
     super.key,
     required this.user,
     required this.isDriver,
+    required this.isNavigationLocked,
+    required this.onNavigateWhenLocked,
   });
 
   @override
@@ -44,7 +48,7 @@ class AppDrawer extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.center,
                         child: Text(
-                          user?.data().fullName.characters.first.toUpperCase() ?? '?',
+                          user?.data().getFullName().characters.first.toUpperCase() ?? '?',
                           style: const TextStyle(fontSize: 48),
                         ),
                       ),
@@ -53,7 +57,7 @@ class AppDrawer extends StatelessWidget {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
                     child: Text(
-                      user?.data().fullName ?? 'Unknown User',
+                      user?.data().getFullName() ?? 'Unknown User',
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
@@ -87,24 +91,28 @@ class AppDrawer extends StatelessWidget {
               return ListTile(
                 leading: const Icon(Icons.person),
                 title: const Text('Passenger Mode'),
-                onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (BuildContext context) => const PassengerHome(),
-                    ),
-                    (_) => false,
-                  );
-                },
+                onTap: isNavigationLocked
+                    ? () => onNavigateWhenLocked()
+                    : () {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) => const PassengerHome(),
+                          ),
+                          (_) => false,
+                        );
+                      },
               );
             }
             return ListTile(
               leading: const Icon(Icons.drive_eta),
               title: const Text('Driver Mode'),
-              onTap: () {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (BuildContext context) => const DriverHome(),
-                ));
-              },
+              onTap: isNavigationLocked
+                  ? () => onNavigateWhenLocked()
+                  : () {
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (BuildContext context) => const DriverHome(),
+                      ));
+                    },
             );
           }()),
           const Divider(),
