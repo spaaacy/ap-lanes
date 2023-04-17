@@ -7,20 +7,22 @@ import '../../../services/place_service.dart';
 
 class SearchBar extends StatelessWidget {
   final TextEditingController controller;
-  final Function(LatLng) onSearch;
+  final Function(LatLng) onLatLng;
   final Function(bool) updateToApu;
   bool toApu;
   LatLng? userLocation;
   final Function() clearUserLocation;
+  final Function(String) onDescription;
 
   SearchBar(
       {super.key,
       required this.controller,
-      required this.onSearch,
+      required this.onLatLng,
       required this.updateToApu,
       required this.toApu,
       required this.userLocation,
-      required this.clearUserLocation});
+      required this.clearUserLocation,
+      required this.onDescription});
 
   String _sessionToken = Uuid().v4();
   final _placeService = PlaceService();
@@ -56,7 +58,8 @@ class SearchBar extends StatelessWidget {
           );
         },
         onSuggestionSelected: (suggestion) {
-          _placeService.getLatLong(lang, suggestion.placeId, _sessionToken).then((latLng) => onSearch(latLng));
+          _placeService.getLatLong(lang, suggestion.placeId, _sessionToken).then((latLng) => onLatLng(latLng));
+          onDescription(suggestion.description);
           controller.text = suggestion.description;
           _sessionToken = Uuid().v4();
         },
@@ -83,7 +86,7 @@ class SearchBar extends StatelessWidget {
         height: 8.0,
       ),
       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        Text(toApu ? "TO APU" : "FROM APU", style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 16.0)),
+        Text(toApu ? "TO APU" : "FROM APU", style: Theme.of(context).textTheme.bodyLarge),
         const SizedBox(
           width: 8.0,
         ),
