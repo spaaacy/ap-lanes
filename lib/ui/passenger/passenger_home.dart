@@ -44,6 +44,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
+  String? _lastName;
 
   LatLng? _userLatLng;
   String? _userLocationDescription;
@@ -70,6 +71,7 @@ class _PassengerHomeState extends State<PassengerHome> {
         _userRepo.getUser(firebaseUser!.uid).then((userData) {
           setState(() {
             _user = userData;
+            _lastName = userData.data().lastName;
           });
         });
 
@@ -105,7 +107,8 @@ class _PassengerHomeState extends State<PassengerHome> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          Greeting.getGreeting(),
+          Greeting.getGreeting(_lastName),
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
       drawer: AppDrawer(

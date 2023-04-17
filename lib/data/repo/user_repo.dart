@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart';
 
 import '../model/firestore/user.dart' as model;
 
@@ -21,5 +22,9 @@ class UserRepo {
     return user.get("userType");
   }
 
-  // TODO: Get last name
+  Future<String> getLastName(String userId) async {
+    final user = await getUser(userId);
+    return user.get("lastName");
+  }
+
 }
