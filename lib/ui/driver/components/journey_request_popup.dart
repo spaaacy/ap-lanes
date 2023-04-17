@@ -78,7 +78,7 @@ class JourneyRequestPopup extends StatelessWidget {
                                 future: isMatchmaking
                                     ? placeService.fetchAddressFromLatLng(
                                         lang,
-                                        getLatLngFromString(journey!.data().startPoint),
+                                        getLatLngFromString(journey!.data().startLatLng),
                                       )
                                     : Future.value(null),
                                 builder: (context, addressSnapshot) {
@@ -97,7 +97,7 @@ class JourneyRequestPopup extends StatelessWidget {
                                 future: isMatchmaking
                                     ? placeService.fetchAddressFromLatLng(
                                         lang,
-                                        getLatLngFromString(journey!.data().destination),
+                                        getLatLngFromString(journey!.data().endLatLng),
                                       )
                                     : Future.value(null),
                                 builder: (context, addressSnapshot) {

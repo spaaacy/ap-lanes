@@ -154,9 +154,9 @@ class OngoingJourneyPopup extends StatelessWidget {
                         ),
                         onPressed: () {
                           if (!activeJourney!.data()!.isPickedUp) {
-                            launchWaze(getLatLngFromString(activeJourney!.data()!.startPoint));
+                            launchWaze(getLatLngFromString(activeJourney!.data()!.startLatLng));
                           } else {
-                            launchWaze(getLatLngFromString(activeJourney!.data()!.destination));
+                            launchWaze(getLatLngFromString(activeJourney!.data()!.endLatLng));
                           }
                         },
                         child: SvgPicture.asset(
