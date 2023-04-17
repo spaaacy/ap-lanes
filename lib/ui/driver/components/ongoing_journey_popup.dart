@@ -1,5 +1,5 @@
-import 'package:apu_rideshare/util/ext_map_launchers.dart';
 import 'package:apu_rideshare/util/location_helpers.dart';
+import 'package:apu_rideshare/util/url_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -54,6 +54,18 @@ class OngoingJourneyPopup extends StatelessWidget {
       }
     }
 
+    String getTargetLocation() {
+      switch (getCurrentDriverAction()) {
+        case DriverAction.droppingOff:
+          return activeJourney!.data()!.endDescription;
+        case DriverAction.pickingUp:
+          return activeJourney!.data()!.startDescription;
+        case DriverAction.idle:
+        default:
+          return "Unknown";
+      }
+    }
+
     return TweenAnimationBuilder(
       curve: Curves.bounceInOut,
       duration: const Duration(milliseconds: 250),
@@ -87,7 +99,9 @@ class OngoingJourneyPopup extends StatelessWidget {
                           future: _userRepo.getUser(activeJourney!.data()!.userId),
                           builder: (context, passengerSnapshot) {
                             return Text(
-                              passengerSnapshot.hasData ? '${passengerSnapshot.data?.data().fullName}' : 'Loading...',
+                              passengerSnapshot.hasData
+                                  ? '${passengerSnapshot.data?.data().getFullName()}'
+                                  : 'Loading...',
                               style: Theme.of(context).textTheme.titleMedium,
                             );
                           },
@@ -98,8 +112,7 @@ class OngoingJourneyPopup extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
                         ),
                         Text(
-                          // todo: Change based on is picking up or dropping off
-                          'Placeholder Here (Put address here when place_id has been added to Journey model)',
+                          getTargetLocation(),
                           style: Theme.of(context).textTheme.titleMedium,
                         )
                       ],
