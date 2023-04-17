@@ -1,5 +1,7 @@
+import 'package:apu_rideshare/data/repo/user_repo.dart';
+
 class Greeting {
-  static String getGreeting() {
+  static String getGreeting(String? lastName) {
     var hour = DateTime.now().hour;
     final String greeting;
 
@@ -7,14 +9,16 @@ class Greeting {
       greeting = 'Good Morning';
     } else if ((hour > 12) && (hour <= 16)) {
       greeting = 'Good Afternoon';
-    } else if ((hour > 16) && (hour < 20)) {
+    } else if ((hour > 16) && (hour < 24)) {
       greeting = 'Good Evening';
     } else {
       greeting = 'Good Night';
     }
 
-    // TODO: Concatenate w/ last name
-
-    return greeting;
+    if (lastName == null) {
+      return greeting;
+    } else {
+      return "$greeting, $lastName";
+    }
   }
 }
