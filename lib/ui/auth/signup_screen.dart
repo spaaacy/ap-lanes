@@ -1,6 +1,6 @@
 import 'package:apu_rideshare/services/auth_service.dart';
 import 'package:apu_rideshare/util/constants.dart' as constants;
-import 'package:apu_rideshare/util/ui_helper.dart' as ui_helper;
+import 'package:apu_rideshare/util/ui_helpers.dart' as ui_helper;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../data/model/firestore/journey.dart';
+import '../../../util/location_helpers.dart';
 
 class JourneyRequestPopup extends StatelessWidget {
   const JourneyRequestPopup({
@@ -18,11 +19,6 @@ class JourneyRequestPopup extends StatelessWidget {
   final QueryDocumentSnapshot<Journey>? journey;
   final void Function() onReject;
   final void Function(QueryDocumentSnapshot<Journey>) onAccept;
-
-  LatLng getLatLngFromString(String latLngString) {
-    var latLngValues = latLngString.split(',').map((e) => double.parse(e.trim())).toList();
-    return LatLng(latLngValues[0], latLngValues[1]);
-  }
 
   @override
   Widget build(BuildContext context) {

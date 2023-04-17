@@ -1,5 +1,8 @@
+import 'package:apu_rideshare/util/ext_map_launchers.dart';
+import 'package:apu_rideshare/util/location_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/model/firestore/journey.dart';
 import '../../../data/model/firestore/user.dart';
@@ -140,6 +143,29 @@ class OngoingJourneyPopup extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 0,
+                      child: FilledButton(
+                        style: buttonBarTheme?.copyWith(
+                          backgroundColor: MaterialStatePropertyAll(
+                            !activeJourney!.data()!.isPickedUp ? Colors.blue : Colors.green,
+                          ),
+                        ),
+                        onPressed: () {
+                          if (!activeJourney!.data()!.isPickedUp) {
+                            launchWaze(getLatLngFromString(activeJourney!.data()!.startPoint));
+                          } else {
+                            launchWaze(getLatLngFromString(activeJourney!.data()!.destination));
+                          }
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icons/waze.svg',
+                          height: 20,
+                          width: 20,
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ],
