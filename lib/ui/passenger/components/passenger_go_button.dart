@@ -15,7 +15,7 @@ import '../../../data/repo/passenger_repo.dart';
 class PassengerGoButton extends StatefulWidget {
   bool isSearching;
   Function(bool) updateIsSearching;
-  Function(Journey) createJourney;
+  Function() createJourney;
   Function() deleteJourney;
 
   PassengerGoButton(
@@ -40,15 +40,7 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
         if (firebaseUser != null) {
           if (!widget.isSearching) {
             widget.updateIsSearching(true);
-            widget.createJourney(
-                  Journey(
-                  userId: firebaseUser.uid,
-                  // TODO: Implement actual locations
-                  startPoint: "3.055513736582056, 101.69617610900454", // Parkhill
-                  destination: "3.0557922212826236, 101.70035141013787", // APU
-                  isCompleted: false
-                  )
-              );
+            widget.createJourney();
             } else {
             widget.updateIsSearching(false);
             widget.deleteJourney();
