@@ -133,10 +133,6 @@ class _DriverHomeState extends State<DriverHome> {
                       .updateDriver(_driver!, {'isAvailable': !_isMatchmaking});
                   setState(() {
                     _isMatchmaking = !_isMatchmaking;
-                    _journey = Journey(
-                        userId: 'swag',
-                        startPoint: 'startPoint',
-                        destination: 'destination');
                   });
                 },
                 style: ElevatedButtonTheme.of(context).style?.copyWith(

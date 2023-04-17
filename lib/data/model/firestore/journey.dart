@@ -2,16 +2,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Journey {
   final String userId;
-  final String startPoint;
-  final String destination;
+  final String startLatLng;
+  final String endLatLng;
+  final String startDescription;
+  final String endDescription;
   bool isCompleted;
   bool hasDriver;
   String driverId;
 
   Journey({
     required this.userId,
-    required this.startPoint,
-    required this.destination,
+    required this.startLatLng,
+    required this.endLatLng,
+    required this.startDescription,
+    required this.endDescription,
     this.isCompleted = false,
     this.hasDriver = false,
     this.driverId = "",
@@ -20,8 +24,10 @@ class Journey {
   Map<String, dynamic> toFirestore() {
     return {
       if (userId != null) "userId": userId,
-      if (startPoint != null) "startPoint": startPoint,
-      if (destination != null) "destination": destination,
+      if (startLatLng != null) "startLatLng": startLatLng,
+      if (endLatLng != null) "endLatLng": endLatLng,
+      if (startDescription != null) "startDescription": startDescription,
+      if (endDescription != null) "endDescription": endDescription,
       if (isCompleted != null) "isCompleted": isCompleted,
       if (hasDriver != null) "hasDriver": hasDriver,
       if (driverId != null) "driverId": driverId,
@@ -35,8 +41,10 @@ class Journey {
     final data = snapshot.data();
     return Journey(
       userId: data?['userId'],
-      startPoint: data?['startPoint'],
-      destination: data?['destination'],
+      startLatLng: data?['startLatLng'],
+      endLatLng: data?['endLatLng'],
+      startDescription: data?['startDescription'],
+      endDescription: data?['endDescription'],
       isCompleted: data?['isCompleted'],
       hasDriver: data?['hasDriver'],
       driverId: data?['driverId'],
