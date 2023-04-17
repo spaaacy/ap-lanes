@@ -14,7 +14,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/model/firestore/passenger.dart';
@@ -43,7 +42,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   LatLng? _userLatLng;
   String? _userLocationDescription;
 
-  late bool _isSearching;
+  bool _isSearching = false;
   bool _toApu = false;
   final List<String> _journeyDetails = ["Finding a driver..."];
 
@@ -74,7 +73,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             final driverId = _journey!.data().driverId;
             _userRepo.getUser(driverId).then((user) {
               _journeyDetails.add("Your Driver:");
-              _journeyDetails.add(user.data().fullName);
+              _journeyDetails.add(user.data().getFullName());
               return user.data().id;
             }).then((id) => _driverRepo.getDriver(id).then((driver) {
                   _journeyDetails.add(driver.data().licensePlate);
@@ -102,30 +101,43 @@ class _PassengerHomeState extends State<PassengerHome> {
           Greeting.getGreeting(),
         ),
       ),
-      drawer: AppDrawer(user: _user, isDriver: false),
+      drawer: AppDrawer(
+          user: _user,
+          isDriver: false,
+          isNavigationLocked: _isSearching,
+          onNavigateWhenLocked: () {
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("You cannot change to driver mode while you are searching for a driver or are in a journey."),
+              ),
+            );
+          }),
       body: _passenger == null
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [
                 const CustomMap(),
-
                 Positioned(
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                        child: Padding(
-                            padding: const EdgeInsets.all(24.0), child: JourneyDetail(isSearching: _isSearching, journey: _journey, journeyDetails: _journeyDetails,)
-                        )
-                    )
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: JourneyDetail(
+                        isSearching: _isSearching,
+                        journey: _journey,
+                        journeyDetails: _journeyDetails,
+                      ),
+                    ),
+                  ),
                 ),
-
                 if (!_isSearching)
                   Positioned.fill(
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Align(
                         alignment: Alignment.topCenter,
-                        child:
-                        SearchBar(
+                        child: SearchBar(
                           toApu: _toApu,
                           updateToApu: (toApu) {
                             setState(() {
@@ -166,13 +178,15 @@ class _PassengerHomeState extends State<PassengerHome> {
                         },
                         createJourney: () {
                           final userLatLng = "${_userLatLng!.latitude}, ${_userLatLng!.longitude}";
-                          _journeyRepo.createJourney(Journey(
-                            userId: firebaseUser!.uid,
-                            startLatLng: _toApu ? userLatLng : apuLatLng,
-                            endLatLng: _toApu ? apuLatLng : userLatLng,
-                            startDescription: _toApu ? _userLocationDescription! : apuDescription,
-                            endDescription: _toApu ? apuDescription : _userLocationDescription!
-                          ));
+                          _journeyRepo.createJourney(
+                            Journey(
+                              userId: firebaseUser!.uid,
+                              startLatLng: _toApu ? userLatLng : apuLatLng,
+                              endLatLng: _toApu ? apuLatLng : userLatLng,
+                              startDescription: _toApu ? _userLocationDescription! : apuDescription,
+                              endDescription: _toApu ? apuDescription : _userLocationDescription!,
+                            ),
+                          );
                         },
                         deleteJourney: () {
                           _journeyRepo.deleteJourney(_journey);

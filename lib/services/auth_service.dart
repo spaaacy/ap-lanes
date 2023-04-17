@@ -15,11 +15,9 @@ class AuthService {
   final _userRepo = UserRepo();
   final _passengerRepo = PassengerRepo();
 
-  Future<String> signIn(
-      {required String email, required String password}) async {
+  Future<String> signIn({required String email, required String password}) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
-          email: email, password: password);
+      await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
 
       // _registerUser(); // Temporary
 
@@ -36,8 +34,7 @@ class AuthService {
     required String lastName,
   }) async {
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       _registerUser(firstName: firstName, lastName: lastName);
       return signedIn;
     } on FirebaseAuthException catch (e) {
@@ -53,7 +50,8 @@ class AuthService {
         id: id!,
         userType: passenger,
         email: userEmail!,
-        fullName: "$firstName $lastName",
+        firstName: firstName,
+        lastName: lastName,
       ),
     );
 
