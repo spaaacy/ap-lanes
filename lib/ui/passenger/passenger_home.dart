@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:apu_rideshare/data/model/firestore/journey.dart';
 import 'package:apu_rideshare/data/model/firestore/user.dart';
+import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:apu_rideshare/ui/common/app_drawer.dart';
 import 'package:apu_rideshare/ui/common/custom_map.dart';
+import 'package:apu_rideshare/ui/passenger/components/journey_detail.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
 import 'package:apu_rideshare/util/constants.dart';
@@ -32,15 +34,18 @@ class _PassengerHomeState extends State<PassengerHome> {
   final _passengerRepo = PassengerRepo();
   final _userRepo = UserRepo();
   final _journeyRepo = JourneyRepo();
+  final _driverRepo = DriverRepo();
 
   late final firebase_auth.User? firebaseUser;
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
-  LatLng? _userLocation;
+  LatLng? _userLatLng;
+  String? _userLocationDescription;
 
   late bool _isSearching;
   bool _toApu = false;
+  final List<String> _journeyDetails = ["Finding a driver..."];
 
   late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
 
@@ -64,6 +69,20 @@ class _PassengerHomeState extends State<PassengerHome> {
 
         _journeyStream = _journeyRepo.listenForJourney(firebaseUser!.uid, (journey) {
           _journey = journey;
+          _journeyDetails.clear();
+          if (_journey!.data().driverId.isNotEmpty) {
+            final driverId = _journey!.data().driverId;
+            _userRepo.getUser(driverId).then((user) {
+              _journeyDetails.add("Your Driver:");
+              _journeyDetails.add(user.data().fullName);
+              return user.data().id;
+            }).then((id) => _driverRepo.getDriver(id).then((driver) {
+                  _journeyDetails.add(driver.data().licensePlate);
+                  setState(() {});
+                }));
+          } else {
+            setState(() => _journeyDetails.add("Finding a driver..."));
+          }
         });
       }
     });
@@ -89,6 +108,16 @@ class _PassengerHomeState extends State<PassengerHome> {
           : Stack(
               children: [
                 const CustomMap(),
+
+                Positioned(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                        child: Padding(
+                            padding: const EdgeInsets.all(24.0), child: JourneyDetail(isSearching: _isSearching, journey: _journey, journeyDetails: _journeyDetails,)
+                        )
+                    )
+                ),
+
                 if (!_isSearching)
                   Positioned.fill(
                     child: Padding(
@@ -104,22 +133,25 @@ class _PassengerHomeState extends State<PassengerHome> {
                             });
                           },
                           controller: _searchController,
-                          userLocation: _userLocation,
-                          onSearch: (latLng) {
+                          userLocation: _userLatLng,
+                          onLatLng: (latLng) {
                             setState(() {
-                              _userLocation = latLng;
+                              _userLatLng = latLng;
                             });
                           },
                           clearUserLocation: () {
                             setState(() {
-                              _userLocation = null;
+                              _userLatLng = null;
                             });
+                          },
+                          onDescription: (description) {
+                            _userLocationDescription = description;
                           },
                         ),
                       ),
                     ),
                   ),
-                if (_userLocation != null || _isSearching)
+                if (_userLatLng != null || _isSearching)
                   Positioned.fill(
                     bottom: 100.0,
                     child: Align(
@@ -133,11 +165,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                           });
                         },
                         createJourney: () {
-                          final userLocation = "${_userLocation!.latitude}, ${_userLocation!.longitude}";
+                          final userLatLng = "${_userLatLng!.latitude}, ${_userLatLng!.longitude}";
                           _journeyRepo.createJourney(Journey(
                             userId: firebaseUser!.uid,
-                            startPoint: _toApu ? userLocation : apuLatLng, // APU
-                            destination: _toApu ? apuLatLng : userLocation,
+                            startLatLng: _toApu ? userLatLng : apuLatLng,
+                            endLatLng: _toApu ? apuLatLng : userLatLng,
+                            startDescription: _toApu ? _userLocationDescription! : apuDescription,
+                            endDescription: _toApu ? apuDescription : _userLocationDescription!
                           ));
                         },
                         deleteJourney: () {
