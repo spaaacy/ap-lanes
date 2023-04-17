@@ -58,7 +58,7 @@ class SearchBar extends StatelessWidget {
           );
         },
         onSuggestionSelected: (suggestion) {
-          _placeService.getLatLong(lang, suggestion.placeId, _sessionToken).then((latLng) => onLatLng(latLng));
+          _placeService.fetchLatLong(lang, suggestion.placeId, _sessionToken).then((latLng) => onLatLng(latLng));
           onDescription(suggestion.description);
           controller.text = suggestion.description;
           _sessionToken = Uuid().v4();

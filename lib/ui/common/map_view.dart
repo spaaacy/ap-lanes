@@ -1,22 +1,38 @@
 import 'dart:async';
 
+import 'package:apu_rideshare/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../services/place_service.dart';
 import '../../util/location_permissions.dart';
 import '../../util/resize_asset.dart';
 
-class CustomMap extends StatefulWidget {
-  const CustomMap({super.key});
+class MapView extends StatefulWidget {
+  LatLng? userLatLng;
+  String? userLocationDescription;
+  bool? toApu;
+  Set<Polyline>? polylines;
+  GoogleMapController? mapController;
+  final Function(GoogleMapController) setMapController;
+
+  MapView(
+      {super.key,
+      this.userLatLng,
+      this.userLocationDescription,
+      this.toApu,
+      this.polylines,
+      required this.setMapController,
+      required this.mapController
+      });
 
   @override
-  State<CustomMap> createState() => _CustomMapState();
+  State<MapView> createState() => _MapViewState();
 }
 
-class _CustomMapState extends State<CustomMap> {
-  GoogleMapController? _mapController;
+class _MapViewState extends State<MapView> {
   LatLng? _currentPosition;
   BitmapDescriptor _markerIcon = BitmapDescriptor.defaultMarker;
   late String _mapStyle;
@@ -25,15 +41,16 @@ class _CustomMapState extends State<CustomMap> {
 
   @override
   void initState() {
+    super.initState();
     _getCustomIcon();
+    _getMapStyle();
+    _getCurrentPosition();
+  }
 
-    // Fetches map style
+  void _getMapStyle() {
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
-
-    _getCurrentPosition();
-    super.initState();
   }
 
   void _getCurrentPosition() async {
@@ -53,7 +70,7 @@ class _CustomMapState extends State<CustomMap> {
         */
         setState(() => _currentPosition = latLng);
         if (_cameraShouldCenter) {
-          _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
+          widget.mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
         }
       });
     }
@@ -65,20 +82,21 @@ class _CustomMapState extends State<CustomMap> {
     super.dispose();
   }
 
-  void _getCustomIcon() async {
+  Future<void> _getCustomIcon() async {
     final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset('assets/images/marker_icon.png', 150);
     _markerIcon = resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-    _mapController?.setMapStyle(_mapStyle);
+    widget.setMapController(controller);
+    controller.setMapStyle(_mapStyle);
   }
 
   @override
   Widget build(BuildContext context) {
-    return _currentPosition == null
-        ? const Center(
+
+    return _currentPosition == null ?
+        const Center(
             child: CircularProgressIndicator(),
           )
         : WillPopScope(
@@ -89,6 +107,7 @@ class _CustomMapState extends State<CustomMap> {
             child: Stack(
               children: [
                 GoogleMap(
+                  polylines: widget.polylines != null ? widget.polylines! : <Polyline>{},
                   mapToolbarEnabled: false,
                   onCameraMove: (position) {
                     setState(() => _cameraShouldCenter = false);
