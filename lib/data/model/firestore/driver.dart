@@ -1,20 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Driver {
   final String id;
   final String licensePlate;
   final bool isAvailable;
+  final LatLng currentLatLng;
 
   const Driver(
       {required this.id,
       required this.licensePlate,
-      required this.isAvailable});
+      required this.isAvailable,
+      required this.currentLatLng});
 
   Map<String, dynamic> toFirestore() {
     return {
       if (id != null) "id": id,
       if (licensePlate != null) "licensePlate": licensePlate,
       if (isAvailable != null) "isAvailable": isAvailable,
+      if (currentLatLng != null) "currentLatLng": currentLatLng,
     };
   }
 
@@ -26,6 +30,7 @@ class Driver {
     return Driver(
         id: data?['id'],
         licensePlate: data?['licensePlate'],
-        isAvailable: data?['isAvailable']);
+        isAvailable: data?['isAvailable'],
+        currentLatLng: data?['currentLatLng']);
   }
 }
