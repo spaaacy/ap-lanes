@@ -33,7 +33,6 @@ class PassengerHome extends StatefulWidget {
 
 class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
-  GoogleMapController? _mapController;
 
   final _passengerRepo = PassengerRepo();
   final _userRepo = UserRepo();
@@ -53,6 +52,8 @@ class _PassengerHomeState extends State<PassengerHome> {
   bool _toApu = false;
   final List<String> _journeyDetails = ["Finding a driver..."];
 
+  // Google Map Variables
+  GoogleMapController? _mapController;
   final Set<Polyline> _polylines = <Polyline>{};
   late final BitmapDescriptor _locationIcon;
   late final BitmapDescriptor _userIcon;
@@ -67,8 +68,8 @@ class _PassengerHomeState extends State<PassengerHome> {
   @override
   void initState() {
     super.initState();
-    MapHelper.getCustomIcon('assets/icons/location_icon.png', 120).then((icon) => setState(() => _locationIcon = icon));
-    MapHelper.getCustomIcon('assets/icons/user_icon.png', 100).then((icon) => setState(() => _userIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/location_icon.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/user_icon.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
 
     _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
@@ -117,9 +118,9 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   @override
   void dispose() async {
-    super.dispose();
     await _journeyStream.cancel();
     _locationSubscription.cancel();
+    super.dispose();
   }
 
   @override

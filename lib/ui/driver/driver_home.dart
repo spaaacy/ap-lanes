@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +14,8 @@ import '../../data/model/firestore/driver.dart';
 import '../../data/model/firestore/journey.dart';
 import '../../data/model/firestore/user.dart';
 import '../../data/repo/user_repo.dart';
+import '../../util/constants.dart';
+import '../../util/map_helper.dart';
 import '../common/app_drawer.dart';
 import '../common/map_view.dart';
 import '../passenger/passenger_home.dart';
@@ -44,7 +47,17 @@ class _DriverHomeState extends State<DriverHome> {
 
   late StreamSubscription<QuerySnapshot<Journey>> _activeJourneyListener;
 
+
+  // Google Map Variables
   GoogleMapController? _mapController;
+  final Set<Polyline> _polylines = <Polyline>{};
+  late final BitmapDescriptor _locationIcon; // Use this for location markers
+  late final BitmapDescriptor _userIcon;
+  Marker? _userMarker;
+  Marker? _destinationMarker;
+  Marker? _startMarker;
+  LatLng? _currentPosition;
+  late StreamSubscription<Position> _locationSubscription;
 
   void _updateJourneyRequestListener() {
     if (_journeyRequestListener != null) {
@@ -69,6 +82,18 @@ class _DriverHomeState extends State<DriverHome> {
   @override
   void initState() {
     super.initState();
+
+
+    // Google Map Variable Initialization
+    MapHelper.getCustomIcon('assets/icons/location_icon.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/user_icon.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
+    _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
+      final latLng = LatLng(position.latitude, position.longitude);
+      setState(() {
+        _currentPosition = latLng;
+        _userMarker = Marker(markerId: const MarkerId("user-marker"), position: _currentPosition!, icon: _userIcon);
+      });
+    });
 
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
@@ -146,6 +171,7 @@ class _DriverHomeState extends State<DriverHome> {
   void dispose() {
     _journeyRequestListener?.cancel();
     _activeJourneyListener.cancel();
+    _locationSubscription.cancel();
     super.dispose();
   }
 
@@ -255,10 +281,17 @@ class _DriverHomeState extends State<DriverHome> {
       body: Stack(
         children: [
           MapView(
+            userLatLng: _currentPosition,
+            destinationMarker: _destinationMarker,
+            startMarker: _startMarker,
+            userMarker: _userMarker,
+            polylines: _polylines,
+            setMapController: (controller) {
+              setState((){
+                _mapController = controller;
+              });
+            },
             mapController: _mapController,
-            setMapController: (controller) => setState(() {
-              _mapController = controller;
-            }),
           ),
           Positioned.fill(
             bottom: 100.0,
