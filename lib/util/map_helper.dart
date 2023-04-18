@@ -11,9 +11,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'location_permissions.dart';
 
 class MapHelper {
-  static void drawRoute(Set<Polyline> polylines, LatLng start, LatLng end, Function onFetch) {
+  static void drawRoute(Set<Polyline> polylines, LatLng start, LatLng end, Function onFetch) async {
     final placeService = PlaceService();
-      polylines.clear();
       placeService.generateRoute(start, end).then((polylines) {
         onFetch(polylines);
       });
@@ -47,13 +46,17 @@ class MapHelper {
     }
   }
 
-  static Future<BitmapDescriptor> getCustomIcon(String path) async {
-    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset(path, 150);
+  static Future<BitmapDescriptor> getCustomIcon(String path, int size) async {
+    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset(path, size);
     return resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
   static Future<String> getMapStyle() async {
     return rootBundle.loadString('assets/map_style.txt');
+  }
+
+  static void resetCamera(GoogleMapController? mapController, LatLng currentPosition) {
+    mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
 
 }

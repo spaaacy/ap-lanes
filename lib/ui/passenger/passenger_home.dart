@@ -14,6 +14,7 @@ import 'package:apu_rideshare/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -53,15 +54,29 @@ class _PassengerHomeState extends State<PassengerHome> {
   final List<String> _journeyDetails = ["Finding a driver..."];
 
   final Set<Polyline> _polylines = <Polyline>{};
-  late final BitmapDescriptor _markerIcon;
+  late final BitmapDescriptor _locationIcon;
+  late final BitmapDescriptor _userIcon;
+  Marker? _userMarker;
   Marker? _destinationMarker;
+  Marker? _startMarker;
+  LatLng? _currentPosition;
+  late StreamSubscription<Position> _locationSubscription;
 
 
 
   @override
   void initState() {
     super.initState();
-    MapHelper.getCustomIcon('assets/images/marker_icon.png').then((icon) => setState(() => _markerIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/location_icon.png', 120).then((icon) => setState(() => _locationIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/user_icon.png', 100).then((icon) => setState(() => _userIcon = icon));
+
+    _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
+      final latLng = LatLng(position.latitude, position.longitude);
+      setState(() {
+        _currentPosition = latLng;
+        _userMarker = Marker(markerId: const MarkerId("user-marker"), position: _currentPosition!, icon: _userIcon);
+      });
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
@@ -104,6 +119,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   void dispose() async {
     super.dispose();
     await _journeyStream.cancel();
+    _locationSubscription.cancel();
   }
 
   @override
@@ -133,10 +149,10 @@ class _PassengerHomeState extends State<PassengerHome> {
               children: [
 
                 MapView(
-                  destinationIcon: _markerIcon,
+                  userLatLng: _currentPosition,
                   destinationMarker: _destinationMarker,
-                  destinationLatLng: _destinationLatLng,
-                  userLocationDescription: _userLocationDescription,
+                  startMarker: _startMarker,
+                  userMarker: _userMarker,
                   polylines: _polylines,
                   setMapController: (controller) {
                     setState((){
@@ -168,14 +184,17 @@ class _PassengerHomeState extends State<PassengerHome> {
                           updateToApu: (toApu) {
                             setState(() {
                               _toApu = toApu;
-                              final start = _toApu ? _destinationLatLng! : apuLatLng;
-                              final end = _toApu ? apuLatLng : _destinationLatLng!;
-                              MapHelper.drawRoute(_polylines, start, end, (polylines) {
-                                setState(() {
-                                  _polylines.add(polylines);
-                                  MapHelper.setCameraToRoute(_mapController!, _polylines);
+                              if(_destinationLatLng != null){
+                                final start = _toApu ? _destinationLatLng! : apuLatLng;
+                                final end = _toApu ? apuLatLng : _destinationLatLng!;
+                                MapHelper.drawRoute(_polylines, start, end, (polylines) {
+                                  setState(() {
+                                    _polylines.clear();
+                                    _polylines.add(polylines);
+                                    MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                  });
                                 });
-                              });
+                              }
                             });
                           },
                           controller: _searchController,
@@ -190,9 +209,14 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   _polylines.add(polylines);
                                   MapHelper.setCameraToRoute(_mapController!, _polylines);
                                   _destinationMarker = Marker(
-                                      markerId: MarkerId("Destination"),
+                                      markerId: const MarkerId("destination"),
                                       position: latLng,
-                                      icon: _markerIcon
+                                      icon: _locationIcon
+                                  );
+                                  _startMarker = Marker(
+                                      markerId: const MarkerId("start"),
+                                      position: apuLatLng,
+                                      icon: _locationIcon
                                   );
                                 });
                               });
@@ -202,6 +226,9 @@ class _PassengerHomeState extends State<PassengerHome> {
                             setState(() {
                               _destinationLatLng = null;
                               _polylines.clear();
+                              _destinationMarker = null;
+                              _startMarker = null;
+                              MapHelper.resetCamera(_mapController, _currentPosition!);
                             });
                           },
                           onDescription: (description) {
