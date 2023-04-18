@@ -38,7 +38,6 @@ class _PassengerHomeState extends State<PassengerHome> {
   final _userRepo = UserRepo();
   final _journeyRepo = JourneyRepo();
   final _driverRepo = DriverRepo();
-  final _placeService = PlaceService();
 
   late final firebase_auth.User? firebaseUser;
   QueryDocumentSnapshot<Passenger>? _passenger;
@@ -86,6 +85,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               return user.data().id;
             }).then((id) => _driverRepo.getDriver(id).then((driver) {
                   _journeyDetails.add(driver.data().licensePlate);
+                  _polylines.clear();
                   setState(() {});
                 }));
           } else {
