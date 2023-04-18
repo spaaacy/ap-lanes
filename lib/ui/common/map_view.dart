@@ -5,18 +5,18 @@ import '../../util/map_helper.dart';
 
 class MapView extends StatefulWidget {
   LatLng? userLatLng;
-  Set<Polyline>? polylines; // TODO: Make non-nullable
-  GoogleMapController? mapController; // TODO: Make non-nullable
+  Set<Polyline> polylines;
+  GoogleMapController? mapController;
   final Function(GoogleMapController) setMapController;
-  Marker? userMarker; // TODO: Make non-nullable
-  Marker? destinationMarker; // TODO: Make non-nullable
-  Marker? startMarker; // TODO: Make non-nullable
+  Marker? userMarker;
+  Marker? destinationMarker;
+  Marker? startMarker;
 
 
   MapView(
       {super.key,
       this.userLatLng,
-      this.polylines,
+      required this.polylines,
       required this.setMapController,
       required this.mapController,
       this.userMarker,
