@@ -7,15 +7,13 @@ class MapHelper {
   static void drawRoute(LatLng userLatLng, bool toApu, Set<Polyline> polylines, Function onFetch) {
     final placeService = PlaceService();
 
-    if (userLatLng != null && toApu != null) {
-      LatLng start = toApu ? userLatLng! : apuLatLng;
-      LatLng end = toApu ? apuLatLng : userLatLng!;
+    LatLng start = toApu ? userLatLng: apuLatLng;
+    LatLng end = toApu ? apuLatLng : userLatLng;
 
-      polylines.clear();
-      placeService.generateRoute(start, end).then((polylines) {
-        onFetch(polylines);
-      });
-    }
+    polylines.clear();
+    placeService.generateRoute(start, end).then((polylines) {
+      onFetch(polylines);
+    });
   }
 
   static void setCameraToRoute(GoogleMapController mapController, Set<Polyline> polylines) {
@@ -32,7 +30,11 @@ class MapHelper {
       });
     });
 
-    mapController.animateCamera(CameraUpdate.newLatLngBounds(
-        LatLngBounds(southwest: LatLng(minLat, minLong), northeast: LatLng(maxLat, maxLong)), 20));
+    mapController.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(southwest: LatLng(minLat, minLong), northeast: LatLng(maxLat, maxLong)),
+        96,
+      )
+    );
   }
 }

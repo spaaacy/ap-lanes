@@ -7,18 +7,19 @@ class Driver {
   final bool isAvailable;
   final LatLng? currentLatLng;
 
-  const Driver(
-      {required this.id,
-      required this.licensePlate,
-      required this.isAvailable,
-      this.currentLatLng});
+  const Driver({
+    required this.id,
+    required this.licensePlate,
+    required this.isAvailable,
+    this.currentLatLng,
+  });
 
   Map<String, dynamic> toFirestore() {
     return {
       if (id != null) "id": id,
       if (licensePlate != null) "licensePlate": licensePlate,
       if (isAvailable != null) "isAvailable": isAvailable,
-      if (currentLatLng != null) "currentLatLng": currentLatLng,
+      if (currentLatLng != null) "currentLatLng": '${currentLatLng!.latitude},${currentLatLng!.longitude}',
     };
   }
 
@@ -27,10 +28,13 @@ class Driver {
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
+    List<double>? latLngList = data?['currentLatLng'].toString().split(',').map((e) => double.tryParse(e.trim()) ?? 0).toList();
+
     return Driver(
-        id: data?['id'],
-        licensePlate: data?['licensePlate'],
-        isAvailable: data?['isAvailable'],
-        currentLatLng: data?['currentLatLng']);
+      id: data?['id'],
+      licensePlate: data?['licensePlate'],
+      isAvailable: data?['isAvailable'],
+      currentLatLng: LatLng(latLngList![0], latLngList[1]),
+    );
   }
 }
