@@ -43,21 +43,25 @@ class _PassengerHomeState extends State<PassengerHome> {
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
+  late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
+
   String? _lastName;
-
-  LatLng? _userLatLng;
+  LatLng? _destinationLatLng;
   String? _userLocationDescription;
-  final Set<Polyline> _polylines = Set<Polyline>();
-
   bool _isSearching = false;
   bool _toApu = false;
   final List<String> _journeyDetails = ["Finding a driver..."];
 
-  late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
-  
+  final Set<Polyline> _polylines = <Polyline>{};
+  late final BitmapDescriptor _markerIcon;
+  Marker? _destinationMarker;
+
+
+
   @override
   void initState() {
     super.initState();
+    MapHelper.getCustomIcon('assets/images/marker_icon.png').then((icon) => setState(() => _markerIcon = icon));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
@@ -127,10 +131,12 @@ class _PassengerHomeState extends State<PassengerHome> {
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [
+
                 MapView(
-                  userLatLng: _userLatLng,
+                  destinationIcon: _markerIcon,
+                  destinationMarker: _destinationMarker,
+                  destinationLatLng: _destinationLatLng,
                   userLocationDescription: _userLocationDescription,
-                  toApu: _toApu,
                   polylines: _polylines,
                   setMapController: (controller) {
                     setState((){
@@ -162,7 +168,9 @@ class _PassengerHomeState extends State<PassengerHome> {
                           updateToApu: (toApu) {
                             setState(() {
                               _toApu = toApu;
-                              MapHelper.drawRoute(_userLatLng!, _toApu, _polylines, (polylines) {
+                              final start = _toApu ? _destinationLatLng! : apuLatLng;
+                              final end = _toApu ? apuLatLng : _destinationLatLng!;
+                              MapHelper.drawRoute(_polylines, start, end, (polylines) {
                                 setState(() {
                                   _polylines.add(polylines);
                                   MapHelper.setCameraToRoute(_mapController!, _polylines);
@@ -171,21 +179,28 @@ class _PassengerHomeState extends State<PassengerHome> {
                             });
                           },
                           controller: _searchController,
-                          userLocation: _userLatLng,
+                          userLocation: _destinationLatLng,
                           onLatLng: (latLng) {
                             setState(() {
-                              _userLatLng = latLng;
-                              MapHelper.drawRoute(_userLatLng!, _toApu, _polylines, (polylines) {
+                              _destinationLatLng = latLng;
+                              final start = _toApu ? _destinationLatLng! : apuLatLng;
+                              final end = _toApu ? apuLatLng : _destinationLatLng!;
+                              MapHelper.drawRoute(_polylines, start, end, (polylines) {
                                 setState(() {
                                   _polylines.add(polylines);
                                   MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                  _destinationMarker = Marker(
+                                      markerId: MarkerId("Destination"),
+                                      position: latLng,
+                                      icon: _markerIcon
+                                  );
                                 });
                               });
                             });
                           },
                           clearUserLocation: () {
                             setState(() {
-                              _userLatLng = null;
+                              _destinationLatLng = null;
                               _polylines.clear();
                             });
                           },
@@ -196,7 +211,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                       ),
                     ),
                   ),
-                if (_userLatLng != null || _isSearching)
+                if (_destinationLatLng != null || _isSearching)
                   Positioned.fill(
                     bottom: 100.0,
                     child: Align(
@@ -210,7 +225,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                           });
                         },
                         createJourney: () {
-                          final String userLatLng = "${_userLatLng!.latitude}, ${_userLatLng!.longitude}";
+                          final String userLatLng = "${_destinationLatLng!.latitude}, ${_destinationLatLng!.longitude}";
                           final String apuLatLngString = "${apuLatLng.latitude}, ${apuLatLng.longitude}";
                           _journeyRepo.createJourney(Journey(
                             userId: firebaseUser!.uid,

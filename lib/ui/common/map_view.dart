@@ -6,85 +6,68 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../services/place_service.dart';
-import '../../util/location_permissions.dart';
-import '../../util/resize_asset.dart';
+import '../../util/map_helper.dart';
 
 class MapView extends StatefulWidget {
-  LatLng? userLatLng;
+  LatLng? destinationLatLng;
   String? userLocationDescription;
-  bool? toApu;
-  Set<Polyline>? polylines;
-  GoogleMapController? mapController;
+  Set<Polyline>? polylines; // TODO: Make non-nullable
+  GoogleMapController? mapController; // TODO: Make non-nullable
   final Function(GoogleMapController) setMapController;
+  BitmapDescriptor? destinationIcon; // TODO: Make non-nullable
+  Marker? destinationMarker; // TODO: Make non-nullable
 
   MapView(
       {super.key,
-      this.userLatLng,
+      this.destinationLatLng,
       this.userLocationDescription,
-      this.toApu,
       this.polylines,
       required this.setMapController,
-      required this.mapController
-      });
+      required this.mapController,
+      this.destinationIcon,
+      this.destinationMarker});
 
   @override
   State<MapView> createState() => _MapViewState();
 }
 
 class _MapViewState extends State<MapView> {
+  bool _cameraShouldCenter = true;
   LatLng? _currentPosition;
-  BitmapDescriptor _markerIcon = BitmapDescriptor.defaultMarker;
   late String _mapStyle;
   late StreamSubscription<Position> _locationSubscription;
-  bool _cameraShouldCenter = true;
+  late Marker _userMarker;
+  late BitmapDescriptor _userIcon;
 
   @override
   void initState() {
     super.initState();
-    _getCustomIcon();
-    _getMapStyle();
-    _getCurrentPosition();
-  }
 
-  void _getMapStyle() {
-    rootBundle.loadString('assets/map_style.txt').then((string) {
+    MapHelper.getMapStyle().then((string) {
       _mapStyle = string;
     });
-  }
 
-  void _getCurrentPosition() async {
-    final hasPermissions = await LocationPermissions.handleLocationPermission(context);
+    MapHelper.getCustomIcon('assets/images/marker_icon.png') // TODO: Use different icon
+        .then((icon) => _userIcon = icon);
 
-    if (hasPermissions) {
-      _locationSubscription = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
-      ).listen((location) {
-        final latLng = LatLng(location.latitude, location.longitude);
-        /*
-          fixme: Problem with this `setState` getting called after
-           the widget disposes because the dispose function and
-           WillPopScope callback that cancels this `StreamSubscription`
-           doesn't run all the time. Can't fix this shit no matter what.
-           Ignoring for now.
-        */
-        setState(() => _currentPosition = latLng);
-        if (_cameraShouldCenter) {
-          widget.mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
-        }
+    _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
+      final latLng = LatLng(position.latitude, position.longitude);
+      setState(() {
+        _currentPosition = latLng;
+        _userMarker = Marker(markerId: const MarkerId("user-marker"), position: _currentPosition!, icon: _userIcon);
       });
-    }
+
+      if (_cameraShouldCenter) {
+        widget.mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
+      }
+
+    });
   }
 
   @override
   void dispose() {
     _locationSubscription.cancel();
     super.dispose();
-  }
-
-  Future<void> _getCustomIcon() async {
-    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset('assets/images/marker_icon.png', 150);
-    _markerIcon = resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -94,9 +77,8 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-
-    return _currentPosition == null ?
-        const Center(
+    return _currentPosition == null
+        ? const Center(
             child: CircularProgressIndicator(),
           )
         : WillPopScope(
@@ -106,6 +88,7 @@ class _MapViewState extends State<MapView> {
             },
             child: Stack(
               children: [
+
                 GoogleMap(
                   polylines: widget.polylines != null ? widget.polylines! : <Polyline>{},
                   mapToolbarEnabled: false,
@@ -116,24 +99,24 @@ class _MapViewState extends State<MapView> {
                   onMapCreated: _onMapCreated,
                   initialCameraPosition: CameraPosition(target: _currentPosition!, zoom: 17.0),
                   markers: {
-                    Marker(
-                      icon: _markerIcon,
-                      markerId: const MarkerId("current_location"),
-                      position: _currentPosition!,
-                    )
+                    _userMarker,
+                    if (widget.destinationMarker != null) widget.destinationMarker!
                   },
                 ),
+
                 Positioned.fill(
-                  bottom: 48.0,
-                  left: 32.0,
+                  bottom: 24.0,
+                  right: 24.0,
                   child: Align(
-                    alignment: Alignment.bottomLeft,
+                    alignment: Alignment.bottomRight,
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() => _cameraShouldCenter = true);
                       },
                       style: ElevatedButtonTheme.of(context).style?.copyWith(
-                            shape: const MaterialStatePropertyAll(CircleBorder()),
+                            shape: MaterialStatePropertyAll(
+                              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                            ),
                             padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
                             elevation: const MaterialStatePropertyAll(4.0),
                           ),
