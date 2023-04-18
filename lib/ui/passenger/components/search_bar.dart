@@ -86,7 +86,13 @@ class SearchBar extends StatelessWidget {
         height: 8.0,
       ),
       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        Text(toApu ? "TO APU" : "FROM APU", style: Theme.of(context).textTheme.bodyLarge),
+        Container(
+          decoration: BoxDecoration(
+              shape: BoxShape.rectangle, color: Colors.black54, borderRadius: BorderRadius.circular(25)),
+            padding: EdgeInsets.all(8.0),
+            child: Text(toApu ? "TO APU" : "FROM APU", style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.white
+            ))),
         const SizedBox(
           width: 8.0,
         ),

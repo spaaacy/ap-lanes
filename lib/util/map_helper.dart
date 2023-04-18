@@ -1,21 +1,21 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:apu_rideshare/services/place_service.dart';
+import 'package:apu_rideshare/util/resize_asset.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'constants.dart';
+import 'location_permissions.dart';
 
 class MapHelper {
-  static void drawRoute(LatLng userLatLng, bool toApu, Set<Polyline> polylines, Function onFetch) {
+  static void drawRoute(Set<Polyline> polylines, LatLng start, LatLng end, Function onFetch) async {
     final placeService = PlaceService();
-
-    if (userLatLng != null && toApu != null) {
-      LatLng start = toApu ? userLatLng! : apuLatLng;
-      LatLng end = toApu ? apuLatLng : userLatLng!;
-
-      polylines.clear();
       placeService.generateRoute(start, end).then((polylines) {
         onFetch(polylines);
       });
-    }
   }
 
   static void setCameraToRoute(GoogleMapController mapController, Set<Polyline> polylines) {
@@ -35,4 +35,28 @@ class MapHelper {
     mapController.animateCamera(CameraUpdate.newLatLngBounds(
         LatLngBounds(southwest: LatLng(minLat, minLong), northeast: LatLng(maxLat, maxLong)), 20));
   }
+
+  static Stream<Position> getCurrentPosition(BuildContext context) async* {
+    final hasPermissions = await LocationPermissions.handleLocationPermission(context);
+
+    if (hasPermissions) {
+      yield* Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
+      );
+    }
+  }
+
+  static Future<BitmapDescriptor> getCustomIcon(String path, int size) async {
+    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset(path, size);
+    return resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
+  }
+
+  static Future<String> getMapStyle() async {
+    return rootBundle.loadString('assets/map_style.txt');
+  }
+
+  static void resetCamera(GoogleMapController? mapController, LatLng currentPosition) {
+    mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
+  }
+
 }
