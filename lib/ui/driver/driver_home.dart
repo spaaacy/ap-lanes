@@ -43,7 +43,6 @@ class _DriverHomeState extends State<DriverHome> {
   QuerySnapshot<Journey>? _availableJourneysSnapshot;
   late StreamSubscription<QuerySnapshot<Journey>> _activeJourneyListener;
   GoogleMapController? _mapController;
-  final Set<Polyline> _polylines = <Polyline>{};
 
   void _updateJourneyRequestListener() {
     if (_journeyRequestListener != null) {
