@@ -49,11 +49,13 @@ class _DriverHomeState extends State<DriverHome> {
   final Set<Polyline> _polylines = <Polyline>{};
   late final BitmapDescriptor _locationIcon; // Use this for location markers
   late final BitmapDescriptor _userIcon;
+  bool _shouldCenter = true;
   Marker? _userMarker;
+  Marker? _otherMarker;
   Marker? _destinationMarker;
   Marker? _startMarker;
   LatLng? _currentPosition;
-  late StreamSubscription<Position> _locationSubscription;
+  late StreamSubscription<Position> _locationListener;
 
   void _updateJourneyRequestListener() {
     if (_journeyRequestListener != null) {
@@ -80,17 +82,17 @@ class _DriverHomeState extends State<DriverHome> {
     super.initState();
 
     // Google Map Variable Initialization
-    MapHelper.getCustomIcon('assets/icons/location_icon.png', locationIconSize).then(
-      (icon) => setState(() => _locationIcon = icon),
-    );
-    MapHelper.getCustomIcon('assets/icons/user_icon.png', userIconSize).then(
-      (icon) => setState(() => _userIcon = icon),
-    );
-    _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
+    MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/user.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
+    _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
       setState(() {
         _currentPosition = latLng;
         _userMarker = Marker(markerId: const MarkerId("user-marker"), position: _currentPosition!, icon: _userIcon);
+
+        if (_shouldCenter) {
+          MapHelper.resetCamera(_mapController, _currentPosition!);
+        }
       });
     });
 
@@ -170,7 +172,7 @@ class _DriverHomeState extends State<DriverHome> {
   void dispose() {
     _journeyRequestListener?.cancel();
     _activeJourneyListener.cancel();
-    _locationSubscription.cancel();
+    _locationListener.cancel();
     super.dispose();
   }
 
@@ -298,7 +300,11 @@ class _DriverHomeState extends State<DriverHome> {
               mapController: _mapController,
               setMapController: (controller) => setState(() {
                 _mapController = controller;
-              }),
+              }), setShouldCenter: (shouldCenter) {
+              setState(() {
+                  _shouldCenter = shouldCenter;
+              });
+              },
             ),
             Positioned.fill(
               bottom: 100.0,

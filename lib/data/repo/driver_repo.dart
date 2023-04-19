@@ -24,4 +24,9 @@ class DriverRepo {
       Map<Object, Object?> updatedValues) async {
     await driver.reference.update(updatedValues);
   }
+
+  Stream<QuerySnapshot<Driver>> listenToDriver(String userId) {
+    return _driverRef.where("id", isEqualTo: userId).snapshots();
+  }
+
 }

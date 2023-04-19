@@ -19,7 +19,7 @@ class Driver {
       if (id != null) "id": id,
       if (licensePlate != null) "licensePlate": licensePlate,
       if (isAvailable != null) "isAvailable": isAvailable,
-      if (currentLatLng != null) "currentLatLng": '${currentLatLng!.latitude},${currentLatLng!.longitude}',
+      if (currentLatLng != null) "currentLatLng": '${currentLatLng!.latitude}, ${currentLatLng!.longitude}',
     };
   }
 
