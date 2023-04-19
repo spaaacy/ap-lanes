@@ -80,7 +80,8 @@ flutter:
   #   - images/a_dot_ham.jpeg
 
   assets:
-    - assets/images/marker_icon.png
+    - assets/icons/user_icon.png
+    - assets/icons/location_icon.png
     - assets/map_style.txt
     - assets/icons/waze.svg
 

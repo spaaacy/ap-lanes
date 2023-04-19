@@ -13,9 +13,9 @@ import 'location_permissions.dart';
 class MapHelper {
   static void drawRoute(Set<Polyline> polylines, LatLng start, LatLng end, Function onFetch) async {
     final placeService = PlaceService();
-    placeService.generateRoute(start, end).then((polylines) {
-      onFetch(polylines);
-    });
+      placeService.generateRoute(start, end).then((polylines) {
+        onFetch(polylines);
+      });
   }
 
   static void setCameraToRoute(GoogleMapController mapController, Set<Polyline> polylines) {

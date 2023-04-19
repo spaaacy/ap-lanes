@@ -1,31 +1,27 @@
-import 'dart:async';
-
-import 'package:apu_rideshare/util/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../services/place_service.dart';
-import '../../util/location_permissions.dart';
-import '../../util/resize_asset.dart';
+import '../../util/map_helper.dart';
 
 class MapView extends StatefulWidget {
   LatLng? userLatLng;
-  String? userLocationDescription;
-  bool? toApu;
-  Set<Polyline>? polylines;
+  Set<Polyline> polylines;
   GoogleMapController? mapController;
   final Function(GoogleMapController) setMapController;
+  Marker? userMarker;
+  Marker? destinationMarker;
+  Marker? startMarker;
+
 
   MapView(
       {super.key,
       this.userLatLng,
-      this.userLocationDescription,
-      this.toApu,
-      this.polylines,
+      required this.polylines,
       required this.setMapController,
-      required this.mapController
+      required this.mapController,
+      this.userMarker,
+      this.destinationMarker,
+      this.startMarker
       });
 
   @override
@@ -33,58 +29,15 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
-  LatLng? _currentPosition;
-  BitmapDescriptor _markerIcon = BitmapDescriptor.defaultMarker;
   late String _mapStyle;
-  late StreamSubscription<Position> _locationSubscription;
-  bool _cameraShouldCenter = true;
 
   @override
   void initState() {
     super.initState();
-    _getCustomIcon();
-    _getMapStyle();
-    _getCurrentPosition();
-  }
 
-  void _getMapStyle() {
-    rootBundle.loadString('assets/map_style.txt').then((string) {
+    MapHelper.getMapStyle().then((string) {
       _mapStyle = string;
     });
-  }
-
-  void _getCurrentPosition() async {
-    final hasPermissions = await LocationPermissions.handleLocationPermission(context);
-
-    if (hasPermissions) {
-      _locationSubscription = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
-      ).listen((location) {
-        final latLng = LatLng(location.latitude, location.longitude);
-        /*
-          fixme: Problem with this `setState` getting called after
-           the widget disposes because the dispose function and
-           WillPopScope callback that cancels this `StreamSubscription`
-           doesn't run all the time. Can't fix this shit no matter what.
-           Ignoring for now.
-        */
-        setState(() => _currentPosition = latLng);
-        if (_cameraShouldCenter) {
-          widget.mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 17.0));
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _locationSubscription.cancel();
-    super.dispose();
-  }
-
-  Future<void> _getCustomIcon() async {
-    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset('assets/images/marker_icon.png', 150);
-    _markerIcon = resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -94,58 +47,55 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-
-    return _currentPosition == null ?
-        const Center(
+    return widget.userLatLng == null
+        ? const Center(
             child: CircularProgressIndicator(),
           )
-        : WillPopScope(
-            onWillPop: () async {
-              await _locationSubscription.cancel();
-              return Future.value(true);
-            },
-            child: Stack(
+        : Stack(
               children: [
+
                 GoogleMap(
                   polylines: widget.polylines != null ? widget.polylines! : <Polyline>{},
                   mapToolbarEnabled: false,
-                  onCameraMove: (position) {
-                    setState(() => _cameraShouldCenter = false);
-                  },
                   zoomControlsEnabled: false,
                   onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(target: _currentPosition!, zoom: 17.0),
+                  initialCameraPosition: CameraPosition(target: widget.userLatLng!, zoom: 17.0),
                   markers: {
-                    Marker(
-                      icon: _markerIcon,
-                      markerId: const MarkerId("current_location"),
-                      position: _currentPosition!,
-                    )
+                    if (widget.userMarker != null) widget.userMarker!,
+                    if (widget.destinationMarker != null) widget.destinationMarker!,
+                    if (widget.startMarker != null) widget.startMarker!
                   },
                 ),
+
                 Positioned.fill(
-                  bottom: 48.0,
-                  left: 32.0,
+                  bottom: 24.0,
+                  right: 24.0,
                   child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() => _cameraShouldCenter = true);
-                      },
-                      style: ElevatedButtonTheme.of(context).style?.copyWith(
-                            shape: const MaterialStatePropertyAll(CircleBorder()),
-                            padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
-                            elevation: const MaterialStatePropertyAll(4.0),
-                          ),
-                      child: const Icon(
-                        Icons.my_location,
-                        semanticLabel: 'Recenter Map',
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      height: 60,
+                      width: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          MapHelper.resetCamera(widget.mapController, widget.userLatLng!);
+                        },
+                        style: ElevatedButtonTheme.of(context).style?.copyWith(
+                              shape: MaterialStatePropertyAll(
+                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                              ),
+                              padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
+                              elevation: const MaterialStatePropertyAll(4.0),
+                            ),
+                        child: const Icon(
+                          Icons.my_location,
+                          semanticLabel: 'Recenter Map',
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ],
-            ),
-          );
+            );
   }
 }

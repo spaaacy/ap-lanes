@@ -14,6 +14,7 @@ import 'package:apu_rideshare/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -32,7 +33,6 @@ class PassengerHome extends StatefulWidget {
 
 class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
-  GoogleMapController? _mapController;
 
   final _passengerRepo = PassengerRepo();
   final _userRepo = UserRepo();
@@ -43,21 +43,41 @@ class _PassengerHomeState extends State<PassengerHome> {
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
+  late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
+
   String? _lastName;
-
-  LatLng? _userLatLng;
+  LatLng? _destinationLatLng;
   String? _userLocationDescription;
-  final Set<Polyline> _polylines = Set<Polyline>();
-
   bool _isSearching = false;
   bool _toApu = false;
   final List<String> _journeyDetails = ["Finding a driver..."];
 
-  late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
-  
+  // Google Map Variables
+  GoogleMapController? _mapController;
+  final Set<Polyline> _polylines = <Polyline>{};
+  late final BitmapDescriptor _locationIcon;
+  late final BitmapDescriptor _userIcon;
+  Marker? _userMarker;
+  Marker? _destinationMarker;
+  Marker? _startMarker;
+  LatLng? _currentPosition;
+  late StreamSubscription<Position> _locationSubscription;
+
+
+
   @override
   void initState() {
     super.initState();
+    MapHelper.getCustomIcon('assets/icons/location_icon.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/user_icon.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
+
+    _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
+      final latLng = LatLng(position.latitude, position.longitude);
+      setState(() {
+        _currentPosition = latLng;
+        _userMarker = Marker(markerId: const MarkerId("user-marker"), position: _currentPosition!, icon: _userIcon);
+      });
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
@@ -98,8 +118,9 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   @override
   void dispose() async {
-    super.dispose();
     await _journeyStream.cancel();
+    _locationSubscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -127,10 +148,12 @@ class _PassengerHomeState extends State<PassengerHome> {
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [
+
                 MapView(
-                  userLatLng: _userLatLng,
-                  userLocationDescription: _userLocationDescription,
-                  toApu: _toApu,
+                  userLatLng: _currentPosition,
+                  destinationMarker: _destinationMarker,
+                  startMarker: _startMarker,
+                  userMarker: _userMarker,
                   polylines: _polylines,
                   setMapController: (controller) {
                     setState((){
@@ -162,31 +185,51 @@ class _PassengerHomeState extends State<PassengerHome> {
                           updateToApu: (toApu) {
                             setState(() {
                               _toApu = toApu;
-                              MapHelper.drawRoute(_userLatLng!, _toApu, _polylines, (polylines) {
-                                setState(() {
-                                  _polylines.add(polylines);
-                                  MapHelper.setCameraToRoute(_mapController!, _polylines);
+                              if(_destinationLatLng != null){
+                                final start = _toApu ? _destinationLatLng! : apuLatLng;
+                                final end = _toApu ? apuLatLng : _destinationLatLng!;
+                                MapHelper.drawRoute(_polylines, start, end, (polylines) {
+                                  setState(() {
+                                    _polylines.clear();
+                                    _polylines.add(polylines);
+                                    MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                  });
                                 });
-                              });
+                              }
                             });
                           },
                           controller: _searchController,
-                          userLocation: _userLatLng,
+                          userLocation: _destinationLatLng,
                           onLatLng: (latLng) {
                             setState(() {
-                              _userLatLng = latLng;
-                              MapHelper.drawRoute(_userLatLng!, _toApu, _polylines, (polylines) {
+                              _destinationLatLng = latLng;
+                              final start = _toApu ? _destinationLatLng! : apuLatLng;
+                              final end = _toApu ? apuLatLng : _destinationLatLng!;
+                              MapHelper.drawRoute(_polylines, start, end, (polylines) {
                                 setState(() {
                                   _polylines.add(polylines);
                                   MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                  _destinationMarker = Marker(
+                                      markerId: const MarkerId("destination"),
+                                      position: latLng,
+                                      icon: _locationIcon
+                                  );
+                                  _startMarker = Marker(
+                                      markerId: const MarkerId("start"),
+                                      position: apuLatLng,
+                                      icon: _locationIcon
+                                  );
                                 });
                               });
                             });
                           },
                           clearUserLocation: () {
                             setState(() {
-                              _userLatLng = null;
+                              _destinationLatLng = null;
                               _polylines.clear();
+                              _destinationMarker = null;
+                              _startMarker = null;
+                              MapHelper.resetCamera(_mapController, _currentPosition!);
                             });
                           },
                           onDescription: (description) {
@@ -196,7 +239,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                       ),
                     ),
                   ),
-                if (_userLatLng != null || _isSearching)
+                if (_destinationLatLng != null || _isSearching)
                   Positioned.fill(
                     bottom: 100.0,
                     child: Align(
@@ -210,7 +253,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                           });
                         },
                         createJourney: () {
-                          final String userLatLng = "${_userLatLng!.latitude}, ${_userLatLng!.longitude}";
+                          final String userLatLng = "${_destinationLatLng!.latitude}, ${_destinationLatLng!.longitude}";
                           final String apuLatLngString = "${apuLatLng.latitude}, ${apuLatLng.longitude}";
                           _journeyRepo.createJourney(Journey(
                             userId: firebaseUser!.uid,
