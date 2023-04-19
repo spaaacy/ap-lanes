@@ -1,4 +1,3 @@
-import 'package:apu_rideshare/services/place_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -7,22 +6,19 @@ import '../../../data/model/firestore/journey.dart';
 class JourneyRequestPopup extends StatelessWidget {
   const JourneyRequestPopup({
     super.key,
-    required this.isMatchmaking,
+    required this.isSearching,
     required this.journey,
-    required this.onReject,
+    required this.onNavigate,
     required this.onAccept,
   });
 
-  final bool isMatchmaking;
+  final bool isSearching;
   final QueryDocumentSnapshot<Journey>? journey;
-  final void Function() onReject;
+  final void Function(int direction) onNavigate;
   final void Function(QueryDocumentSnapshot<Journey>) onAccept;
 
   @override
   Widget build(BuildContext context) {
-    final PlaceService placeService = PlaceService();
-    String lang = Localizations.localeOf(context).languageCode;
-
     final matchmakingButtonTheme = FilledButtonTheme.of(context).style?.copyWith(
           elevation: const MaterialStatePropertyAll(2),
           padding: const MaterialStatePropertyAll(
@@ -33,7 +29,7 @@ class JourneyRequestPopup extends StatelessWidget {
     return TweenAnimationBuilder(
       curve: Curves.bounceInOut,
       duration: const Duration(milliseconds: 250),
-      tween: Tween<double>(begin: isMatchmaking ? 1 : 0, end: isMatchmaking ? 0 : 1),
+      tween: Tween<double>(begin: isSearching ? 1 : 0, end: isSearching ? 0 : 1),
       builder: (_, topOffset, w) {
         return Positioned.fill(
           left: 12,
@@ -94,18 +90,13 @@ class JourneyRequestPopup extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Expanded(
+                      flex: 0,
                       child: FilledButton(
                         style: matchmakingButtonTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.red),
+                          backgroundColor: const MaterialStatePropertyAll(Colors.blue),
                         ),
-                        onPressed: journey == null ? null : onReject,
-                        child: Text(
-                          'REJECT',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
+                        onPressed: journey == null ? null : () => onNavigate(-1),
+                        child: const Icon(Icons.arrow_back, color: Colors.white),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -122,6 +113,17 @@ class JourneyRequestPopup extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 0,
+                      child: FilledButton(
+                        style: matchmakingButtonTheme?.copyWith(
+                          backgroundColor: const MaterialStatePropertyAll(Colors.blue),
+                        ),
+                        onPressed: journey == null ? null : () => onNavigate(1),
+                        child: const Icon(Icons.arrow_forward, color: Colors.white),
                       ),
                     ),
                   ],
