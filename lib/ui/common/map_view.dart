@@ -8,7 +8,9 @@ class MapView extends StatefulWidget {
   Set<Polyline> polylines;
   GoogleMapController? mapController;
   final Function(GoogleMapController) setMapController;
+  final Function(bool) setShouldCenter;
   Marker? userMarker;
+  Marker? otherMarker;
   Marker? destinationMarker;
   Marker? startMarker;
 
@@ -16,12 +18,14 @@ class MapView extends StatefulWidget {
   MapView(
       {super.key,
       this.userLatLng,
+      required this.setShouldCenter,
       required this.polylines,
       required this.setMapController,
       required this.mapController,
       this.userMarker,
+      this.otherMarker,
       this.destinationMarker,
-      this.startMarker
+      this.startMarker,
       });
 
   @override
@@ -60,10 +64,14 @@ class _MapViewState extends State<MapView> {
                   zoomControlsEnabled: false,
                   onMapCreated: _onMapCreated,
                   initialCameraPosition: CameraPosition(target: widget.userLatLng!, zoom: 17.0),
+                  onCameraMove: (_) {
+                    widget.setShouldCenter(false);
+                  },
                   markers: {
                     if (widget.userMarker != null) widget.userMarker!,
                     if (widget.destinationMarker != null) widget.destinationMarker!,
-                    if (widget.startMarker != null) widget.startMarker!
+                    if (widget.startMarker != null) widget.startMarker!,
+                    if (widget.otherMarker != null) widget.otherMarker!
                   },
                 ),
 
@@ -78,6 +86,7 @@ class _MapViewState extends State<MapView> {
                       child: ElevatedButton(
                         onPressed: () {
                           MapHelper.resetCamera(widget.mapController, widget.userLatLng!);
+                          widget.setShouldCenter(true);
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
                               shape: MaterialStatePropertyAll(

@@ -17,6 +17,7 @@ Logger logger = Logger();
 
 // Icon Size
 const int userIconSize = 90;
+const int driverIconSize = 120;
 const int locationIconSize = 120;
 
 // Locations

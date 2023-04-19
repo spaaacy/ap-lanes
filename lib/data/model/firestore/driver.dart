@@ -5,13 +5,14 @@ class Driver {
   final String id;
   final String licensePlate;
   final bool isAvailable;
-  final LatLng? currentLatLng;
+  final String? currentLatLng;
 
   const Driver(
       {required this.id,
       required this.licensePlate,
       required this.isAvailable,
-      this.currentLatLng});
+      this.currentLatLng
+      });
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -31,6 +32,7 @@ class Driver {
         id: data?['id'],
         licensePlate: data?['licensePlate'],
         isAvailable: data?['isAvailable'],
-        currentLatLng: data?['currentLatLng']);
+        currentLatLng: data?['currentLatLng']
+        );
   }
 }

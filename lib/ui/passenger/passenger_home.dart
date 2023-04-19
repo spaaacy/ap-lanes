@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:apu_rideshare/data/model/firestore/driver.dart';
 import 'package:apu_rideshare/data/model/firestore/journey.dart';
 import 'package:apu_rideshare/data/model/firestore/user.dart';
 import 'package:apu_rideshare/data/repo/driver_repo.dart';
@@ -10,6 +11,7 @@ import 'package:apu_rideshare/ui/passenger/components/journey_detail.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
 import 'package:apu_rideshare/util/constants.dart';
+import 'package:apu_rideshare/util/latlng_converter.dart';
 import 'package:apu_rideshare/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -43,39 +45,48 @@ class _PassengerHomeState extends State<PassengerHome> {
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
-  late StreamSubscription<QuerySnapshot<Journey>> _journeyStream;
+  late StreamSubscription<QuerySnapshot<Journey>> _journeyListener;
 
   String? _lastName;
+  String? _driverId;
   LatLng? _destinationLatLng;
   String? _userLocationDescription;
   bool _isSearching = false;
   bool _toApu = false;
   final List<String> _journeyDetails = ["Finding a driver..."];
+  StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
   // Google Map Variables
   GoogleMapController? _mapController;
   final Set<Polyline> _polylines = <Polyline>{};
   late final BitmapDescriptor _locationIcon;
   late final BitmapDescriptor _userIcon;
+  late final BitmapDescriptor _driverIcon;
+  bool _shouldCenter = true;
   Marker? _userMarker;
+  Marker? _otherMarker;
   Marker? _destinationMarker;
   Marker? _startMarker;
   LatLng? _currentPosition;
-  late StreamSubscription<Position> _locationSubscription;
-
-
+  late StreamSubscription<Position> _locationListener;
 
   @override
   void initState() {
     super.initState();
-    MapHelper.getCustomIcon('assets/icons/location_icon.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
-    MapHelper.getCustomIcon('assets/icons/user_icon.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize)
+        .then((icon) => setState(() => _locationIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/user.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize).then((icon) => setState(() => _driverIcon = icon));
 
-    _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
+    _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
       setState(() {
         _currentPosition = latLng;
         _userMarker = Marker(markerId: const MarkerId("user-marker"), position: _currentPosition!, icon: _userIcon);
+
+        if (_shouldCenter) {
+          MapHelper.resetCamera(_mapController, _currentPosition!);
+        }
       });
     });
 
@@ -94,32 +105,67 @@ class _PassengerHomeState extends State<PassengerHome> {
           });
         });
 
-        _journeyStream = _journeyRepo.listenForJourney(firebaseUser!.uid, (journey) {
+        _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid, (journey) {
           _journey = journey;
           _journeyDetails.clear();
           if (_journey!.data().driverId.isNotEmpty) {
+            logger.d("WASD: FIRST CALL MADE");
             final driverId = _journey!.data().driverId;
-            _userRepo.getUser(driverId).then((user) {
-              _journeyDetails.add("Your Driver:");
-              _journeyDetails.add(user.data().getFullName());
-              return user.data().id;
-            }).then((id) => _driverRepo.getDriver(id).then((driver) {
-                  _journeyDetails.add(driver.data().licensePlate);
-                  _polylines.clear();
-                  setState(() {});
-                }));
+
+            _userRepo
+                .getUser(driverId)
+                .then((user) {
+                  _journeyDetails.add("Your Driver:");
+                  _journeyDetails.add(user.data().getFullName());
+                  return user.data().id;
+                })
+                .then((id) => _driverRepo.getDriver(id).then((driver) {
+                      listenToDriverLocation(driverId);
+                      _journeyDetails.add(driver.data().licensePlate);
+                      logger.d("WASD: SECOND CALL MADE");
+                      _polylines.clear();
+                      setState(() {});
+                    }));
           } else {
             setState(() => _journeyDetails.add("Finding a driver..."));
+            _otherMarker = null;
           }
         });
+
+
       }
     });
   }
 
+  void listenToDriverLocation(String driverId) {
+    logger.d("WASD: FUNCTION CALLED");
+    if (_driverId != driverId) {
+      if (_driverListener != null) {
+        _driverListener!.cancel();
+      }
+      _driverId = driverId;
+      _driverListener = _driverRepo.listenToDriver(_driverId!).listen((driver) {
+        if (driver.docs.isNotEmpty) {
+          final latLngString = driver.docs.first.data().currentLatLng;
+          logger.d("WASD: CONVERSION DONE");
+          if (latLngString != null) {
+            logger.d("WASD: MARKER SET");
+            final latLng = LatLngConverter.getLatLngFromString(latLngString);
+            setState(() {
+              _otherMarker =
+                  Marker(markerId: const MarkerId("other-marker"), position: latLng, icon: _driverIcon);
+            });
+          }
+        }
+      });
+    }
+  }
+
   @override
   void dispose() async {
-    await _journeyStream.cancel();
-    _locationSubscription.cancel();
+    _journeyListener.cancel();
+    _locationListener.cancel();
+    _driverListener?.cancel();
     super.dispose();
   }
 
@@ -140,7 +186,8 @@ class _PassengerHomeState extends State<PassengerHome> {
             Navigator.of(context).pop();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("You cannot change to driver mode while you are searching for a driver or are in a journey."),
+                content:
+                    Text("You cannot change to driver mode while you are searching for a driver or are in a journey."),
               ),
             );
           }),
@@ -148,32 +195,35 @@ class _PassengerHomeState extends State<PassengerHome> {
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [
-
                 MapView(
                   userLatLng: _currentPosition,
                   destinationMarker: _destinationMarker,
+                  setShouldCenter: (shouldCenter) {
+                    setState(() {
+                      _shouldCenter = shouldCenter;
+                    });
+                  },
                   startMarker: _startMarker,
+                  otherMarker: _otherMarker,
                   userMarker: _userMarker,
                   polylines: _polylines,
                   setMapController: (controller) {
-                    setState((){
+                    setState(() {
                       _mapController = controller;
                     });
                   },
                   mapController: _mapController,
                 ),
-
                 Positioned(
                     child: Align(
-                      alignment: Alignment.topCenter,
+                        alignment: Alignment.topCenter,
                         child: Padding(
                             padding: const EdgeInsets.all(24.0),
                             child: JourneyDetail(
                               isSearching: _isSearching,
                               journey: _journey,
                               journeyDetails: _journeyDetails,
-                            )))
-                ),
+                            )))),
                 if (!_isSearching)
                   Positioned.fill(
                     child: Padding(
@@ -185,7 +235,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                           updateToApu: (toApu) {
                             setState(() {
                               _toApu = toApu;
-                              if(_destinationLatLng != null){
+                              if (_destinationLatLng != null) {
                                 final start = _toApu ? _destinationLatLng! : apuLatLng;
                                 final end = _toApu ? apuLatLng : _destinationLatLng!;
                                 MapHelper.drawRoute(_polylines, start, end, (polylines) {
@@ -210,15 +260,9 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   _polylines.add(polylines);
                                   MapHelper.setCameraToRoute(_mapController!, _polylines);
                                   _destinationMarker = Marker(
-                                      markerId: const MarkerId("destination"),
-                                      position: latLng,
-                                      icon: _locationIcon
-                                  );
+                                      markerId: const MarkerId("destination"), position: latLng, icon: _locationIcon);
                                   _startMarker = Marker(
-                                      markerId: const MarkerId("start"),
-                                      position: apuLatLng,
-                                      icon: _locationIcon
-                                  );
+                                      markerId: const MarkerId("start"), position: apuLatLng, icon: _locationIcon);
                                 });
                               });
                             });
@@ -256,12 +300,11 @@ class _PassengerHomeState extends State<PassengerHome> {
                           final String userLatLng = "${_destinationLatLng!.latitude}, ${_destinationLatLng!.longitude}";
                           final String apuLatLngString = "${apuLatLng.latitude}, ${apuLatLng.longitude}";
                           _journeyRepo.createJourney(Journey(
-                            userId: firebaseUser!.uid,
-                            startLatLng: _toApu ? userLatLng : apuLatLngString,
-                            endLatLng: _toApu ? apuLatLngString : userLatLng,
-                            startDescription: _toApu ? _userLocationDescription! : apuDescription,
-                            endDescription: _toApu ? apuDescription : _userLocationDescription!
-                          ));
+                              userId: firebaseUser!.uid,
+                              startLatLng: _toApu ? userLatLng : apuLatLngString,
+                              endLatLng: _toApu ? apuLatLngString : userLatLng,
+                              startDescription: _toApu ? _userLocationDescription! : apuDescription,
+                              endDescription: _toApu ? apuDescription : _userLocationDescription!));
                         },
                         deleteJourney: () {
                           _journeyRepo.deleteJourney(_journey);
