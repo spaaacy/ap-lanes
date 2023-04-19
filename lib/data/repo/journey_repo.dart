@@ -44,7 +44,8 @@ class JourneyRepo {
         .snapshots();
   }
 
+  // todo: paginate this
   Stream<QuerySnapshot<Journey>> getJourneyRequestStream() {
-    return _journeyRef.where("driverId", isEqualTo: "").limit(5).snapshots();
+    return _journeyRef.where("driverId", isEqualTo: "").snapshots();
   }
 }

@@ -33,7 +33,7 @@ class DriverHome extends StatefulWidget {
 }
 
 class _DriverHomeState extends State<DriverHome> {
-  bool _isMatchmaking = false;
+  bool _isSearching = false;
   DocumentSnapshot<Journey>? _activeJourney;
   late final firebase_auth.User? firebaseUser;
   final _userRepo = UserRepo();
@@ -60,7 +60,7 @@ class _DriverHomeState extends State<DriverHome> {
       _journeyRequestListener!.cancel();
     }
 
-    if (_isMatchmaking) {
+    if (_isSearching) {
       _journeyRequestListener = _journeyRepo.getJourneyRequestStream().listen((journeySnapshot) {
         if (_currentJourneyRequestIndex > journeySnapshot.size - 1) {
           setState(() {
@@ -79,10 +79,13 @@ class _DriverHomeState extends State<DriverHome> {
   void initState() {
     super.initState();
 
-
     // Google Map Variable Initialization
-    MapHelper.getCustomIcon('assets/icons/location_icon.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
-    MapHelper.getCustomIcon('assets/icons/user_icon.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/location_icon.png', locationIconSize).then(
+      (icon) => setState(() => _locationIcon = icon),
+    );
+    MapHelper.getCustomIcon('assets/icons/user_icon.png', userIconSize).then(
+      (icon) => setState(() => _userIcon = icon),
+    );
     _locationSubscription = MapHelper.getCurrentPosition(context).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
       setState(() {
@@ -111,11 +114,11 @@ class _DriverHomeState extends State<DriverHome> {
           _user = userData;
         });
         try {
-          var driverData = await _driverRepo.getDriver(userData.get('id'));
+          var driverData = await _driverRepo.getDriver(firebaseUser!.uid);
           setState(() {
             _driver = driverData;
             // todo: maybe make this check for ongoing journeys instead
-            _isMatchmaking = _driver?.data().isAvailable == true;
+            _isSearching = _driver?.data().isAvailable == true;
 
             _updateJourneyRequestListener();
           });
@@ -123,11 +126,11 @@ class _DriverHomeState extends State<DriverHome> {
           if (!context.mounted) return;
           var result = await showDialog<String?>(
             context: context,
-            builder: (ctx) => SetupDriverProfileDialog(userId: _user!.get('id')),
+            builder: (ctx) => SetupDriverProfileDialog(userId: firebaseUser!.uid),
           );
 
           if (result == 'Save') {
-            var driverSnapshot = await _driverRepo.getDriver(_user?.get('id'));
+            var driverSnapshot = await _driverRepo.getDriver(firebaseUser!.uid);
             setState(() {
               _driver = driverSnapshot;
             });
@@ -171,10 +174,10 @@ class _DriverHomeState extends State<DriverHome> {
     super.dispose();
   }
 
-  void toggleIsMatchmaking() {
-    _driverRepo.updateDriver(_driver!, {'isAvailable': !_isMatchmaking});
+  void toggleIsSearching() {
+    _driverRepo.updateDriver(_driver!, {'isAvailable': !_isSearching});
     setState(() {
-      _isMatchmaking = !_isMatchmaking;
+      _isSearching = !_isSearching;
     });
   }
 
@@ -219,7 +222,7 @@ class _DriverHomeState extends State<DriverHome> {
     }
 
     void onJourneyAccept(QueryDocumentSnapshot<Journey> acceptedJourney) async {
-      toggleIsMatchmaking();
+      toggleIsSearching();
       await _journeyRequestListener?.cancel();
 
       try {
@@ -262,7 +265,7 @@ class _DriverHomeState extends State<DriverHome> {
       create: (ctx) => DriverHomeState()
         ..driver = _driver
         ..user = _user
-        ..isMatchmaking = _isMatchmaking
+        ..isSearching = _isSearching
         ..mapController = _mapController
         ..activeJourney = _activeJourney,
       child: Scaffold(
@@ -275,7 +278,7 @@ class _DriverHomeState extends State<DriverHome> {
         drawer: AppDrawer(
             user: _user,
             isDriver: true,
-            isNavigationLocked: _isMatchmaking || _activeJourney != null,
+            isNavigationLocked: _isSearching || _activeJourney != null,
             onNavigateWhenLocked: () {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -305,7 +308,7 @@ class _DriverHomeState extends State<DriverHome> {
                   if (_activeJourney == null) {
                     return ElevatedButton(
                       onPressed: () {
-                        toggleIsMatchmaking();
+                        toggleIsSearching();
 
                         _updateJourneyRequestListener();
                       },
@@ -314,7 +317,7 @@ class _DriverHomeState extends State<DriverHome> {
                             padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
                             elevation: const MaterialStatePropertyAll(6.0),
                           ),
-                      child: _isMatchmaking
+                      child: _isSearching
                           ? const Icon(
                               Icons.close,
                               size: 20,
@@ -334,15 +337,15 @@ class _DriverHomeState extends State<DriverHome> {
                 );
               } else {
                 return JourneyRequestPopup(
-                  isMatchmaking: _isMatchmaking,
+                  isSearching: _isSearching,
                   journey: _availableJourneysSnapshot?.size != 0
                       ? _availableJourneysSnapshot?.docs.elementAt(_currentJourneyRequestIndex)
                       : null,
-                  onReject: () {
+                  onNavigate: (direction) {
                     if (_availableJourneysSnapshot != null) {
                       setState(() {
                         _currentJourneyRequestIndex =
-                            (_currentJourneyRequestIndex + 1) % _availableJourneysSnapshot!.size;
+                            (_currentJourneyRequestIndex + direction) % _availableJourneysSnapshot!.size;
                       });
                     }
                   },

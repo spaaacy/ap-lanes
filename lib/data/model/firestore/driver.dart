@@ -28,13 +28,20 @@ class Driver {
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
-    List<double>? latLngList = data?['currentLatLng'].toString().split(',').map((e) => double.tryParse(e.trim()) ?? 0).toList();
+    LatLng fsLatLng;
+    if (data?['currentLatLng'] != null) {
+      List<double>? latLngList =
+          data!['currentLatLng'].toString().split(',').map((e) => double.tryParse(e.trim()) ?? 0).toList();
+      fsLatLng = LatLng(latLngList[0], latLngList[1]);
+    } else {
+      fsLatLng = const LatLng(0.0, 0.0);
+    }
 
     return Driver(
       id: data?['id'],
       licensePlate: data?['licensePlate'],
       isAvailable: data?['isAvailable'],
-      currentLatLng: LatLng(latLngList![0], latLngList[1]),
+      currentLatLng: fsLatLng,
     );
   }
 }
