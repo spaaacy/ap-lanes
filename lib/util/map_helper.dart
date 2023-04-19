@@ -12,11 +12,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'location_permissions.dart';
 
 class MapHelper {
-  static void drawRoute(Set<Polyline> polylines, LatLng start, LatLng end, Function onFetch) async {
+  static Future<Polyline> drawRoute(LatLng start, LatLng end) async {
     final placeService = PlaceService();
-    placeService.generateRoute(start, end).then((polylines) {
-      onFetch(polylines);
-    });
+    return placeService.generateRoute(start, end);
   }
 
   static void setCameraToRoute(GoogleMapController? mapController, Set<Polyline> polylines) {
