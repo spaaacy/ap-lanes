@@ -23,17 +23,8 @@ class JourneyRepo {
     await journey.reference.update(updatedValues);
   }
 
-  StreamSubscription<QuerySnapshot<Journey>> listenForJourney(
-    String userId,
-    Function(QueryDocumentSnapshot<Journey>) onFound,
-  ) {
-    final journeyQuery =
-        _journeyRef.where("userId", isEqualTo: userId).where("isCompleted", isEqualTo: false).snapshots();
-    return journeyQuery.listen((results) {
-      if (results.docs.isNotEmpty) {
-        onFound(results.docs.first);
-      }
-    });
+  Stream<QuerySnapshot<Journey>> listenForJourney(String userId) {
+    return _journeyRef.where("userId", isEqualTo: userId).where("isCompleted", isEqualTo: false).limit(1).snapshots();
   }
 
   Stream<QuerySnapshot<Journey>> getOngoingJourney(String driverId) {
