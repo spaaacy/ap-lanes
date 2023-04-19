@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: "AP Ride", // TODO: Check if this is necessary
+        title: "AP Lanes", // TODO: Check if this is necessary
 
         // TODO: Create theme widget for this
         theme: ThemeData(
