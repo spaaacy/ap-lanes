@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:apu_rideshare/services/place_service.dart';
+import 'package:apu_rideshare/util/constants.dart';
 import 'package:apu_rideshare/util/resize_asset.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -13,12 +14,12 @@ import 'location_permissions.dart';
 class MapHelper {
   static void drawRoute(Set<Polyline> polylines, LatLng start, LatLng end, Function onFetch) async {
     final placeService = PlaceService();
-      placeService.generateRoute(start, end).then((polylines) {
-        onFetch(polylines);
-      });
+    placeService.generateRoute(start, end).then((polylines) {
+      onFetch(polylines);
+    });
   }
 
-  static void setCameraToRoute(GoogleMapController mapController, Set<Polyline> polylines) {
+  static void setCameraToRoute(GoogleMapController? mapController, Set<Polyline> polylines) {
     double minLat = polylines.first.points.first.latitude;
     double minLong = polylines.first.points.first.longitude;
     double maxLat = polylines.first.points.first.latitude;
@@ -32,8 +33,27 @@ class MapHelper {
       });
     });
 
-    mapController.animateCamera(CameraUpdate.newLatLngBounds(
-        LatLngBounds(southwest: LatLng(minLat, minLong), northeast: LatLng(maxLat, maxLong)), 20));
+    mapController?.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(southwest: LatLng(minLat, minLong), northeast: LatLng(maxLat, maxLong)), 100));
+  }
+
+  static void setCameraToDriverAndPassenger(
+      GoogleMapController? mapController, LatLng driverLatLng, LatLng passengerLatLng) {
+    double minLat = driverLatLng.latitude;
+    double minLng = driverLatLng.longitude;
+    double maxLat = passengerLatLng.latitude;
+    double maxLng = passengerLatLng.longitude;
+    if (passengerLatLng.latitude < minLat) {
+      maxLat = minLat;
+      minLat = passengerLatLng.latitude;
+    }
+    if (passengerLatLng.longitude < minLng) {
+      maxLng = minLng;
+      minLng = passengerLatLng.longitude;
+    }
+
+    mapController?.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(southwest: LatLng(minLat, minLng), northeast: LatLng(maxLat, maxLng)), 50));
   }
 
   static Stream<Position> getCurrentPosition(BuildContext context) async* {
@@ -58,5 +78,4 @@ class MapHelper {
   static void resetCamera(GoogleMapController? mapController, LatLng currentPosition) {
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
-
 }

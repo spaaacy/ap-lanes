@@ -30,7 +30,7 @@ class JourneyRequestPopup extends StatelessWidget {
       curve: Curves.bounceInOut,
       duration: const Duration(milliseconds: 250),
       tween: Tween<double>(begin: isSearching ? 1 : 0, end: isSearching ? 0 : 1),
-      builder: (_, topOffset, w) {
+      builder: (_, topOffset, child) {
         return Positioned.fill(
           left: 12,
           right: 12,
