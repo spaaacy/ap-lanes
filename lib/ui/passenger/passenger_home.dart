@@ -11,7 +11,6 @@ import 'package:apu_rideshare/ui/passenger/components/journey_detail.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
 import 'package:apu_rideshare/util/constants.dart';
-import 'package:apu_rideshare/util/latlng_converter.dart';
 import 'package:apu_rideshare/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
