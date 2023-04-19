@@ -14,6 +14,7 @@ import '../../../data/repo/passenger_repo.dart';
 
 class PassengerGoButton extends StatefulWidget {
   bool isSearching;
+  bool hasDriver;
   Function(bool) updateIsSearching;
   Function() createJourney;
   Function() deleteJourney;
@@ -21,6 +22,7 @@ class PassengerGoButton extends StatefulWidget {
   PassengerGoButton(
       {super.key,
       required this.isSearching,
+      required this.hasDriver,
       required this.updateIsSearching,
       required this.createJourney,
       required this.deleteJourney
@@ -35,7 +37,9 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
 
-    return ElevatedButton(
+    if (!widget.hasDriver) {
+    return
+      ElevatedButton(
       onPressed: () {
         if (firebaseUser != null) {
           if (!widget.isSearching) {
@@ -57,5 +61,8 @@ class _PassengerGoButtonState extends State<PassengerGoButton> {
             const Text("GO")
             : const Icon(Icons.close, semanticLabel: "Cancel Search", size: 20,)
     );
+    } else {
+      return SizedBox.shrink();
+    }
   }
 }

@@ -52,6 +52,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   LatLng? _destinationLatLng;
   String? _userLocationDescription;
   bool _isSearching = false;
+  bool _hasDriver = false;
   bool _toApu = false;
   final List<String> _journeyDetails = ["Finding a driver..."];
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
@@ -109,30 +110,26 @@ class _PassengerHomeState extends State<PassengerHome> {
           _journey = journey;
           _journeyDetails.clear();
           if (_journey!.data().driverId.isNotEmpty) {
-            logger.d("WASD: FIRST CALL MADE");
             final driverId = _journey!.data().driverId;
+            setState(() {
+              _hasDriver = true;
+              _isSearching = false;
+            });
 
-            _userRepo
-                .getUser(driverId)
-                .then((user) {
-                  _journeyDetails.add("Your Driver:");
-                  _journeyDetails.add(user.data().getFullName());
-                  return user.data().id;
-                })
-                .then((id) => _driverRepo.getDriver(id).then((driver) {
-                      listenToDriverLocation(driverId);
-                      _journeyDetails.add(driver.data().licensePlate);
-                      logger.d("WASD: SECOND CALL MADE");
-                      _polylines.clear();
-                      setState(() {});
-                    }));
+            _userRepo.getUser(driverId).then((user) {
+              _journeyDetails.add(user.data().getFullName());
+              return user.data().id;
+            }).then((id) => _driverRepo.getDriver(id).then((driver) {
+                  listenToDriverLocation(driverId);
+                  _journeyDetails.add(driver.data().licensePlate);
+                  _polylines.clear();
+                  setState(() {});
+                }));
           } else {
             setState(() => _journeyDetails.add("Finding a driver..."));
             _otherMarker = null;
           }
         });
-
-
       }
     });
   }
@@ -152,8 +149,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             logger.d("WASD: MARKER SET");
             final latLng = LatLngConverter.getLatLngFromString(latLngString);
             setState(() {
-              _otherMarker =
-                  Marker(markerId: const MarkerId("other-marker"), position: latLng, icon: _driverIcon);
+              _otherMarker = Marker(markerId: const MarkerId("other-marker"), position: latLng, icon: _driverIcon);
             });
           }
         }
@@ -290,6 +286,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                       alignment: Alignment.bottomCenter,
                       child: PassengerGoButton(
                         isSearching: _isSearching,
+                        hasDriver: _hasDriver,
                         updateIsSearching: (isSearching) {
                           _passengerRepo.updateIsSearching(_passenger!, isSearching);
                           setState(() {
