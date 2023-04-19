@@ -118,9 +118,9 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   @override
   void dispose() async {
-    await _journeyStream.cancel();
-    _locationSubscription.cancel();
     super.dispose();
+    await _journeyStream.cancel();
+    await _locationSubscription.cancel();
   }
 
   @override
