@@ -143,11 +143,8 @@ class _PassengerHomeState extends State<PassengerHome> {
       _driverId = driverId;
       _driverListener = _driverRepo.listenToDriver(_driverId!).listen((driver) {
         if (driver.docs.isNotEmpty) {
-          final latLngString = driver.docs.first.data().currentLatLng;
-          logger.d("WASD: CONVERSION DONE");
-          if (latLngString != null) {
-            logger.d("WASD: MARKER SET");
-            final latLng = LatLngConverter.getLatLngFromString(latLngString);
+          final latLng = driver.docs.first.data().currentLatLng;
+          if (latLng != null) {
             setState(() {
               _otherMarker = Marker(markerId: const MarkerId("other-marker"), position: latLng, icon: _driverIcon);
             });

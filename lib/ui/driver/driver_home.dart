@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:apu_rideshare/data/repo/journey_repo.dart';
+import 'package:apu_rideshare/ui/driver/state/driver_home_state.dart';
+import 'package:apu_rideshare/util/greeting.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -31,24 +33,18 @@ class DriverHome extends StatefulWidget {
 }
 
 class _DriverHomeState extends State<DriverHome> {
-  bool _isMatchmaking = false;
+  bool _isSearching = false;
   DocumentSnapshot<Journey>? _activeJourney;
   late final firebase_auth.User? firebaseUser;
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
-
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Driver>? _driver;
-
   StreamSubscription<QuerySnapshot<Journey>>? _journeyRequestListener;
   int _currentJourneyRequestIndex = 0;
   QuerySnapshot<Journey>? _availableJourneysSnapshot;
-
   late StreamSubscription<QuerySnapshot<Journey>> _activeJourneyListener;
-
-
-  // Google Map Variables
   GoogleMapController? _mapController;
   final Set<Polyline> _polylines = <Polyline>{};
   late final BitmapDescriptor _locationIcon; // Use this for location markers
@@ -66,7 +62,7 @@ class _DriverHomeState extends State<DriverHome> {
       _journeyRequestListener!.cancel();
     }
 
-    if (_isMatchmaking) {
+    if (_isSearching) {
       _journeyRequestListener = _journeyRepo.getJourneyRequestStream().listen((journeySnapshot) {
         if (_currentJourneyRequestIndex > journeySnapshot.size - 1) {
           setState(() {
@@ -84,7 +80,6 @@ class _DriverHomeState extends State<DriverHome> {
   @override
   void initState() {
     super.initState();
-
 
     // Google Map Variable Initialization
     MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
@@ -121,11 +116,11 @@ class _DriverHomeState extends State<DriverHome> {
           _user = userData;
         });
         try {
-          var driverData = await _driverRepo.getDriver(userData.get('id'));
+          var driverData = await _driverRepo.getDriver(firebaseUser!.uid);
           setState(() {
             _driver = driverData;
             // todo: maybe make this check for ongoing journeys instead
-            _isMatchmaking = _driver?.data().isAvailable == true;
+            _isSearching = _driver?.data().isAvailable == true;
 
             _updateJourneyRequestListener();
           });
@@ -133,11 +128,11 @@ class _DriverHomeState extends State<DriverHome> {
           if (!context.mounted) return;
           var result = await showDialog<String?>(
             context: context,
-            builder: (ctx) => SetupDriverProfileDialog(userId: _user!.get('id')),
+            builder: (ctx) => SetupDriverProfileDialog(userId: firebaseUser!.uid),
           );
 
           if (result == 'Save') {
-            var driverSnapshot = await _driverRepo.getDriver(_user?.get('id'));
+            var driverSnapshot = await _driverRepo.getDriver(firebaseUser!.uid);
             setState(() {
               _driver = driverSnapshot;
             });
@@ -181,10 +176,10 @@ class _DriverHomeState extends State<DriverHome> {
     super.dispose();
   }
 
-  void toggleIsMatchmaking() {
-    _driverRepo.updateDriver(_driver!, {'isAvailable': !_isMatchmaking});
+  void toggleIsSearching() {
+    _driverRepo.updateDriver(_driver!, {'isAvailable': !_isSearching});
     setState(() {
-      _isMatchmaking = !_isMatchmaking;
+      _isSearching = !_isSearching;
     });
   }
 
@@ -229,7 +224,7 @@ class _DriverHomeState extends State<DriverHome> {
     }
 
     void onJourneyAccept(QueryDocumentSnapshot<Journey> acceptedJourney) async {
-      toggleIsMatchmaking();
+      toggleIsSearching();
       await _journeyRequestListener?.cancel();
 
       try {
@@ -268,96 +263,104 @@ class _DriverHomeState extends State<DriverHome> {
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Welcome Driver"),
-      ),
-      drawer: AppDrawer(
-          user: _user,
-          isDriver: true,
-          isNavigationLocked: _isMatchmaking || _activeJourney != null,
-          onNavigateWhenLocked: () {
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("You cannot change to passenger mode while you are searching or carrying out a job."),
-              ),
-            );
-          }),
-      body: Stack(
-        children: [
-          MapView(
-            userLatLng: _currentPosition,
-            destinationMarker: _destinationMarker,
-            setShouldCenter: (shouldCenter) {
-              setState(() {
-                _shouldCenter = shouldCenter;
-              });
-            },
-            startMarker: _startMarker,
-            userMarker: _userMarker,
-            polylines: _polylines,
-            setMapController: (controller) {
-              setState((){
+    return ChangeNotifierProvider(
+      create: (ctx) => DriverHomeState()
+        ..driver = _driver
+        ..user = _user
+        ..isSearching = _isSearching
+        ..mapController = _mapController
+        ..activeJourney = _activeJourney,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            Greeting.getGreeting(_user?.data().lastName),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        drawer: AppDrawer(
+            user: _user,
+            isDriver: true,
+            isNavigationLocked: _isSearching || _activeJourney != null,
+            onNavigateWhenLocked: () {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("You cannot change to passenger mode while you are searching or carrying out a job."),
+                ),
+              );
+            }),
+        body: Stack(
+          children: [
+            MapView(
+              userLatLng: _currentPosition,
+              destinationMarker: _destinationMarker,
+              startMarker: _startMarker,
+              userMarker: _userMarker,
+              polylines: _polylines,
+              mapController: _mapController,
+              setMapController: (controller) => setState(() {
                 _mapController = controller;
+              }), setShouldCenter: (shouldCenter) {
+              setState(() {
+                  _shouldCenter = shouldCenter;
               });
-            },
-            mapController: _mapController,
-          ),
-          Positioned.fill(
-            bottom: 100.0,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: (() {
-                if (_activeJourney == null) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      toggleIsMatchmaking();
-
-                      _updateJourneyRequestListener();
-                    },
-                    style: ElevatedButtonTheme.of(context).style?.copyWith(
-                          shape: const MaterialStatePropertyAll(CircleBorder()),
-                          padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
-                          elevation: const MaterialStatePropertyAll(6.0),
-                        ),
-                    child: _isMatchmaking
-                        ? const Icon(
-                            Icons.close,
-                            size: 20,
-                          )
-                        : const Text("GO"),
-                  );
-                }
-              }()),
+              },
             ),
-          ),
-          (() {
-            if (_activeJourney != null) {
-              return OngoingJourneyPopup(
-                activeJourney: _activeJourney,
-                onDropOff: onJourneyDropOff,
-                onPickUp: onJourneyPickUp,
-              );
-            } else {
-              return JourneyRequestPopup(
-                isMatchmaking: _isMatchmaking,
-                journey: _availableJourneysSnapshot?.size != 0
-                    ? _availableJourneysSnapshot?.docs.elementAt(_currentJourneyRequestIndex)
-                    : null,
-                onReject: () {
-                  setState(() {
+            Positioned.fill(
+              bottom: 100.0,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: (() {
+                  if (_activeJourney == null) {
+                    return ElevatedButton(
+                      onPressed: () {
+                        toggleIsSearching();
+
+                        _updateJourneyRequestListener();
+                      },
+                      style: ElevatedButtonTheme.of(context).style?.copyWith(
+                            shape: const MaterialStatePropertyAll(CircleBorder()),
+                            padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
+                            elevation: const MaterialStatePropertyAll(6.0),
+                          ),
+                      child: _isSearching
+                          ? const Icon(
+                              Icons.close,
+                              size: 20,
+                            )
+                          : const Text("GO"),
+                    );
+                  }
+                }()),
+              ),
+            ),
+            (() {
+              if (_activeJourney != null) {
+                return OngoingJourneyPopup(
+                  activeJourney: _activeJourney,
+                  onDropOff: onJourneyDropOff,
+                  onPickUp: onJourneyPickUp,
+                );
+              } else {
+                return JourneyRequestPopup(
+                  isSearching: _isSearching,
+                  journey: _availableJourneysSnapshot?.size != 0
+                      ? _availableJourneysSnapshot?.docs.elementAt(_currentJourneyRequestIndex)
+                      : null,
+                  onNavigate: (direction) {
                     if (_availableJourneysSnapshot != null) {
-                      _currentJourneyRequestIndex =
-                          (_currentJourneyRequestIndex + 1) % _availableJourneysSnapshot!.size;
+                      setState(() {
+                        _currentJourneyRequestIndex =
+                            (_currentJourneyRequestIndex + direction) % _availableJourneysSnapshot!.size;
+                      });
                     }
-                  });
-                },
-                onAccept: onJourneyAccept,
-              );
-            }
-          }()),
-        ],
+                  },
+                  onAccept: onJourneyAccept,
+                );
+              }
+            }()),
+          ],
+        ),
       ),
     );
   }
