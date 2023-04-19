@@ -1,4 +1,4 @@
-import 'package:apu_rideshare/ui/user_wrapper.dart';
+import 'package:apu_rideshare/ui/passenger/passenger_home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class AuthWrapper extends StatelessWidget {
     final firebaseUser = context.watch<User?>();
 
     if (firebaseUser != null) {
-      return UserWrapper(userId: firebaseUser.uid);
+      return const PassengerHome();
     } else {
       return AuthScreen();
     }
