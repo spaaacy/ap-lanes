@@ -57,43 +57,5 @@ class _JourneyDetailState extends State<JourneyDetail> {
         ),
       ),
     );
-
-    // return TweenAnimationBuilder(
-    //     curve: Curves.decelerate,
-    //     duration: Duration(milliseconds: 150),
-    //     tween: Tween<double>(
-    //         begin: (widget.isSearching || widget.hasDriver) ? 1 : 0,
-    //         end: (widget.isSearching || widget.hasDriver) ? 0 : 1),
-    //     builder: (_, offset, child) {
-    //       return Positioned(
-    //         top: 250, // -250 * offset,
-    //           child: Align(
-    //             alignment: Alignment.topCenter,
-    //             child: Padding(
-    //               padding: const EdgeInsets.all(24.0),
-    //                     child: Material(
-    //                       borderRadius: BorderRadius.circular(12),
-    //                       color: Colors.black54,
-    //                       child: Padding(
-    //                           padding: EdgeInsets.all(16.0),
-    //                           child: widget.hasDriver
-    //                           ?
-    //                                   ListView.builder(
-    //                                     shrinkWrap: true,
-    //                                     physics: NeverScrollableScrollPhysics(),
-    //                                     itemCount: widget.journeyDetails.length,
-    //                                     itemBuilder: (BuildContext context, int index) {
-    //                                       return Text(widget.journeyDetails[index],
-    //                                           style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white));
-    //                                     },
-    //                                   )
-    //                           : Text("Finding a driver",
-    //                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white)),
-    //             ),
-    //                     ),
-    //             ),
-    //           ),
-    //       );
-    //     });
   }
 }
