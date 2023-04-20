@@ -1,3 +1,4 @@
+import 'package:apu_rideshare/util/location_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -28,20 +29,12 @@ class Driver {
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
-    LatLng fsLatLng;
-    if (data?['currentLatLng'] != null) {
-      List<double>? latLngList =
-          data!['currentLatLng'].toString().split(',').map((e) => double.tryParse(e.trim()) ?? 0).toList();
-      fsLatLng = LatLng(latLngList[0], latLngList[1]);
-    } else {
-      fsLatLng = const LatLng(0.0, 0.0);
-    }
 
     return Driver(
       id: data?['id'],
       licensePlate: data?['licensePlate'],
       isAvailable: data?['isAvailable'],
-      currentLatLng: fsLatLng,
+      currentLatLng: getLatLngFromString(data?['currentLatLng']),
     );
   }
 }

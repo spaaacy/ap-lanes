@@ -7,7 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/model/firestore/driver.dart';
@@ -45,7 +44,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
       var ss = await transaction.get<Driver>(state.driver!.reference);
       var pos = await Geolocator.getCurrentPosition();
 
-      transaction.update(ss.reference, {'currentLatLng': '${pos.latitude},${pos.longitude}'});
+      transaction.update(ss.reference, {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
     });
   }
 
