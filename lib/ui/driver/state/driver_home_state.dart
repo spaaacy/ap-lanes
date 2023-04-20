@@ -12,6 +12,14 @@ class DriverHomeState extends ChangeNotifier {
   bool _isSearching = false;
   GoogleMapController? _mapController;
   DocumentSnapshot<Journey>? _activeJourney;
+  Set<Polyline>? _polylines;
+
+  Set<Polyline>? get polylines => _polylines;
+
+  set polylines(Set<Polyline>? value) {
+    _polylines = value;
+    notifyListeners();
+  }
 
   QueryDocumentSnapshot<User>? get user => _user;
 

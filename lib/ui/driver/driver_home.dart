@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:apu_rideshare/data/model/map/marker_info.dart';
 import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:apu_rideshare/data/repo/journey_repo.dart';
 import 'package:apu_rideshare/ui/driver/state/driver_home_state.dart';
@@ -50,10 +51,7 @@ class _DriverHomeState extends State<DriverHome> {
   late final BitmapDescriptor _locationIcon; // Use this for location markers
   late final BitmapDescriptor _userIcon;
   bool _shouldCenter = true;
-  Marker? _userMarker;
-  Marker? _otherMarker;
-  Marker? _destinationMarker;
-  Marker? _startMarker;
+  final Set<MarkerInfo> _markers = {};
   LatLng? _currentPosition;
   late StreamSubscription<Position> _locationListener;
 
@@ -82,13 +80,17 @@ class _DriverHomeState extends State<DriverHome> {
     super.initState();
 
     // Google Map Variable Initialization
-    MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize).then((icon) => setState(() => _locationIcon = icon));
-    MapHelper.getCustomIcon('assets/icons/user.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
+    MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize).then(
+      (icon) => setState(() => _locationIcon = icon),
+    );
+    MapHelper.getCustomIcon('assets/icons/user.png', userIconSize).then(
+      (icon) => setState(() => _userIcon = icon),
+    );
     _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
       setState(() {
         _currentPosition = latLng;
-        _userMarker = Marker(markerId: const MarkerId("user-marker"), position: _currentPosition!, icon: _userIcon);
+        _markers.add(MarkerInfo(markerId: "user-marker", position: _currentPosition!, icon: _userIcon));
 
         if (_shouldCenter) {
           MapHelper.resetCamera(_mapController, _currentPosition!);
@@ -269,7 +271,8 @@ class _DriverHomeState extends State<DriverHome> {
         ..user = _user
         ..isSearching = _isSearching
         ..mapController = _mapController
-        ..activeJourney = _activeJourney,
+        ..activeJourney = _activeJourney
+        ..polylines = _polylines,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -293,17 +296,16 @@ class _DriverHomeState extends State<DriverHome> {
           children: [
             MapView(
               userLatLng: _currentPosition,
-              destinationMarker: _destinationMarker,
-              startMarker: _startMarker,
-              userMarker: _userMarker,
+              markers: _markers,
               polylines: _polylines,
               mapController: _mapController,
               setMapController: (controller) => setState(() {
                 _mapController = controller;
-              }), setShouldCenter: (shouldCenter) {
-              setState(() {
+              }),
+              setShouldCenter: (shouldCenter) {
+                setState(() {
                   _shouldCenter = shouldCenter;
-              });
+                });
               },
             ),
             Positioned.fill(
