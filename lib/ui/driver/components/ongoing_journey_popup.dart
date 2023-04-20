@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:apu_rideshare/ui/driver/state/driver_home_state.dart';
-import 'package:apu_rideshare/util/location_helpers.dart';
 import 'package:apu_rideshare/util/url_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -116,44 +115,43 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
             visible: topOffset != 1,
             child: Column(
               children: [
-                Material(
-                  elevation: 2,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(5),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    width: double.infinity,
-                    decoration: const BoxDecoration(color: Colors.transparent),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          getStatusMessage(),
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
-                        ),
-                        FutureBuilder<QueryDocumentSnapshot<User>>(
-                          future: _userRepo.getUser(widget.activeJourney!.data()!.userId),
-                          builder: (context, passengerSnapshot) {
-                            return Text(
-                              passengerSnapshot.hasData
-                                  ? '${passengerSnapshot.data?.data().getFullName()}'
-                                  : 'Loading...',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'AT',
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
-                        ),
-                        Text(
-                          getTargetLocation(),
-                          style: Theme.of(context).textTheme.titleMedium,
-                        )
-                      ],
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.white70,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(8),
                     ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        getStatusMessage(),
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                      ),
+                      FutureBuilder<QueryDocumentSnapshot<User>>(
+                        future: _userRepo.getUser(widget.activeJourney!.data()!.userId),
+                        builder: (context, passengerSnapshot) {
+                          return Text(
+                            passengerSnapshot.hasData
+                                ? '${passengerSnapshot.data?.data().getFullName()}'
+                                : 'Loading...',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'AT',
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                      ),
+                      Text(
+                        getTargetLocation(),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      )
+                    ],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -162,51 +160,67 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: FilledButton(
-                        style: buttonBarTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.blue),
-                        ),
-                        onPressed: () => widget.onPickUp(widget.activeJourney),
-                        child: Text(
-                          widget.activeJourney?.get('isPickedUp') == true ? 'UNDO PICK-UP' : 'PICK-UP',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                    (() {
+                      if (widget.activeJourney?.get('isPickedUp') == true) {
+                        return TextButton(
+                          style: buttonBarTheme?.copyWith(
+                            elevation: const MaterialStatePropertyAll(0),
+                          ),
+                          onPressed: () => widget.onPickUp(widget.activeJourney),
+                          child: const Icon(Icons.undo),
+                        );
+                      } else {
+                        return Expanded(
+                          child: FilledButton(
+                            style: buttonBarTheme?.copyWith(
+                              backgroundColor: const MaterialStatePropertyAll(Colors.blue),
+                            ),
+                            onPressed: () => widget.onPickUp(widget.activeJourney),
+                            child: Text(
+                              'PICK-UP',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                        );
+                      }
+                    }()),
+                    ...?(() {
+                      if (widget.activeJourney?.get('isPickedUp') == true) {
+                        return [
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: FilledButton(
+                              style: buttonBarTheme?.copyWith(
+                                backgroundColor: const MaterialStatePropertyAll(Colors.green),
                               ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton(
-                        style: buttonBarTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.green),
-                        ),
-                        onPressed: () => widget.onDropOff(widget.activeJourney),
-                        child: Text(
-                          'DROP-OFF',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                              onPressed: () => widget.onDropOff(widget.activeJourney),
+                              child: Text(
+                                'DROP-OFF',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
-                        ),
-                      ),
-                    ),
+                            ),
+                          )
+                        ];
+                      }
+                    }()),
                     const SizedBox(width: 8),
                     Expanded(
                       flex: 0,
                       child: FilledButton(
                         style: buttonBarTheme?.copyWith(
-                          backgroundColor: MaterialStatePropertyAll(
-                            !widget.activeJourney!.data()!.isPickedUp ? Colors.blue : Colors.green,
-                          ),
+                          backgroundColor: const MaterialStatePropertyAll(Colors.white),
                         ),
                         onPressed: () {
                           if (!widget.activeJourney!.data()!.isPickedUp) {
-                            launchWaze(getLatLngFromString(widget.activeJourney!.data()!.startLatLng));
+                            launchWaze(widget.activeJourney!.data()!.startLatLng);
                           } else {
-                            launchWaze(getLatLngFromString(widget.activeJourney!.data()!.endLatLng));
+                            launchWaze(widget.activeJourney!.data()!.endLatLng);
                           }
                         },
                         child: SvgPicture.asset(
