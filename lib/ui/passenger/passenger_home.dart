@@ -132,13 +132,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                         setState(() {
                           MapHelper.setCameraToDriverAndPassenger(
                             _mapController!,
-                            getLatLngFromString(latLng),
+                            latLng,
                             _currentPosition!,
                           );
                           _markers.add(
                             MarkerInfo(
                               markerId: "driver-marker",
-                              position: getLatLngFromString(latLng),
+                              position: latLng,
                               icon: _driverIcon,
                             ),
                           );
@@ -154,7 +154,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                   _journeyDetails.add("License Plate: ${driver.data().licensePlate}");
                   _hasDriver = true;
                   _polylines.clear();
-                  _markers.clear();
+                  _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
                   setState(() {});
                 }
               });
@@ -282,7 +282,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                             setState(() {
                               _destinationLatLng = null;
                               _polylines.clear();
-                              _markers.clear();
+                              _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
                               if (_currentPosition != null) {
                                 MapHelper.resetCamera(_mapController, _currentPosition!);
                               }
