@@ -39,95 +39,97 @@ class JourneyRequestPopup extends StatelessWidget {
             visible: topOffset != 1,
             child: Column(
               children: [
-                Material(
-                  elevation: 2,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(5),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.white70,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(8),
+                    ),
                   ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    width: double.infinity,
-                    decoration: const BoxDecoration(color: Colors.transparent),
-                    child: journey == null
-                        ? Center(
-                            child: Column(
-                              children: [
-                                const CircularProgressIndicator(),
-                                const SizedBox(height: 24),
-                                Text(
-                                  'Looking for Requests',
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                              ],
+                  child: journey == null
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Looking for requests...',
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
-                          )
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'FROM',
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
-                              ),
-                              Text(
-                                journey!.data().startDescription,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'TO',
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.black45),
-                              ),
-                              Text(
-                                journey!.data().endDescription,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ],
-                          ),
-                  ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'FROM',
+                              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                            ),
+                            Text(
+                              journey!.data().startDescription,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'TO',
+                              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                            ),
+                            Text(
+                              journey!.data().endDescription,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ],
+                        ),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Expanded(
-                      flex: 0,
-                      child: FilledButton(
-                        style: matchmakingButtonTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.blue),
-                        ),
-                        onPressed: journey == null ? null : () => onNavigate(-1),
-                        child: const Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton(
-                        style: matchmakingButtonTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.green),
-                        ),
-                        onPressed: journey == null ? null : () => onAccept(journey!),
-                        child: Text(
-                          'ACCEPT',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                ...?(() {
+                  if (journey != null) {
+                    return [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Expanded(
+                            flex: 0,
+                            child: FilledButton(
+                              style: matchmakingButtonTheme?.copyWith(
+                                backgroundColor: const MaterialStatePropertyAll(Colors.blue),
                               ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 0,
-                      child: FilledButton(
-                        style: matchmakingButtonTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.blue),
-                        ),
-                        onPressed: journey == null ? null : () => onNavigate(1),
-                        child: const Icon(Icons.arrow_forward, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+                              onPressed: () => onNavigate(-1),
+                              child: const Icon(Icons.arrow_back, color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: FilledButton(
+                              style: matchmakingButtonTheme?.copyWith(
+                                backgroundColor: const MaterialStatePropertyAll(Colors.green),
+                              ),
+                              onPressed: () => onAccept(journey!),
+                              child: Text(
+                                'ACCEPT',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 0,
+                            child: FilledButton(
+                              style: matchmakingButtonTheme?.copyWith(
+                                backgroundColor: const MaterialStatePropertyAll(Colors.blue),
+                              ),
+                              onPressed: () => onNavigate(1),
+                              child: const Icon(Icons.arrow_forward, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      )
+                    ];
+                  }
+                }()),
               ],
             ),
           ),

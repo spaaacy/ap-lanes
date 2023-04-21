@@ -49,19 +49,43 @@ class _DriverHomeState extends State<DriverHome> {
   GoogleMapController? _mapController;
   final Set<Polyline> _polylines = <Polyline>{};
   late final BitmapDescriptor _locationIcon; // Use this for location markers
-  late final BitmapDescriptor _userIcon;
+  late final BitmapDescriptor _driverIcon;
   bool _shouldCenter = true;
   final Set<MarkerInfo> _markers = {};
   LatLng? _currentPosition;
   late StreamSubscription<Position> _locationListener;
 
+  void updateJourneyRoutePolylines(Journey journey) {
+    final start = journey.startLatLng;
+    final end = journey.endLatLng;
+    MapHelper.drawRoute(start, end).then((polylines) {
+      setState(() {
+        _polylines.clear();
+        _polylines.add(polylines);
+        MapHelper.setCameraToRoute(
+          mapController: _mapController!,
+          polylines: _polylines,
+          padding: 25,
+          verticalOffset: 0.015,
+        );
+        _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
+        _markers.add(MarkerInfo(markerId: "start", position: start));
+        _markers.add(MarkerInfo(markerId: "destination", position: end));
+      });
+    });
+  }
+
   void _updateJourneyRequestListener() {
+    _polylines.clear();
+    _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
+    MapHelper.resetCamera(_mapController, _currentPosition!);
+
     if (_journeyRequestListener != null) {
       _journeyRequestListener!.cancel();
     }
 
     if (_isSearching) {
-      _journeyRequestListener = _journeyRepo.getJourneyRequestStream().listen((journeySnapshot) {
+      _journeyRequestListener = _journeyRepo.getJourneyRequestStream(firebaseUser!.uid).listen((journeySnapshot) {
         if (_currentJourneyRequestIndex > journeySnapshot.size - 1) {
           setState(() {
             _currentJourneyRequestIndex = 0;
@@ -70,6 +94,9 @@ class _DriverHomeState extends State<DriverHome> {
 
         setState(() {
           _availableJourneysSnapshot = journeySnapshot;
+          if (journeySnapshot.size > 0) {
+            updateJourneyRoutePolylines(journeySnapshot.docs.elementAt(_currentJourneyRequestIndex).data());
+          }
         });
       });
     }
@@ -83,17 +110,32 @@ class _DriverHomeState extends State<DriverHome> {
     MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize).then(
       (icon) => setState(() => _locationIcon = icon),
     );
-    MapHelper.getCustomIcon('assets/icons/user.png', userIconSize).then(
-      (icon) => setState(() => _userIcon = icon),
+    MapHelper.getCustomIcon('assets/icons/driver.png', driverIconSize).then(
+      (icon) => setState(() => _driverIcon = icon),
     );
     _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
       setState(() {
         _currentPosition = latLng;
-        _markers.add(MarkerInfo(markerId: "user-marker", position: _currentPosition!, icon: _userIcon));
+        _markers.removeWhere((element) => element.markerId == "driver-marker");
+        _markers.add(MarkerInfo(markerId: "driver-marker", position: _currentPosition!, icon: _driverIcon));
 
-        if (_shouldCenter) {
-          MapHelper.resetCamera(_mapController, _currentPosition!);
+        if (_activeJourney == null) {
+          if (_shouldCenter) {
+            MapHelper.resetCamera(_mapController, _currentPosition!);
+          }
+        } else {
+          LatLng targetLatLng = _activeJourney!.data()!.isPickedUp
+              ? _activeJourney!.data()!.endLatLng
+              : _activeJourney!.data()!.startLatLng;
+
+          MapHelper.setCameraBetweenMarkers(
+            mapController: _mapController,
+            firstLatLng: latLng,
+            secondLatLng: targetLatLng,
+            verticalOffset: 0.015,
+            padding: 10,
+          );
         }
       });
     });
@@ -105,9 +147,28 @@ class _DriverHomeState extends State<DriverHome> {
           if (ss.size > 0) {
             setState(() {
               _activeJourney = ss.docs.first;
+
+              if (_activeJourney!.data()!.isPickedUp) {
+                _markers.add(MarkerInfo(markerId: "drop-off", position: _activeJourney!.data()!.endLatLng));
+                MapHelper.setCameraBetweenMarkers(
+                  mapController: _mapController,
+                  firstLatLng: _currentPosition!,
+                  secondLatLng: _activeJourney!.data()!.endLatLng,
+                  padding: 100,
+                );
+              } else {
+                _markers.add(MarkerInfo(markerId: "pick-up", position: _activeJourney!.data()!.startLatLng));
+                MapHelper.setCameraBetweenMarkers(
+                  mapController: _mapController,
+                  firstLatLng: _currentPosition!,
+                  secondLatLng: _activeJourney!.data()!.startLatLng,
+                  padding: 100,
+                );
+              }
             });
           } else {
             setState(() {
+              _markers.removeWhere((e) => e.markerId == "drop-off" || e.markerId == "pick-up");
               _activeJourney = null;
             });
           }
@@ -201,6 +262,9 @@ class _DriverHomeState extends State<DriverHome> {
         }
 
         transaction.update(ss.reference, {'isCompleted': true, 'isPickedUp': true});
+
+        _markers.removeWhere((e) => e.markerId == "pick-up" || e.markerId == "drop-off");
+        MapHelper.resetCamera(_mapController, _currentPosition!);
       });
     }
 
@@ -219,8 +283,30 @@ class _DriverHomeState extends State<DriverHome> {
 
         if (ss.data()!.isPickedUp) {
           transaction.update(ss.reference, {'isPickedUp': false});
+          setState(() {
+            _markers.removeWhere((e) => e.markerId == "drop-off");
+            _markers.add(MarkerInfo(markerId: "pick-up", position: ss.data()!.startLatLng));
+            MapHelper.setCameraBetweenMarkers(
+              mapController: _mapController,
+              firstLatLng: _currentPosition!,
+              secondLatLng: ss.data()!.startLatLng,
+              padding: 100,
+              verticalOffset: 0.0075,
+            );
+          });
         } else {
           transaction.update(ss.reference, {'isPickedUp': true});
+          setState(() {
+            _markers.removeWhere((e) => e.markerId == "pick-up");
+            _markers.add(MarkerInfo(markerId: "drop-off", position: ss.data()!.endLatLng));
+            MapHelper.setCameraBetweenMarkers(
+              mapController: _mapController,
+              firstLatLng: _currentPosition!,
+              secondLatLng: ss.data()!.endLatLng,
+              padding: 100,
+              verticalOffset: 0.0075,
+            );
+          });
         }
       });
     }
@@ -250,7 +336,16 @@ class _DriverHomeState extends State<DriverHome> {
           return ss;
         });
         setState(() {
+          _polylines.clear();
+          _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
           _activeJourney = updatedJourney;
+          _markers.add(MarkerInfo(markerId: "pick-up", position: updatedJourney!.data()!.startLatLng));
+          MapHelper.setCameraBetweenMarkers(
+            mapController: _mapController,
+            firstLatLng: _currentPosition!,
+            secondLatLng: updatedJourney.data()!.startLatLng,
+            padding: 50,
+          );
         });
       } catch (e) {
         print("Failed to accept journey request: $e");
@@ -258,7 +353,7 @@ class _DriverHomeState extends State<DriverHome> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('A problem occurred when accepting this request: $e'),
+              content: Text("A problem occurred when accepting this request: $e"),
             ),
           );
         }
@@ -317,7 +412,6 @@ class _DriverHomeState extends State<DriverHome> {
                     return ElevatedButton(
                       onPressed: () {
                         toggleIsSearching();
-
                         _updateJourneyRequestListener();
                       },
                       style: ElevatedButtonTheme.of(context).style?.copyWith(
@@ -354,6 +448,9 @@ class _DriverHomeState extends State<DriverHome> {
                       setState(() {
                         _currentJourneyRequestIndex =
                             (_currentJourneyRequestIndex + direction) % _availableJourneysSnapshot!.size;
+                        updateJourneyRoutePolylines(
+                          _availableJourneysSnapshot!.docs.elementAt(_currentJourneyRequestIndex).data(),
+                        );
                       });
                     }
                   },

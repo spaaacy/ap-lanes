@@ -1,9 +1,11 @@
+import 'package:apu_rideshare/util/location_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Journey {
   final String userId;
-  final String startLatLng;
-  final String endLatLng;
+  final LatLng startLatLng;
+  final LatLng endLatLng;
   final String startDescription;
   final String endDescription;
   bool isCompleted;
@@ -24,8 +26,8 @@ class Journey {
   Map<String, dynamic> toFirestore() {
     return {
       if (userId != null) "userId": userId,
-      if (startLatLng != null) "startLatLng": startLatLng,
-      if (endLatLng != null) "endLatLng": endLatLng,
+      if (startLatLng != null) "startLatLng": '${startLatLng.latitude}, ${startLatLng.longitude}',
+      if (endLatLng != null) "endLatLng": '${endLatLng.latitude}, ${endLatLng.longitude}',
       if (startDescription != null) "startDescription": startDescription,
       if (endDescription != null) "endDescription": endDescription,
       if (isCompleted != null) "isCompleted": isCompleted,
@@ -41,8 +43,8 @@ class Journey {
     final data = snapshot.data();
     return Journey(
       userId: data?['userId'],
-      startLatLng: data?['startLatLng'],
-      endLatLng: data?['endLatLng'],
+      startLatLng: getLatLngFromString(data?['startLatLng']),
+      endLatLng: getLatLngFromString(data?['endLatLng']),
       startDescription: data?['startDescription'],
       endDescription: data?['endDescription'],
       isCompleted: data?['isCompleted'],

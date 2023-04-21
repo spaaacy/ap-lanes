@@ -12,7 +12,6 @@ import 'package:apu_rideshare/ui/passenger/components/journey_detail.dart';
 import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
 import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
 import 'package:apu_rideshare/util/constants.dart';
-import 'package:apu_rideshare/util/location_helpers.dart';
 import 'package:apu_rideshare/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -77,6 +76,7 @@ class _PassengerHomeState extends State<PassengerHome> {
       final latLng = LatLng(position.latitude, position.longitude);
       setState(() {
         _currentPosition = latLng;
+        _markers.removeWhere((element) => element.markerId == "user-marker");
         _markers.add(MarkerInfo(markerId: "user-marker", position: _currentPosition!, icon: _userIcon));
 
         if (_shouldCenter) {
@@ -130,11 +130,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                       final latLng = driver.docs.first.data().currentLatLng;
                       if (latLng != null && _currentPosition != null) {
                         setState(() {
-                          MapHelper.setCameraToDriverAndPassenger(
-                            _mapController!,
-                            latLng,
-                            _currentPosition!,
+                          MapHelper.setCameraBetweenMarkers(
+                            mapController: _mapController!,
+                            firstLatLng: latLng,
+                            secondLatLng: _currentPosition!,
+                            padding: 50,
                           );
+                          _markers.removeWhere((e) => e.markerId == "driver-marker");
                           _markers.add(
                             MarkerInfo(
                               markerId: "driver-marker",
@@ -255,7 +257,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   setState(() {
                                     _polylines.clear();
                                     _polylines.add(polylines);
-                                    MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                    MapHelper.setCameraToRoute(
+                                        mapController: _mapController!, polylines: _polylines, padding: 100);
                                   });
                                 });
                               }
@@ -271,7 +274,11 @@ class _PassengerHomeState extends State<PassengerHome> {
                               MapHelper.drawRoute(start, end).then((polylines) {
                                 setState(() {
                                   _polylines.add(polylines);
-                                  MapHelper.setCameraToRoute(_mapController!, _polylines);
+                                  MapHelper.setCameraToRoute(
+                                    mapController: _mapController!,
+                                    polylines: _polylines,
+                                    padding: 100,
+                                  );
                                   _markers.add(MarkerInfo(markerId: "start", position: start));
                                   _markers.add(MarkerInfo(markerId: "destination", position: end));
                                 });
@@ -310,14 +317,14 @@ class _PassengerHomeState extends State<PassengerHome> {
                           });
                         },
                         createJourney: () {
-                          final String userLatLng = "${_destinationLatLng!.latitude}, ${_destinationLatLng!.longitude}";
-                          final String apuLatLngString = "${apuLatLng.latitude}, ${apuLatLng.longitude}";
-                          _journeyRepo.createJourney(Journey(
-                              userId: firebaseUser!.uid,
-                              startLatLng: _toApu ? userLatLng : apuLatLngString,
-                              endLatLng: _toApu ? apuLatLngString : userLatLng,
-                              startDescription: _toApu ? _userLocationDescription! : apuDescription,
-                              endDescription: _toApu ? apuDescription : _userLocationDescription!));
+                          _journeyRepo.createJourney(
+                            Journey(
+                                userId: firebaseUser!.uid,
+                                startLatLng: _toApu ? _destinationLatLng! : apuLatLng,
+                                endLatLng: _toApu ? apuLatLng : _destinationLatLng!,
+                                startDescription: _toApu ? _userLocationDescription! : apuDescription,
+                                endDescription: _toApu ? apuDescription : _userLocationDescription!),
+                          );
                         },
                         deleteJourney: () {
                           _journeyRepo.deleteJourney(_journey);
