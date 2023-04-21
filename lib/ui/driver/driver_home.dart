@@ -42,9 +42,7 @@ class _DriverHomeState extends State<DriverHome> {
   final _journeyRepo = JourneyRepo();
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Driver>? _driver;
-  StreamSubscription<QuerySnapshot<Journey>>? _journeyRequestListener;
-  int _currentJourneyRequestIndex = 0;
-  QuerySnapshot<Journey>? _availableJourneysSnapshot;
+  QueryDocumentSnapshot<Journey>? _availableJourneySnapshot;
   late StreamSubscription<QuerySnapshot<Journey>> _activeJourneyListener;
   GoogleMapController? _mapController;
   final Set<Polyline> _polylines = <Polyline>{};
@@ -65,6 +63,8 @@ class _DriverHomeState extends State<DriverHome> {
         MapHelper.setCameraToRoute(
           mapController: _mapController!,
           polylines: _polylines,
+          topOffsetPercentage: 1,
+          bottomOffsetPercentage: 0.2,
         );
         _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
         _markers.add(MarkerInfo(markerId: "start", position: start));
@@ -73,30 +73,20 @@ class _DriverHomeState extends State<DriverHome> {
     });
   }
 
-  void _updateJourneyRequestListener() {
+  Future<void> _updateJourneyRequestListener() async {
     _polylines.clear();
     _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
-    MapHelper.resetCamera(_mapController, _currentPosition);
-
-    if (_journeyRequestListener != null) {
-      _journeyRequestListener!.cancel();
-    }
 
     if (_isSearching) {
-      _journeyRequestListener = _journeyRepo.getJourneyRequestStream(firebaseUser!.uid).listen((journeySnapshot) {
-        if (_currentJourneyRequestIndex > journeySnapshot.size - 1) {
-          setState(() {
-            _currentJourneyRequestIndex = 0;
-          });
-        }
-
+      final nextJourneySnapshot = await _journeyRepo.getFirstJourneyRequest(firebaseUser!.uid);
+      if (nextJourneySnapshot.size > 0) {
+        updateJourneyRoutePolylines(nextJourneySnapshot.docs.first.data());
         setState(() {
-          _availableJourneysSnapshot = journeySnapshot;
-          if (journeySnapshot.size > 0) {
-            updateJourneyRoutePolylines(journeySnapshot.docs.elementAt(_currentJourneyRequestIndex).data());
-          }
+          _availableJourneySnapshot = nextJourneySnapshot.docs.first;
         });
-      });
+      }
+    } else {
+      MapHelper.resetCamera(_mapController, _currentPosition);
     }
   }
 
@@ -126,13 +116,7 @@ class _DriverHomeState extends State<DriverHome> {
           LatLng targetLatLng = _activeJourney!.data()!.isPickedUp
               ? _activeJourney!.data()!.endLatLng
               : _activeJourney!.data()!.startLatLng;
-
-          MapHelper.setCameraBetweenMarkers(
-            mapController: _mapController,
-            firstLatLng: latLng,
-            secondLatLng: targetLatLng,
-            topOffsetPercentage: 0.015,
-          );
+          updateCameraBoundsWithPopup(latLng, targetLatLng);
         }
       });
     });
@@ -147,18 +131,10 @@ class _DriverHomeState extends State<DriverHome> {
 
               if (_activeJourney!.data()!.isPickedUp) {
                 _markers.add(MarkerInfo(markerId: "drop-off", position: _activeJourney!.data()!.endLatLng));
-                MapHelper.setCameraBetweenMarkers(
-                  mapController: _mapController,
-                  firstLatLng: _currentPosition!,
-                  secondLatLng: _activeJourney!.data()!.endLatLng,
-                );
+                updateCameraBoundsWithPopup(_currentPosition!, _activeJourney!.data()!.endLatLng);
               } else {
                 _markers.add(MarkerInfo(markerId: "pick-up", position: _activeJourney!.data()!.startLatLng));
-                MapHelper.setCameraBetweenMarkers(
-                  mapController: _mapController,
-                  firstLatLng: _currentPosition!,
-                  secondLatLng: _activeJourney!.data()!.startLatLng,
-                );
+                updateCameraBoundsWithPopup(_currentPosition!, _activeJourney!.data()!.startLatLng);
               }
             });
           } else {
@@ -227,9 +203,18 @@ class _DriverHomeState extends State<DriverHome> {
     });
   }
 
+  void updateCameraBoundsWithPopup(LatLng latLng, LatLng otherLatLng) {
+    MapHelper.setCameraBetweenMarkers(
+      mapController: _mapController,
+      firstLatLng: latLng,
+      secondLatLng: otherLatLng,
+      topOffsetPercentage: 1,
+      bottomOffsetPercentage: 0.2,
+    );
+  }
+
   @override
   void dispose() {
-    _journeyRequestListener?.cancel();
     _activeJourneyListener.cancel();
     _locationListener.cancel();
     super.dispose();
@@ -305,40 +290,23 @@ class _DriverHomeState extends State<DriverHome> {
           setState(() {
             _markers.removeWhere((e) => e.markerId == "drop-off");
             _markers.add(MarkerInfo(markerId: "pick-up", position: ss.data()!.startLatLng));
-            MapHelper.setCameraBetweenMarkers(
-              mapController: _mapController,
-              firstLatLng: _currentPosition!,
-              secondLatLng: ss.data()!.startLatLng,
-              topOffsetPercentage: 0.0075,
-            );
+            updateCameraBoundsWithPopup(_currentPosition!, ss.data()!.startLatLng);
           });
         } else {
           transaction.update(ss.reference, {'isPickedUp': true});
           setState(() {
             _markers.removeWhere((e) => e.markerId == "pick-up");
             _markers.add(MarkerInfo(markerId: "drop-off", position: ss.data()!.endLatLng));
-            MapHelper.setCameraBetweenMarkers(
-              mapController: _mapController,
-              firstLatLng: _currentPosition!,
-              secondLatLng: ss.data()!.endLatLng,
-              topOffsetPercentage: 0.0075,
-            );
+            updateCameraBoundsWithPopup(_currentPosition!, ss.data()!.endLatLng);
           });
         }
       });
     }
 
     void onJourneyAccept(QueryDocumentSnapshot<Journey> acceptedJourney) async {
-      toggleIsSearching();
-      await _journeyRequestListener?.cancel();
-
       try {
         DocumentSnapshot<Journey>? updatedJourney =
             await FirebaseFirestore.instance.runTransaction((transaction) async {
-          if (_availableJourneysSnapshot == null || _availableJourneysSnapshot?.size == 0) {
-            return null;
-          }
-
           var ss = await transaction.get<Journey>(acceptedJourney.reference);
           if (!ss.exists) {
             throw Exception("Journey does not exist!");
@@ -350,6 +318,8 @@ class _DriverHomeState extends State<DriverHome> {
 
           transaction.update(ss.reference, {'driverId': firebaseUser!.uid});
 
+          toggleIsSearching();
+
           return ss;
         });
         setState(() {
@@ -357,15 +327,9 @@ class _DriverHomeState extends State<DriverHome> {
           _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
           _activeJourney = updatedJourney;
           _markers.add(MarkerInfo(markerId: "pick-up", position: updatedJourney!.data()!.startLatLng));
-          MapHelper.setCameraBetweenMarkers(
-            mapController: _mapController,
-            firstLatLng: _currentPosition!,
-            secondLatLng: updatedJourney.data()!.startLatLng,
-          );
+          updateCameraBoundsWithPopup(_currentPosition!, updatedJourney.data()!.startLatLng);
         });
       } catch (e) {
-        print("Failed to accept journey request: $e");
-
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -456,18 +420,32 @@ class _DriverHomeState extends State<DriverHome> {
               } else {
                 return JourneyRequestPopup(
                   isSearching: _isSearching,
-                  journey: _availableJourneysSnapshot?.size != 0
-                      ? _availableJourneysSnapshot?.docs.elementAt(_currentJourneyRequestIndex)
-                      : null,
-                  onNavigate: (direction) {
-                    if (_availableJourneysSnapshot != null) {
-                      setState(() {
-                        _currentJourneyRequestIndex =
-                            (_currentJourneyRequestIndex + direction) % _availableJourneysSnapshot!.size;
-                        updateJourneyRoutePolylines(
-                          _availableJourneysSnapshot!.docs.elementAt(_currentJourneyRequestIndex).data(),
-                        );
-                      });
+                  journey: _availableJourneySnapshot,
+                  onNavigate: (direction) async {
+                    if (direction == 1) {
+                      final nextJourneySnapshot = await _journeyRepo.getNextJourneyRequest(
+                        firebaseUser!.uid,
+                        _availableJourneySnapshot!,
+                      );
+                      if (nextJourneySnapshot.size > 0 &&
+                          nextJourneySnapshot.docs.first.id != _availableJourneySnapshot!.id) {
+                        updateJourneyRoutePolylines(nextJourneySnapshot.docs.first.data());
+                        setState(() {
+                          _availableJourneySnapshot = nextJourneySnapshot.docs.first;
+                        });
+                      }
+                    } else {
+                      final prevJourneySnapshot = await _journeyRepo.getPrevJourneyRequest(
+                        firebaseUser!.uid,
+                        _availableJourneySnapshot!,
+                      );
+                      if (prevJourneySnapshot.size > 0 &&
+                          prevJourneySnapshot.docs.first.id != _availableJourneySnapshot!.id) {
+                        updateJourneyRoutePolylines(prevJourneySnapshot.docs.first.data());
+                        setState(() {
+                          _availableJourneySnapshot = prevJourneySnapshot.docs.first;
+                        });
+                      }
                     }
                   },
                   onAccept: onJourneyAccept,
