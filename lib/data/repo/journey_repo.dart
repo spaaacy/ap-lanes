@@ -41,16 +41,6 @@ class JourneyRepo {
         .snapshots();
   }
 
-  // todo: paginate this
-  // Stream<QuerySnapshot<Journey>> getJourneyRequestStream(String driverId, {DocumentSnapshot<Journey>? lastVisible}) {
-  //   return _journeyRef
-  //       .where("driverId", isEqualTo: "")
-  //       .where("userId", isNotEqualTo: driverId)
-  //       .where("isCompleted", isEqualTo: false)
-  //       .where("isCancelled", isEqualTo: false)
-  //       .snapshots();
-  // }
-
   Query<Journey> getDefaultJourneyQuery(String driverId) {
     return _journeyRef
         .where("driverId", isEqualTo: "")
