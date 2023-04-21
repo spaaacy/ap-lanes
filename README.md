@@ -1,6 +1,6 @@
 # APU Rideshare
 
-An GRAB-like ridesharing application for APU using the Flutter framework.
+An UBER-like ridesharing application for APU using the Flutter framework.
 
 ## App Flow
 
