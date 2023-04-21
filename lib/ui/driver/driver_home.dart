@@ -422,30 +422,24 @@ class _DriverHomeState extends State<DriverHome> {
                   isSearching: _isSearching,
                   journey: _availableJourneySnapshot,
                   onNavigate: (direction) async {
+                    QuerySnapshot<Journey> newJourneyRequest;
                     if (direction == 1) {
-                      final nextJourneySnapshot = await _journeyRepo.getNextJourneyRequest(
+                      newJourneyRequest = await _journeyRepo.getNextJourneyRequest(
                         firebaseUser!.uid,
                         _availableJourneySnapshot!,
                       );
-                      if (nextJourneySnapshot.size > 0 &&
-                          nextJourneySnapshot.docs.first.id != _availableJourneySnapshot!.id) {
-                        updateJourneyRoutePolylines(nextJourneySnapshot.docs.first.data());
-                        setState(() {
-                          _availableJourneySnapshot = nextJourneySnapshot.docs.first;
-                        });
-                      }
                     } else {
-                      final prevJourneySnapshot = await _journeyRepo.getPrevJourneyRequest(
+                      newJourneyRequest = await _journeyRepo.getPrevJourneyRequest(
                         firebaseUser!.uid,
                         _availableJourneySnapshot!,
                       );
-                      if (prevJourneySnapshot.size > 0 &&
-                          prevJourneySnapshot.docs.first.id != _availableJourneySnapshot!.id) {
-                        updateJourneyRoutePolylines(prevJourneySnapshot.docs.first.data());
-                        setState(() {
-                          _availableJourneySnapshot = prevJourneySnapshot.docs.first;
-                        });
-                      }
+                    }
+                    if (newJourneyRequest.size > 0 &&
+                        newJourneyRequest.docs.first.id != _availableJourneySnapshot!.id) {
+                      updateJourneyRoutePolylines(newJourneyRequest.docs.first.data());
+                      setState(() {
+                        _availableJourneySnapshot = newJourneyRequest.docs.first;
+                      });
                     }
                   },
                   onAccept: onJourneyAccept,
