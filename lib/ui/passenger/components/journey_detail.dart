@@ -43,22 +43,34 @@ class _JourneyDetailState extends State<JourneyDetail> {
                 Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    color: Colors.black54,
+                    color: Colors.white70,
                     borderRadius: BorderRadius.all(
                       Radius.circular(8),
                     ),
                   ),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
+                  child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    itemCount: widget.journeyDetails.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Text(
-                        widget.journeyDetails[index],
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white),
-                      );
-                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: widget.journeyDetails.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return Text(
+                              widget.journeyDetails[index],
+                              style: Theme.of(context).textTheme.titleSmall,
+                            );
+                          },
+                        ),
+
+                        SizedBox(height: 8.0,),
+
+                        Text("TO",style: Theme.of(context).textTheme.bodyMedium ,),
+                        Text(widget.journey!.data().endDescription, style: Theme.of(context).textTheme.titleSmall)
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(

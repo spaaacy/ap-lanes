@@ -88,13 +88,11 @@ class _PassengerHomeState extends State<PassengerHome> {
       });
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
       if (firebaseUser != null) {
-        _passengerRepo.getPassenger(firebaseUser!.uid).then((passenger) {
-          _passenger = passenger;
-          _isSearching = _passenger?.data().isSearching == true;
-        });
+        _passenger = await _passengerRepo.getPassenger(firebaseUser!.uid);
+        _isSearching = _passenger!.data().isSearching;
 
         _userRepo.getUser(firebaseUser!.uid).then((userData) {
           setState(() {
@@ -106,6 +104,7 @@ class _PassengerHomeState extends State<PassengerHome> {
         _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
           if (journey.docs.isNotEmpty) {
             _journey = journey.docs.first;
+            setState(() {});
 
             if (_journey!.data().driverId.isNotEmpty) {
               setState(() {
@@ -121,7 +120,6 @@ class _PassengerHomeState extends State<PassengerHome> {
               final driverName = driverUser.data().getFullName();
 
               _driverRepo.getDriver(driverId).then((driver) {
-
                 // Sets journey details
                 _journeyDetails.clear();
                 _journeyDetails.add("Your Driver:");
@@ -149,7 +147,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                             mapController: _mapController!,
                             firstLatLng: latLng,
                             secondLatLng: _currentPosition!,
-                            padding: 50,
+                            topOffsetPercentage: 1,
+                            bottomOffsetPercentage: 0.2,
                           );
                           _markers.removeWhere((e) => e.markerId == "driver-marker");
                           _markers.add(
@@ -211,7 +210,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             );
           }),
-      body: _passenger == null
+      body: (_passenger == null || _user == null)
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [
@@ -257,7 +256,9 @@ class _PassengerHomeState extends State<PassengerHome> {
                                     _polylines.clear();
                                     _polylines.add(polylines);
                                     MapHelper.setCameraToRoute(
-                                        mapController: _mapController!, polylines: _polylines, padding: 100);
+                                      mapController: _mapController!,
+                                      polylines: _polylines,
+                                    );
                                   });
                                 });
                               }
@@ -276,7 +277,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   MapHelper.setCameraToRoute(
                                     mapController: _mapController!,
                                     polylines: _polylines,
-                                    padding: 100,
                                   );
                                   _markers.add(MarkerInfo(markerId: "start", position: start));
                                   _markers.add(MarkerInfo(markerId: "destination", position: end));
@@ -301,8 +301,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                       ),
                     ),
                   ),
-
-
                 if (_destinationLatLng != null || _isSearching)
                   Positioned.fill(
                     bottom: 100.0,
