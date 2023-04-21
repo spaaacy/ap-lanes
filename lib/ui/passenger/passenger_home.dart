@@ -54,8 +54,10 @@ class _PassengerHomeState extends State<PassengerHome> {
   bool _isSearching = false;
   bool _isPickedUp = false;
   bool _hasDriver = false;
+  bool _inJourney = false;
   bool _toApu = false;
-  final List<String> _journeyDetails = [];
+  String? _driverName;
+  String? _driverLicensePlate;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
   // Google Map Variables
@@ -67,6 +69,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   LatLng? _currentPosition;
   late StreamSubscription<Position> _locationListener;
   final Set<MarkerInfo> _markers = {};
+
 
   @override
   void initState() {
@@ -105,6 +108,7 @@ class _PassengerHomeState extends State<PassengerHome> {
         _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
           if (journey.docs.isNotEmpty) {
             _journey = journey.docs.first;
+            _inJourney = true;
             setState(() {});
 
             if (_journey!.data().driverId.isNotEmpty) {
@@ -122,10 +126,8 @@ class _PassengerHomeState extends State<PassengerHome> {
 
               _driverRepo.getDriver(driverId).then((driver) {
                 // Sets journey details
-                _journeyDetails.clear();
-                _journeyDetails.add("Your Driver:");
-                _journeyDetails.add("Name:  $driverName");
-                _journeyDetails.add("License Plate: ${driver!.data().licensePlate}");
+                _driverName = driverName;
+                _driverLicensePlate = driver!.data().licensePlate;
                 _hasDriver = true;
                 _polylines.clear();
                 _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
@@ -148,8 +150,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                             mapController: _mapController!,
                             firstLatLng: latLng,
                             secondLatLng: _currentPosition!,
-                            topOffsetPercentage: 1,
-                            bottomOffsetPercentage: 0.2,
+                            topOffsetPercentage: 3,
+                            bottomOffsetPercentage: 1,
                           );
                           _markers.removeWhere((e) => e.markerId == "driver-marker");
                           _markers.add(
@@ -165,15 +167,14 @@ class _PassengerHomeState extends State<PassengerHome> {
                   });
                 }
               });
-            } else {
-              _journeyDetails.clear();
-              _journeyDetails.add("Finding a driver");
             }
           } else if (_journey != null) {
             // Runs after journey completion
-            _journeyDetails.clear();
+            _driverName = null;
+            _driverLicensePlate = null;
             _journey = null;
             _isSearching = false;
+            _inJourney = false;
             _isPickedUp = false;
             _hasDriver = false;
             _searchController.clear();
@@ -233,10 +234,12 @@ class _PassengerHomeState extends State<PassengerHome> {
                 ),
                 if (_isSearching || _hasDriver)
                   JourneyDetail(
+                    inJourney: _inJourney,
+                    driverName: _driverName,
+                    driverLicensePlate: _driverLicensePlate,
                     isPickedUp: _isPickedUp,
                     hasDriver: _hasDriver,
                     journey: _journey,
-                    journeyDetails: _journeyDetails,
                   ),
                 ...?(() {
                   if (!_isSearching && !_hasDriver) {
@@ -260,7 +263,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                         _polylines.clear();
                                         _polylines.add(polylines);
                                         MapHelper.setCameraToRoute(
-                                            mapController: _mapController!, polylines: _polylines, padding: 100);
+                                            mapController: _mapController!, polylines: _polylines,);
                                         _routeDistance = MapHelper.calculateRouteDistance(polylines);
                                       });
                                     });
@@ -280,7 +283,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                                       MapHelper.setCameraToRoute(
                                         mapController: _mapController!,
                                         polylines: _polylines,
-                                        padding: 100,
                                       );
                                       _markers.add(MarkerInfo(markerId: "start", position: start));
                                       _markers.add(MarkerInfo(markerId: "destination", position: end));

@@ -7,17 +7,21 @@ import '../../../data/model/firestore/journey.dart';
 import '../../../data/repo/journey_repo.dart';
 
 class JourneyDetail extends StatefulWidget {
+  final String? driverName;
+  final String? driverLicensePlate;
   final bool hasDriver;
   final bool isPickedUp;
+  final bool inJourney;
   final QueryDocumentSnapshot<Journey>? journey;
-  final List<String> journeyDetails;
 
   const JourneyDetail({
     super.key,
+    required this.driverName,
+    required this.driverLicensePlate,
     required this.hasDriver,
     required this.isPickedUp,
+    required this.inJourney,
     required this.journey,
-    required this.journeyDetails,
   });
 
   @override
@@ -25,7 +29,6 @@ class JourneyDetail extends StatefulWidget {
 }
 
 class _JourneyDetailState extends State<JourneyDetail> {
-
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
@@ -34,7 +37,7 @@ class _JourneyDetailState extends State<JourneyDetail> {
         child: Align(
           alignment: Alignment.topCenter,
           child: AnimatedOpacity(
-            opacity: (widget.journeyDetails.isNotEmpty) ? 1.0 : 0.0,
+            opacity: (widget.inJourney) ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -53,22 +56,34 @@ class _JourneyDetailState extends State<JourneyDetail> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: widget.journeyDetails.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Text(
-                              widget.journeyDetails[index],
-                              style: Theme.of(context).textTheme.titleSmall,
-                            );
-                          },
-                        ),
-
-                        SizedBox(height: 8.0,),
-
-                        Text("TO",style: Theme.of(context).textTheme.bodyMedium ,),
-                        Text(widget.journey!.data().endDescription, style: Theme.of(context).textTheme.titleSmall)
+                        ...(() {
+                          if (widget.driverName != null && widget.driverLicensePlate != null) {
+                            return [
+                              Text("Driver Name", style: Theme.of(context).textTheme.bodyMedium),
+                              Text(widget.driverName!, style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                              Text("License Plate", style: Theme.of(context).textTheme.bodyMedium),
+                              Text(widget.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                            ];
+                          } else {
+                            return [Text("Finding an driver...", style: Theme.of(context).textTheme.titleSmall, textAlign: TextAlign.center,)];
+                          }
+                        }()),
+                        SizedBox(height: 8.0),
+                        ...?(() {
+                          if (widget.journey != null) {
+                            return [
+                              Text("TO", style: Theme.of(context).textTheme.bodyMedium),
+                              Text(widget.journey!.data().endDescription,
+                                  style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                              Text("FROM", style: Theme.of(context).textTheme.bodyMedium),
+                              Text(widget.journey!.data().startDescription,
+                                  style: Theme.of(context).textTheme.titleSmall),
+                            ];
+                          }
+                        }())
                       ],
                     ),
                   ),
@@ -106,9 +121,9 @@ class _JourneyDetailState extends State<JourneyDetail> {
                                               }
                                             });
                                           } catch (exception) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text("Sorry, you cannot cancel the journey after being picked up."))
-                                            );
+                                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    "Sorry, you cannot cancel the journey after being picked up.")));
                                           } finally {
                                             Navigator.pop(context, "Yes");
                                           }
