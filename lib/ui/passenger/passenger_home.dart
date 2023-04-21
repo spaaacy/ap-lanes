@@ -105,6 +105,7 @@ class _PassengerHomeState extends State<PassengerHome> {
         _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
           if (journey.docs.isNotEmpty) {
             _journey = journey.docs.first;
+            setState(() {});
 
             if (_journey!.data().driverId.isNotEmpty) {
               setState(() {
@@ -149,7 +150,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                             secondLatLng: _currentPosition!,
                             topOffsetPercentage: 1,
                             bottomOffsetPercentage: 0.2,
-                            padding: 50,
                           );
                           _markers.removeWhere((e) => e.markerId == "driver-marker");
                           _markers.add(
@@ -211,7 +211,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             );
           }),
-      body: _passenger == null
+      body: (_passenger == null || _user == null)
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [

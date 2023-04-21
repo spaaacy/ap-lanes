@@ -65,8 +65,6 @@ class _DriverHomeState extends State<DriverHome> {
         MapHelper.setCameraToRoute(
           mapController: _mapController!,
           polylines: _polylines,
-          padding: 25,
-          verticalOffset: 0.015,
         );
         _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
         _markers.add(MarkerInfo(markerId: "start", position: start));
@@ -134,7 +132,6 @@ class _DriverHomeState extends State<DriverHome> {
             firstLatLng: latLng,
             secondLatLng: targetLatLng,
             topOffsetPercentage: 0.015,
-            padding: 10,
           );
         }
       });
@@ -154,7 +151,6 @@ class _DriverHomeState extends State<DriverHome> {
                   mapController: _mapController,
                   firstLatLng: _currentPosition!,
                   secondLatLng: _activeJourney!.data()!.endLatLng,
-                  padding: 100,
                 );
               } else {
                 _markers.add(MarkerInfo(markerId: "pick-up", position: _activeJourney!.data()!.startLatLng));
@@ -162,7 +158,6 @@ class _DriverHomeState extends State<DriverHome> {
                   mapController: _mapController,
                   firstLatLng: _currentPosition!,
                   secondLatLng: _activeJourney!.data()!.startLatLng,
-                  padding: 100,
                 );
               }
             });
@@ -314,7 +309,6 @@ class _DriverHomeState extends State<DriverHome> {
               mapController: _mapController,
               firstLatLng: _currentPosition!,
               secondLatLng: ss.data()!.startLatLng,
-              padding: 100,
               topOffsetPercentage: 0.0075,
             );
           });
@@ -327,7 +321,6 @@ class _DriverHomeState extends State<DriverHome> {
               mapController: _mapController,
               firstLatLng: _currentPosition!,
               secondLatLng: ss.data()!.endLatLng,
-              padding: 100,
               topOffsetPercentage: 0.0075,
             );
           });
@@ -368,7 +361,6 @@ class _DriverHomeState extends State<DriverHome> {
             mapController: _mapController,
             firstLatLng: _currentPosition!,
             secondLatLng: updatedJourney.data()!.startLatLng,
-            padding: 50,
           );
         });
       } catch (e) {
