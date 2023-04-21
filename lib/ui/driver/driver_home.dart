@@ -249,6 +249,29 @@ class _DriverHomeState extends State<DriverHome> {
   @override
   Widget build(BuildContext context) {
     void onJourneyDropOff(DocumentSnapshot<Journey>? activeJourney) async {
+      bool? shouldDropOff = await showDialog<bool>(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              title: const Text("Confirm Drop-off?"),
+              content: const Text('Are you sure you want to mark this journey as complete?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('No'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Yes'),
+                ),
+              ],
+            );
+          });
+
+      if (shouldDropOff == null || shouldDropOff == false) {
+        return;
+      }
+
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         if (activeJourney == null) return;
 
