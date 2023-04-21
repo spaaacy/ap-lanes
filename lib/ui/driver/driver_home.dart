@@ -78,7 +78,7 @@ class _DriverHomeState extends State<DriverHome> {
   void _updateJourneyRequestListener() {
     _polylines.clear();
     _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
-    MapHelper.resetCamera(_mapController, _currentPosition!);
+    MapHelper.resetCamera(_mapController, _currentPosition);
 
     if (_journeyRequestListener != null) {
       _journeyRequestListener!.cancel();
@@ -178,8 +178,9 @@ class _DriverHomeState extends State<DriverHome> {
         setState(() {
           _user = userData;
         });
-        try {
-          var driverData = await _driverRepo.getDriver(firebaseUser!.uid);
+
+        var driverData = await _driverRepo.getDriver(firebaseUser!.uid);
+        if (driverData != null) {
           setState(() {
             _driver = driverData;
             // todo: maybe make this check for ongoing journeys instead
@@ -187,7 +188,7 @@ class _DriverHomeState extends State<DriverHome> {
 
             _updateJourneyRequestListener();
           });
-        } catch (e) {
+        } else {
           if (!context.mounted) return;
           var result = await showDialog<String?>(
             context: context,
