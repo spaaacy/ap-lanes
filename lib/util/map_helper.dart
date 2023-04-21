@@ -98,7 +98,8 @@ class MapHelper {
     return rootBundle.loadString('assets/map_style.txt');
   }
 
-  static void resetCamera(GoogleMapController? mapController, LatLng currentPosition) {
+  static void resetCamera(GoogleMapController? mapController, LatLng? currentPosition) {
+    if (currentPosition == null) return;
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
 }

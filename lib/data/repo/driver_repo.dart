@@ -15,9 +15,12 @@ class DriverRepo {
     return await _driverRef.add(driver);
   }
 
-  Future<QueryDocumentSnapshot<Driver>> getDriver(String id) async {
+  Future<QueryDocumentSnapshot<Driver>?> getDriver(String id) async {
     final snapshot = await _driverRef.where('id', isEqualTo: id).get();
-    return snapshot.docs.first;
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs.first;
+    }
+    return null;
   }
 
   Future<void> updateDriver(QueryDocumentSnapshot<Driver> driver,

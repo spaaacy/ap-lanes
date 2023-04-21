@@ -153,7 +153,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                   _journeyDetails.clear();
                   _journeyDetails.add("Your Driver:");
                   _journeyDetails.add("Name:  $driverName");
-                  _journeyDetails.add("License Plate: ${driver.data().licensePlate}");
+                  _journeyDetails.add("License Plate: ${driver!.data().licensePlate}");
                   _hasDriver = true;
                   _polylines.clear();
                   _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
