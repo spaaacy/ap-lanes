@@ -21,6 +21,8 @@ class MapHelper {
     required Set<Polyline> polylines,
     double topOffsetPercentage = 0,
     double bottomOffsetPercentage = 0,
+    double leftOffsetPercentage = 0,
+    double rightOffsetPercentage = 0,
   }) {
     double minLat = polylines.first.points.first.latitude;
     double minLng = polylines.first.points.first.longitude;
@@ -39,13 +41,17 @@ class MapHelper {
     final topOffsetValue = latDifference * topOffsetPercentage;
     final bottomOffsetValue = latDifference * bottomOffsetPercentage;
 
+    final lngDifference = maxLat - minLat;
+    final leftOffsetValue = lngDifference * leftOffsetPercentage;
+    final rightOffsetValue = lngDifference * rightOffsetPercentage;
+
     mapController?.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
-          southwest: LatLng(minLat - bottomOffsetValue, minLng),
-          northeast: LatLng(maxLat + topOffsetValue , maxLng),
+          southwest: LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
+          northeast: LatLng(maxLat + topOffsetValue , maxLng + rightOffsetValue),
         ),
-        100,
+        50,
       ),
     );
   }
@@ -56,6 +62,8 @@ class MapHelper {
     required LatLng secondLatLng,
     double topOffsetPercentage = 0,
     double bottomOffsetPercentage = 0,
+    double leftOffsetPercentage = 0,
+    double rightOffsetPercentage = 0,
   }) {
     double minLat = firstLatLng.latitude;
     double minLng = firstLatLng.longitude;
@@ -75,13 +83,17 @@ class MapHelper {
     final topOffsetValue = latDifference * topOffsetPercentage;
     final bottomOffsetValue = latDifference * bottomOffsetPercentage;
 
+    final lngDifference = maxLat - minLat;
+    final leftOffsetValue = lngDifference * leftOffsetPercentage;
+    final rightOffsetValue = lngDifference * rightOffsetPercentage;
+
     mapController?.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
-          southwest: LatLng(minLat - bottomOffsetValue, minLng),
-          northeast: LatLng(maxLat + topOffsetValue , maxLng),
+          southwest: LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
+          northeast: LatLng(maxLat + topOffsetValue , maxLng + rightOffsetValue),
         ),
-        100,
+        50,
       ),
     );
   }

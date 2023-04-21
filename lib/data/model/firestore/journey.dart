@@ -12,6 +12,7 @@ class Journey {
   bool isPickedUp;
   bool isCancelled;
   String driverId;
+  DateTime createdAt;
 
   Journey({
     required this.userId,
@@ -23,7 +24,8 @@ class Journey {
     this.isCancelled = false,
     this.isPickedUp = false,
     this.driverId = "",
-  });
+    DateTime? createdOn,
+  }) : createdAt = createdOn ?? DateTime.now();
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -36,6 +38,7 @@ class Journey {
       if (isCancelled != null) "isCancelled": isCancelled,
       if (isPickedUp != null) "isPickedUp": isPickedUp,
       if (driverId != null) "driverId": driverId,
+      if (createdAt != null) "createdAt": createdAt.millisecondsSinceEpoch,
     };
   }
 
@@ -54,6 +57,11 @@ class Journey {
       isCancelled: data?['isCancelled'],
       isPickedUp: data?['isPickedUp'] ?? false,
       driverId: data?['driverId'],
+      createdOn: data?['createdAt'] == null
+          ? DateTime.now()
+          : DateTime.fromMillisecondsSinceEpoch(
+              int.parse(data!['createdAt']),
+            ),
     );
   }
 }

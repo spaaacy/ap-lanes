@@ -41,13 +41,25 @@ class JourneyRepo {
         .snapshots();
   }
 
-  // todo: paginate this
-  Stream<QuerySnapshot<Journey>> getJourneyRequestStream(String driverId) {
+  Query<Journey> getDefaultJourneyQuery(String driverId) {
     return _journeyRef
         .where("driverId", isEqualTo: "")
-        // .where("userId", isNotEqualTo: driverId)
+        .where("userId", isNotEqualTo: driverId)
+        .orderBy("userId")
         .where("isCompleted", isEqualTo: false)
         .where("isCancelled", isEqualTo: false)
-        .snapshots();
+        .orderBy("createdAt", descending: false);
+  }
+
+  Future<QuerySnapshot<Journey>> getFirstJourneyRequest(String driverId) {
+    return getDefaultJourneyQuery(driverId).limit(1).get();
+  }
+
+  Future<QuerySnapshot<Journey>> getNextJourneyRequest(String driverId, DocumentSnapshot<Journey> lastVisible) {
+    return getDefaultJourneyQuery(driverId).startAfterDocument(lastVisible).limit(1).get();
+  }
+
+  Future<QuerySnapshot<Journey>> getPrevJourneyRequest(String driverId, DocumentSnapshot<Journey> lastVisible) {
+    return getDefaultJourneyQuery(driverId).endBeforeDocument(lastVisible).limitToLast(1).get();
   }
 }
