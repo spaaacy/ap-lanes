@@ -51,6 +51,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   LatLng? _destinationLatLng;
   String? _userLocationDescription;
   bool _isSearching = false;
+  bool _isPickedUp = false;
   bool _hasDriver = false;
   bool _toApu = false;
   final List<String> _journeyDetails = [];
@@ -102,28 +103,40 @@ class _PassengerHomeState extends State<PassengerHome> {
           });
         });
 
-        _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) {
+        _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
           if (journey.docs.isNotEmpty) {
             _journey = journey.docs.first;
             late String driverName;
 
             if (_journey!.data().driverId.isNotEmpty) {
               setState(() {
+                _isPickedUp = _journey!.data().isPickedUp;
                 _isSearching = false;
               });
 
               final driverId = _journey!.data().driverId;
-              _userRepo.getUser(driverId).then((user) {
-                driverName = user.data().getFullName();
-              });
+              final driverUser = await _userRepo.getUser(driverId);
+              final driverName = driverUser.data().getFullName();
 
               _driverRepo.getDriver(driverId).then((driver) {
+
+                // Sets journey details
+                _journeyDetails.clear();
+                _journeyDetails.add("Your Driver:");
+                _journeyDetails.add("Name:  $driverName");
+                _journeyDetails.add("License Plate: ${driver!.data().licensePlate}");
+                _hasDriver = true;
+                _polylines.clear();
+                _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
+                setState(() {});
+
                 // Sets the marker
                 if (_driverId != driverId) {
                   // Used to ensure multiple listen calls are not made
                   if (_driverListener != null) {
                     _driverListener!.cancel();
                   }
+
                   _driverId = driverId;
                   _driverListener = _driverRepo.listenToDriver(_driverId!).listen((driver) {
                     if (driver.docs.isNotEmpty) {
@@ -148,16 +161,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                       }
                     }
                   });
-
-                  // Sets journey details
-                  _journeyDetails.clear();
-                  _journeyDetails.add("Your Driver:");
-                  _journeyDetails.add("Name:  $driverName");
-                  _journeyDetails.add("License Plate: ${driver!.data().licensePlate}");
-                  _hasDriver = true;
-                  _polylines.clear();
-                  _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
-                  setState(() {});
                 }
               });
             } else {
@@ -169,6 +172,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             _journeyDetails.clear();
             _journey = null;
             _isSearching = false;
+            _isPickedUp = false;
             _hasDriver = false;
             _searchController.clear();
             _driverListener?.cancel();
@@ -176,18 +180,11 @@ class _PassengerHomeState extends State<PassengerHome> {
             if (_currentPosition != null) {
               MapHelper.resetCamera(_mapController!, _currentPosition!);
             }
+            setState(() {});
           }
         });
       }
     });
-  }
-
-  @override
-  void dispose() async {
-    _journeyListener.cancel();
-    _locationListener.cancel();
-    _driverListener?.cancel();
-    super.dispose();
   }
 
   @override
@@ -234,6 +231,10 @@ class _PassengerHomeState extends State<PassengerHome> {
                 ),
                 if (_isSearching || _hasDriver)
                   JourneyDetail(
+                    updateIsSearching: (isSearching) {
+                      _isSearching = isSearching;
+                    },
+                    isPickedUp: _isPickedUp,
                     isSearching: _isSearching,
                     hasDriver: _hasDriver,
                     journey: _journey,
@@ -302,6 +303,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                       ),
                     ),
                   ),
+
+
                 if (_destinationLatLng != null || _isSearching)
                   Positioned.fill(
                     bottom: 100.0,
@@ -335,5 +338,13 @@ class _PassengerHomeState extends State<PassengerHome> {
               ],
             ),
     );
+  }
+
+  @override
+  void dispose() async {
+    _journeyListener.cancel();
+    _locationListener.cancel();
+    _driverListener?.cancel();
+    super.dispose();
   }
 }
