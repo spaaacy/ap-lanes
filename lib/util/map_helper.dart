@@ -52,13 +52,14 @@ class MapHelper {
     required LatLng firstLatLng,
     required LatLng secondLatLng,
     required double padding,
-    double verticalOffset = 0,
-    double horizontalOffset = 0,
+    double topOffsetPercentage = 0,
+    double bottomOffsetPercentage = 0,
   }) {
     double minLat = firstLatLng.latitude;
     double minLng = firstLatLng.longitude;
     double maxLat = secondLatLng.latitude;
     double maxLng = secondLatLng.longitude;
+
     if (secondLatLng.latitude < minLat) {
       maxLat = minLat;
       minLat = secondLatLng.latitude;
@@ -68,11 +69,15 @@ class MapHelper {
       minLng = secondLatLng.longitude;
     }
 
+    final latDifference = maxLat - minLat;
+    final topOffsetValue = latDifference * topOffsetPercentage;
+    final bottomOffsetValue = latDifference * bottomOffsetPercentage;
+
     mapController?.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
-          southwest: LatLng(minLat, minLng),
-          northeast: LatLng(maxLat, maxLng),
+          southwest: LatLng(minLat - bottomOffsetValue, minLng),
+          northeast: LatLng(maxLat + topOffsetValue, maxLng),
         ),
         100,
       ),

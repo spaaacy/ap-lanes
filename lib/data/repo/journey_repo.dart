@@ -45,7 +45,7 @@ class JourneyRepo {
   Stream<QuerySnapshot<Journey>> getJourneyRequestStream(String driverId) {
     return _journeyRef
         .where("driverId", isEqualTo: "")
-        .where("userId", isNotEqualTo: driverId)
+        // .where("userId", isNotEqualTo: driverId)
         .where("isCompleted", isEqualTo: false)
         .where("isCancelled", isEqualTo: false)
         .snapshots();

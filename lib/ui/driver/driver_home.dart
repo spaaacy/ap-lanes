@@ -133,7 +133,7 @@ class _DriverHomeState extends State<DriverHome> {
             mapController: _mapController,
             firstLatLng: latLng,
             secondLatLng: targetLatLng,
-            verticalOffset: 0.015,
+            topOffsetPercentage: 0.015,
             padding: 10,
           );
         }
@@ -315,7 +315,7 @@ class _DriverHomeState extends State<DriverHome> {
               firstLatLng: _currentPosition!,
               secondLatLng: ss.data()!.startLatLng,
               padding: 100,
-              verticalOffset: 0.0075,
+              topOffsetPercentage: 0.0075,
             );
           });
         } else {
@@ -328,7 +328,7 @@ class _DriverHomeState extends State<DriverHome> {
               firstLatLng: _currentPosition!,
               secondLatLng: ss.data()!.endLatLng,
               padding: 100,
-              verticalOffset: 0.0075,
+              topOffsetPercentage: 0.0075,
             );
           });
         }

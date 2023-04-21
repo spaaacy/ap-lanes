@@ -88,13 +88,11 @@ class _PassengerHomeState extends State<PassengerHome> {
       });
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
       if (firebaseUser != null) {
-        _passengerRepo.getPassenger(firebaseUser!.uid).then((passenger) {
-          _passenger = passenger;
-          _isSearching = _passenger?.data().isSearching == true;
-        });
+        _passenger = await _passengerRepo.getPassenger(firebaseUser!.uid);
+        _isSearching = _passenger!.data().isSearching;
 
         _userRepo.getUser(firebaseUser!.uid).then((userData) {
           setState(() {
@@ -149,6 +147,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                             mapController: _mapController!,
                             firstLatLng: latLng,
                             secondLatLng: _currentPosition!,
+                            topOffsetPercentage: 1,
+                            bottomOffsetPercentage: 0.2,
                             padding: 50,
                           );
                           _markers.removeWhere((e) => e.markerId == "driver-marker");
