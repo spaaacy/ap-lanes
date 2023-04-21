@@ -55,12 +55,12 @@ class Journey {
       endDescription: data?['endDescription'],
       isCompleted: data?['isCompleted'],
       isCancelled: data?['isCancelled'],
-      isPickedUp: data?['isPickedUp'] ?? false,
+      isPickedUp: data?['isPickedUp'],
       driverId: data?['driverId'],
       createdOn: data?['createdAt'] == null
           ? DateTime.now()
           : DateTime.fromMillisecondsSinceEpoch(
-              int.parse(data!['createdAt']),
+              data!['createdAt'],
             ),
     );
   }
