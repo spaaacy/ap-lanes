@@ -104,6 +104,7 @@ class _PassengerHomeState extends State<PassengerHome> {
         _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
           if (journey.docs.isNotEmpty) {
             _journey = journey.docs.first;
+            setState(() {});
 
             if (_journey!.data().driverId.isNotEmpty) {
               setState(() {
@@ -119,7 +120,6 @@ class _PassengerHomeState extends State<PassengerHome> {
               final driverName = driverUser.data().getFullName();
 
               _driverRepo.getDriver(driverId).then((driver) {
-
                 // Sets journey details
                 _journeyDetails.clear();
                 _journeyDetails.add("Your Driver:");
@@ -149,7 +149,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                             secondLatLng: _currentPosition!,
                             topOffsetPercentage: 1,
                             bottomOffsetPercentage: 0.2,
-                            padding: 50,
                           );
                           _markers.removeWhere((e) => e.markerId == "driver-marker");
                           _markers.add(
@@ -211,7 +210,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             );
           }),
-      body: _passenger == null
+      body: (_passenger == null || _user == null)
           ? const Align(child: CircularProgressIndicator())
           : Stack(
               children: [
@@ -257,7 +256,9 @@ class _PassengerHomeState extends State<PassengerHome> {
                                     _polylines.clear();
                                     _polylines.add(polylines);
                                     MapHelper.setCameraToRoute(
-                                        mapController: _mapController!, polylines: _polylines, padding: 100);
+                                      mapController: _mapController!,
+                                      polylines: _polylines,
+                                    );
                                   });
                                 });
                               }
@@ -276,7 +277,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   MapHelper.setCameraToRoute(
                                     mapController: _mapController!,
                                     polylines: _polylines,
-                                    padding: 100,
                                   );
                                   _markers.add(MarkerInfo(markerId: "start", position: start));
                                   _markers.add(MarkerInfo(markerId: "destination", position: end));
@@ -301,8 +301,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                       ),
                     ),
                   ),
-
-
                 if (_destinationLatLng != null || _isSearching)
                   Positioned.fill(
                     bottom: 100.0,
