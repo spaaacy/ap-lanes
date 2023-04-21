@@ -1,25 +1,23 @@
+import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/model/firestore/journey.dart';
 import '../../../data/repo/journey_repo.dart';
 
 class JourneyDetail extends StatefulWidget {
-  final bool isSearching;
   final bool hasDriver;
   final bool isPickedUp;
   final QueryDocumentSnapshot<Journey>? journey;
   final List<String> journeyDetails;
-  final Function(bool) updateIsSearching;
 
   const JourneyDetail({
     super.key,
-    required this.isSearching,
     required this.hasDriver,
     required this.isPickedUp,
     required this.journey,
     required this.journeyDetails,
-    required this.updateIsSearching,
   });
 
   @override
@@ -27,7 +25,6 @@ class JourneyDetail extends StatefulWidget {
 }
 
 class _JourneyDetailState extends State<JourneyDetail> {
-  final _journeyRepo = JourneyRepo();
 
   @override
   Widget build(BuildContext context) {
@@ -64,19 +61,50 @@ class _JourneyDetailState extends State<JourneyDetail> {
                     },
                   ),
                 ),
-
-                SizedBox(height: 4.0,),
-
+                SizedBox(
+                  height: 4.0,
+                ),
                 ...?(() {
                   if (widget.hasDriver && !widget.isPickedUp) {
                     return [
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red
-                        ),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                         onPressed: () {
-                          _journeyRepo.updateJourney(widget.journey!, {"isCancelled": true});
-                          widget.updateIsSearching(false);
+                          showDialog<String>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("Cancel journey"),
+                                  content: const Text("Are you sure you would like to cancel your journey?"),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context, "No");
+                                        },
+                                        child: const Text("No")),
+                                    TextButton(
+                                        onPressed: () async {
+                                          try {
+                                            await FirebaseFirestore.instance.runTransaction((transaction) async {
+                                              final snapshot = await transaction.get(widget.journey!.reference);
+                                              if (snapshot.data()?.isPickedUp != true) {
+                                                widget.journey!.reference.update({"isCancelled": true});
+                                              } else {
+                                                throw Exception("Cannot cancel after picking up.");
+                                              }
+                                            });
+                                          } catch (exception) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text("Sorry, you cannot cancel the journey after being picked up."))
+                                            );
+                                          } finally {
+                                            Navigator.pop(context, "Yes");
+                                          }
+                                        },
+                                        child: const Text("Yes")),
+                                  ],
+                                );
+                              });
                         },
                         child: const Padding(
                           padding: EdgeInsets.only(left: 8.0, right: 8.0),
@@ -86,7 +114,6 @@ class _JourneyDetailState extends State<JourneyDetail> {
                     ];
                   }
                 }())
-
               ],
             ),
           ),

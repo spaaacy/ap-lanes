@@ -106,13 +106,15 @@ class _PassengerHomeState extends State<PassengerHome> {
         _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
           if (journey.docs.isNotEmpty) {
             _journey = journey.docs.first;
-            late String driverName;
 
             if (_journey!.data().driverId.isNotEmpty) {
               setState(() {
                 _isPickedUp = _journey!.data().isPickedUp;
-                _isSearching = false;
               });
+
+              if (_passenger!.data().isSearching) {
+                _passengerRepo.updateIsSearching(_passenger!, false);
+              }
 
               final driverId = _journey!.data().driverId;
               final driverUser = await _userRepo.getUser(driverId);
@@ -231,11 +233,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                 ),
                 if (_isSearching || _hasDriver)
                   JourneyDetail(
-                    updateIsSearching: (isSearching) {
-                      _isSearching = isSearching;
-                    },
                     isPickedUp: _isPickedUp,
-                    isSearching: _isSearching,
                     hasDriver: _hasDriver,
                     journey: _journey,
                     journeyDetails: _journeyDetails,
