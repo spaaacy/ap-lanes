@@ -107,4 +107,25 @@ class MapHelper {
     if (currentPosition == null) return;
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
+
+  static double calculateRouteDistance(Polyline polylines){
+    var p = 0.017453292519943295;
+    double totalDistance = 0;
+
+    polylines.points.asMap().forEach((index, currentLatLng) {
+      if (index < polylines.points.length - 1){
+        final nextLatLng = polylines.points[index + 1];
+        var a = 0.5 -
+            cos((nextLatLng.latitude - currentLatLng.latitude) * p) / 2 +
+            cos(currentLatLng.latitude * p) *
+                cos(nextLatLng.latitude * p) *
+                (1 - cos((nextLatLng.longitude - currentLatLng.longitude) * p)) /
+                2;
+        totalDistance += 12742 * asin(sqrt(a));
+      }
+    });
+
+    return totalDistance;
+  }
+
 }

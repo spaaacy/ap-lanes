@@ -13,16 +13,19 @@ class SearchBar extends StatelessWidget {
   LatLng? userLocation;
   final Function() clearUserLocation;
   final Function(String) onDescription;
+  final double? routeDistance;
 
-  SearchBar(
-      {super.key,
-      required this.controller,
-      required this.onLatLng,
-      required this.updateToApu,
-      required this.toApu,
-      required this.userLocation,
-      required this.clearUserLocation,
-      required this.onDescription});
+  SearchBar({
+    super.key,
+    required this.controller,
+    required this.onLatLng,
+    required this.updateToApu,
+    required this.toApu,
+    required this.userLocation,
+    required this.clearUserLocation,
+    required this.onDescription,
+    required this.routeDistance,
+  });
 
   String _sessionToken = Uuid().v4();
   final _placeService = PlaceService();
@@ -85,23 +88,41 @@ class SearchBar extends StatelessWidget {
       const SizedBox(
         height: 8.0,
       ),
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        Container(
-          decoration: BoxDecoration(
-              shape: BoxShape.rectangle, color: Colors.black54, borderRadius: BorderRadius.circular(25)),
-            padding: EdgeInsets.all(8.0),
-            child: Text(toApu ? "TO APU" : "FROM APU", style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white
-            ))),
-        const SizedBox(
-          width: 8.0,
-        ),
-        Switch(
-          activeColor: Colors.black,
-          value: toApu,
-          onChanged: (value) => updateToApu(value),
-        ),
-      ])
+      Row(
+        children: [
+          ...?(() {
+            if (routeDistance != null) {
+              return [
+                Container(
+                    decoration: const BoxDecoration(
+                        color: Colors.black54, borderRadius: BorderRadius.all(Radius.circular(25))),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "${routeDistance!.toStringAsFixed(2)} km",
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                      ),
+                    ))
+              ];
+            }
+          }()),
+          Spacer(),
+          Container(
+              decoration: BoxDecoration(
+                  shape: BoxShape.rectangle, color: Colors.black54, borderRadius: BorderRadius.circular(25)),
+              padding: EdgeInsets.all(8.0),
+              child: Text(toApu ? "TO APU" : "FROM APU",
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white))),
+          const SizedBox(
+            width: 8.0,
+          ),
+          Switch(
+            activeColor: Colors.black,
+            value: toApu,
+            onChanged: (value) => updateToApu(value),
+          ),
+        ],
+      )
     ]);
   }
 }
