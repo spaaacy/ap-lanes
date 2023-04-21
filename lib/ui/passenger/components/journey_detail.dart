@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/model/firestore/journey.dart';
+import '../../../data/repo/journey_repo.dart';
 
 class JourneyDetail extends StatefulWidget {
   final bool isSearching;
@@ -9,6 +10,7 @@ class JourneyDetail extends StatefulWidget {
   final bool isPickedUp;
   final QueryDocumentSnapshot<Journey>? journey;
   final List<String> journeyDetails;
+  final Function(bool) updateIsSearching;
 
   const JourneyDetail({
     super.key,
@@ -17,6 +19,7 @@ class JourneyDetail extends StatefulWidget {
     required this.isPickedUp,
     required this.journey,
     required this.journeyDetails,
+    required this.updateIsSearching,
   });
 
   @override
@@ -24,6 +27,8 @@ class JourneyDetail extends StatefulWidget {
 }
 
 class _JourneyDetailState extends State<JourneyDetail> {
+  final _journeyRepo = JourneyRepo();
+
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
@@ -70,7 +75,8 @@ class _JourneyDetailState extends State<JourneyDetail> {
                             backgroundColor: Colors.red
                         ),
                         onPressed: () {
-                          // TODO: Call journey cancel
+                          _journeyRepo.updateJourney(widget.journey!, {"isCancelled": true});
+                          widget.updateIsSearching(false);
                         },
                         child: const Padding(
                           padding: EdgeInsets.only(left: 8.0, right: 8.0),

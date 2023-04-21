@@ -10,6 +10,7 @@ class Journey {
   final String endDescription;
   bool isCompleted;
   bool isPickedUp;
+  bool isCancelled;
   String driverId;
 
   Journey({
@@ -19,6 +20,7 @@ class Journey {
     required this.startDescription,
     required this.endDescription,
     this.isCompleted = false,
+    this.isCancelled = false,
     this.isPickedUp = false,
     this.driverId = "",
   });
@@ -31,6 +33,7 @@ class Journey {
       if (startDescription != null) "startDescription": startDescription,
       if (endDescription != null) "endDescription": endDescription,
       if (isCompleted != null) "isCompleted": isCompleted,
+      if (isCancelled != null) "isCancelled": isCancelled,
       if (isPickedUp != null) "isPickedUp": isPickedUp,
       if (driverId != null) "driverId": driverId,
     };
@@ -48,6 +51,7 @@ class Journey {
       startDescription: data?['startDescription'],
       endDescription: data?['endDescription'],
       isCompleted: data?['isCompleted'],
+      isCancelled: data?['isCancelled'],
       isPickedUp: data?['isPickedUp'] ?? false,
       driverId: data?['driverId'],
     );

@@ -231,6 +231,9 @@ class _PassengerHomeState extends State<PassengerHome> {
                 ),
                 if (_isSearching || _hasDriver)
                   JourneyDetail(
+                    updateIsSearching: (isSearching) {
+                      _isSearching = isSearching;
+                    },
                     isPickedUp: _isPickedUp,
                     isSearching: _isSearching,
                     hasDriver: _hasDriver,
