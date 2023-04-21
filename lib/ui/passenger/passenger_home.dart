@@ -46,6 +46,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   QueryDocumentSnapshot<Journey>? _journey;
   late StreamSubscription<QuerySnapshot<Journey>> _journeyListener;
 
+  double? _routeDistance;
   String? _lastName;
   String? _driverId;
   LatLng? _destinationLatLng;
@@ -237,100 +238,114 @@ class _PassengerHomeState extends State<PassengerHome> {
                     journey: _journey,
                     journeyDetails: _journeyDetails,
                   ),
-                if (!_isSearching && !_hasDriver)
-                  Positioned.fill(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: SearchBar(
-                          toApu: _toApu,
-                          updateToApu: (toApu) {
-                            setState(() {
-                              _toApu = toApu;
-                              if (_destinationLatLng != null) {
-                                final start = _toApu ? _destinationLatLng! : apuLatLng;
-                                final end = _toApu ? apuLatLng : _destinationLatLng!;
-                                MapHelper.drawRoute(start, end).then((polylines) {
-                                  setState(() {
-                                    _polylines.clear();
-                                    _polylines.add(polylines);
-                                    MapHelper.setCameraToRoute(
-                                      mapController: _mapController!,
-                                      polylines: _polylines,
-                                    );
+                ...?(() {
+                  if (!_isSearching && !_hasDriver) {
+                    return [
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: SearchBar(
+                              routeDistance: _routeDistance,
+                              toApu: _toApu,
+                              updateToApu: (toApu) {
+                                setState(() {
+                                  _toApu = toApu;
+                                  if (_destinationLatLng != null) {
+                                    final start = _toApu ? _destinationLatLng! : apuLatLng;
+                                    final end = _toApu ? apuLatLng : _destinationLatLng!;
+                                    MapHelper.drawRoute(start, end).then((polylines) {
+                                      setState(() {
+                                        _polylines.clear();
+                                        _polylines.add(polylines);
+                                        MapHelper.setCameraToRoute(
+                                            mapController: _mapController!, polylines: _polylines, padding: 100);
+                                        _routeDistance = MapHelper.calculateRouteDistance(polylines);
+                                      });
+                                    });
+                                  }
+                                });
+                              },
+                              controller: _searchController,
+                              userLocation: _destinationLatLng,
+                              onLatLng: (latLng) {
+                                setState(() {
+                                  _destinationLatLng = latLng;
+                                  final start = _toApu ? _destinationLatLng! : apuLatLng;
+                                  final end = _toApu ? apuLatLng : _destinationLatLng!;
+                                  MapHelper.drawRoute(start, end).then((polylines) {
+                                    setState(() {
+                                      _polylines.add(polylines);
+                                      MapHelper.setCameraToRoute(
+                                        mapController: _mapController!,
+                                        polylines: _polylines,
+                                        padding: 100,
+                                      );
+                                      _markers.add(MarkerInfo(markerId: "start", position: start));
+                                      _markers.add(MarkerInfo(markerId: "destination", position: end));
+                                      _routeDistance = MapHelper.calculateRouteDistance(polylines);
+                                    });
                                   });
                                 });
-                              }
-                            });
-                          },
-                          controller: _searchController,
-                          userLocation: _destinationLatLng,
-                          onLatLng: (latLng) {
-                            setState(() {
-                              _destinationLatLng = latLng;
-                              final start = _toApu ? _destinationLatLng! : apuLatLng;
-                              final end = _toApu ? apuLatLng : _destinationLatLng!;
-                              MapHelper.drawRoute(start, end).then((polylines) {
+                              },
+                              clearUserLocation: () {
                                 setState(() {
-                                  _polylines.add(polylines);
-                                  MapHelper.setCameraToRoute(
-                                    mapController: _mapController!,
-                                    polylines: _polylines,
-                                  );
-                                  _markers.add(MarkerInfo(markerId: "start", position: start));
-                                  _markers.add(MarkerInfo(markerId: "destination", position: end));
+                                  _destinationLatLng = null;
+                                  _polylines.clear();
+                                  _routeDistance = null;
+                                  _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
+                                  if (_currentPosition != null) {
+                                    MapHelper.resetCamera(_mapController, _currentPosition!);
+                                  }
                                 });
-                              });
-                            });
-                          },
-                          clearUserLocation: () {
-                            setState(() {
-                              _destinationLatLng = null;
-                              _polylines.clear();
-                              _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
-                              if (_currentPosition != null) {
-                                MapHelper.resetCamera(_mapController, _currentPosition!);
-                              }
-                            });
-                          },
-                          onDescription: (description) {
-                            _userLocationDescription = description;
-                          },
+                              },
+                              onDescription: (description) {
+                                _userLocationDescription = description;
+                              },
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                if (_destinationLatLng != null || _isSearching)
-                  Positioned.fill(
-                    bottom: 100.0,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: PassengerGoButton(
-                        isSearching: _isSearching,
-                        hasDriver: _hasDriver,
-                        updateIsSearching: (isSearching) {
-                          _passengerRepo.updateIsSearching(_passenger!, isSearching);
-                          setState(() {
-                            _isSearching = isSearching;
-                          });
-                        },
-                        createJourney: () {
-                          _journeyRepo.createJourney(
-                            Journey(
-                                userId: firebaseUser!.uid,
-                                startLatLng: _toApu ? _destinationLatLng! : apuLatLng,
-                                endLatLng: _toApu ? apuLatLng : _destinationLatLng!,
-                                startDescription: _toApu ? _userLocationDescription! : apuDescription,
-                                endDescription: _toApu ? apuDescription : _userLocationDescription!),
-                          );
-                        },
-                        deleteJourney: () {
-                          _journeyRepo.deleteJourney(_journey);
-                        },
-                      ),
-                    ),
-                  )
+                    ];
+                  }
+                }()),
+
+                ...?(() {
+                  if (_destinationLatLng != null || _isSearching) {
+                    return [
+                      Positioned.fill(
+                        bottom: 100.0,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: PassengerGoButton(
+                            isSearching: _isSearching,
+                            hasDriver: _hasDriver,
+                            updateIsSearching: (isSearching) {
+                              _passengerRepo.updateIsSearching(_passenger!, isSearching);
+                              setState(() {
+                                _isSearching = isSearching;
+                              });
+                            },
+                            createJourney: () {
+                              _journeyRepo.createJourney(
+                                Journey(
+                                    userId: firebaseUser!.uid,
+                                    startLatLng: _toApu ? _destinationLatLng! : apuLatLng,
+                                    endLatLng: _toApu ? apuLatLng : _destinationLatLng!,
+                                    startDescription: _toApu ? _userLocationDescription! : apuDescription,
+                                    endDescription: _toApu ? apuDescription : _userLocationDescription!),
+                              );
+                            },
+                            deleteJourney: () {
+                              _journeyRepo.deleteJourney(_journey);
+                            },
+                          ),
+                        ),
+                      )
+                    ];
+                  }
+                }()),
               ],
             ),
     );
