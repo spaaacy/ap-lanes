@@ -12,6 +12,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 
 import '../../data/model/firestore/driver.dart';
 import '../../data/model/firestore/journey.dart';
@@ -421,6 +422,7 @@ class _DriverHomeState extends State<DriverHome> {
                 return JourneyRequestPopup(
                   isSearching: _isSearching,
                   journey: _availableJourneySnapshot,
+                  routeDistance: MapHelper.calculateRouteDistance(_polylines.firstOrNull),
                   onNavigate: (direction) async {
                     QuerySnapshot<Journey> newJourneyRequest;
                     if (direction == 1) {
