@@ -4,8 +4,9 @@ import 'package:apu_rideshare/ui/driver/state/driver_home_state.dart';
 import 'package:apu_rideshare/util/url_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter_platform_interface/src/types/location.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/model/firestore/driver.dart';
@@ -160,11 +161,85 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 2),
+                      height: 44,
+                      width: 64,
+                      decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(
+                          side: const BorderSide(
+                            color: Colors.black,
+                            strokeAlign: BorderSide.strokeAlignInside,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(150),
+                        ),
+                      ),
+                      child: PopupMenuButton<String>(
+                        onSelected: (value) {
+                          Future<void> Function(LatLng latLng) launchFunction;
+                          switch (value) {
+                            case 'google-maps':
+                              launchFunction = launchGoogleMaps;
+                              break;
+                            case 'waze':
+                            default:
+                              launchFunction = launchWaze;
+                              break;
+                          }
+
+                          if (!widget.activeJourney!.data()!.isPickedUp) {
+                            launchFunction(widget.activeJourney!.data()!.startLatLng);
+                          } else {
+                            launchFunction(widget.activeJourney!.data()!.endLatLng);
+                          }
+                        },
+                        icon: const Icon(Icons.navigation, size: 20),
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'waze',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icons/waze.svg',
+                                  height: 24,
+                                  width: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('Waze')
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'google-maps',
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icons/google_maps.svg',
+                                  height: 24,
+                                  width: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('Google Maps')
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     (() {
                       if (widget.activeJourney?.get('isPickedUp') == true) {
-                        return TextButton(
+                        return OutlinedButton(
                           style: buttonBarTheme?.copyWith(
                             elevation: const MaterialStatePropertyAll(0),
+                            padding: const MaterialStatePropertyAll(
+                              EdgeInsets.all(10),
+                            ),
+                            side: const MaterialStatePropertyAll(
+                              BorderSide(color: Colors.blue, width: 2.0),
+                            ),
+                            foregroundColor: const MaterialStatePropertyAll(Colors.blue),
                           ),
                           onPressed: () => widget.onPickUp(widget.activeJourney),
                           child: const Icon(Icons.undo),
@@ -209,27 +284,6 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                         ];
                       }
                     }()),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 0,
-                      child: FilledButton(
-                        style: buttonBarTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.white),
-                        ),
-                        onPressed: () {
-                          if (!widget.activeJourney!.data()!.isPickedUp) {
-                            launchWaze(widget.activeJourney!.data()!.startLatLng);
-                          } else {
-                            launchWaze(widget.activeJourney!.data()!.endLatLng);
-                          }
-                        },
-                        child: SvgPicture.asset(
-                          'assets/icons/waze.svg',
-                          height: 20,
-                          width: 20,
-                        ),
-                      ),
-                    )
                   ],
                 ),
               ],

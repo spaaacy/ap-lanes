@@ -131,10 +131,10 @@ class _DriverHomeState extends State<DriverHome> {
 
               if (_activeJourney!.data()!.isPickedUp) {
                 _markers.add(MarkerInfo(markerId: "drop-off", position: _activeJourney!.data()!.endLatLng));
-                updateCameraBoundsWithPopup(_currentPosition!, _activeJourney!.data()!.endLatLng);
+                updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.endLatLng);
               } else {
                 _markers.add(MarkerInfo(markerId: "pick-up", position: _activeJourney!.data()!.startLatLng));
-                updateCameraBoundsWithPopup(_currentPosition!, _activeJourney!.data()!.startLatLng);
+                updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.startLatLng);
               }
             });
           } else {
@@ -203,7 +203,10 @@ class _DriverHomeState extends State<DriverHome> {
     });
   }
 
-  void updateCameraBoundsWithPopup(LatLng latLng, LatLng otherLatLng) {
+  void updateCameraBoundsWithPopup(LatLng? latLng, LatLng? otherLatLng) {
+    if (latLng == null || otherLatLng == null) {
+      return;
+    }
     MapHelper.setCameraBetweenMarkers(
       mapController: _mapController,
       firstLatLng: latLng,
@@ -290,14 +293,14 @@ class _DriverHomeState extends State<DriverHome> {
           setState(() {
             _markers.removeWhere((e) => e.markerId == "drop-off");
             _markers.add(MarkerInfo(markerId: "pick-up", position: ss.data()!.startLatLng));
-            updateCameraBoundsWithPopup(_currentPosition!, ss.data()!.startLatLng);
+            updateCameraBoundsWithPopup(_currentPosition, ss.data()!.startLatLng);
           });
         } else {
           transaction.update(ss.reference, {'isPickedUp': true});
           setState(() {
             _markers.removeWhere((e) => e.markerId == "pick-up");
             _markers.add(MarkerInfo(markerId: "drop-off", position: ss.data()!.endLatLng));
-            updateCameraBoundsWithPopup(_currentPosition!, ss.data()!.endLatLng);
+            updateCameraBoundsWithPopup(_currentPosition, ss.data()!.endLatLng);
           });
         }
       });
@@ -327,7 +330,7 @@ class _DriverHomeState extends State<DriverHome> {
           _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
           _activeJourney = updatedJourney;
           _markers.add(MarkerInfo(markerId: "pick-up", position: updatedJourney!.data()!.startLatLng));
-          updateCameraBoundsWithPopup(_currentPosition!, updatedJourney.data()!.startLatLng);
+          updateCameraBoundsWithPopup(_currentPosition, updatedJourney.data()!.startLatLng);
         });
       } catch (e) {
         if (context.mounted) {
