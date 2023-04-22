@@ -122,12 +122,14 @@ class MapHelper {
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
 
-  static double calculateRouteDistance(Polyline polylines){
+  static double calculateRouteDistance(Polyline? polylines){
+    if (polylines == null) return 0;
+
     var p = 0.017453292519943295;
     double totalDistance = 0;
 
     polylines.points.asMap().forEach((index, currentLatLng) {
-      if (index < polylines.points.length - 1){
+      if (index < polylines.points.length - 1) {
         final nextLatLng = polylines.points[index + 1];
         var a = 0.5 -
             cos((nextLatLng.latitude - currentLatLng.latitude) * p) / 2 +

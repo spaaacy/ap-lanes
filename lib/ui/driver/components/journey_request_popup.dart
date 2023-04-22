@@ -4,18 +4,21 @@ import 'package:flutter/material.dart';
 import '../../../data/model/firestore/journey.dart';
 
 class JourneyRequestPopup extends StatelessWidget {
+
   const JourneyRequestPopup({
     super.key,
     required this.isSearching,
     required this.journey,
     required this.onNavigate,
     required this.onAccept,
+    required this.routeDistance,
   });
 
   final bool isSearching;
   final QueryDocumentSnapshot<Journey>? journey;
   final void Function(int direction) onNavigate;
   final void Function(QueryDocumentSnapshot<Journey>) onAccept;
+  final double routeDistance;
 
   @override
   Widget build(BuildContext context) {
@@ -69,13 +72,22 @@ class JourneyRequestPopup extends StatelessWidget {
                               journey!.data().startDescription,
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
                             Text(
                               'TO',
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
                               journey!.data().endDescription,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'DISTANCE',
+                              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                            ),
+                            Text(
+                              "${routeDistance.toStringAsFixed(2)} km",
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                           ],
