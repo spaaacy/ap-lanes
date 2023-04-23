@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:apu_rideshare/ui/driver/state/driver_home_state.dart';
-import 'package:apu_rideshare/util/url_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -13,6 +11,8 @@ import '../../../data/model/firestore/driver.dart';
 import '../../../data/model/firestore/journey.dart';
 import '../../../data/model/firestore/user.dart';
 import '../../../data/repo/user_repo.dart';
+import '../../../util/url_helpers.dart';
+import '../state/driver_home_state.dart';
 
 enum DriverAction { idle, pickingUp, droppingOff }
 

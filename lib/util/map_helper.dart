@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:apu_rideshare/services/place_service.dart';
-import 'package:apu_rideshare/util/resize_asset.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../services/place_service.dart';
 import 'location_permissions.dart';
+import 'resize_asset.dart';
 
 class MapHelper {
   static Future<Polyline> drawRoute(LatLng start, LatLng end) async {

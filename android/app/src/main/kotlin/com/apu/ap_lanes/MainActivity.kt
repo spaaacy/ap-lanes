@@ -1,4 +1,4 @@
-package com.example.apu_rideshare
+package com.apu.ap_lanes
 
 import io.flutter.embedding.android.FlutterActivity
 

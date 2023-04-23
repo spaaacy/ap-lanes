@@ -1,5 +1,3 @@
-import 'package:apu_rideshare/data/repo/user_repo.dart';
-
 class Greeting {
   static String getGreeting(String? lastName) {
     var hour = DateTime.now().hour;

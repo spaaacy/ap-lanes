@@ -1,9 +1,9 @@
-import 'package:apu_rideshare/ui/auth/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
 import '../../util/constants.dart';
+import 'signup_screen.dart';
 
 class AuthScreen extends StatelessWidget {
   AuthScreen({super.key});

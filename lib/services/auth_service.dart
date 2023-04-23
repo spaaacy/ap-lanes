@@ -1,8 +1,8 @@
-import 'package:apu_rideshare/data/model/firestore/passenger.dart';
-import 'package:apu_rideshare/data/repo/passenger_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../data/model/firestore/passenger.dart';
 import '../data/model/firestore/user.dart' as model;
+import '../data/repo/passenger_repo.dart';
 import '../data/repo/user_repo.dart';
 import '../util/constants.dart';
 
