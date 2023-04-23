@@ -7,6 +7,8 @@ import '../model/firestore/journey.dart';
 class JourneyRepo {
   JourneyRepo();
 
+  final _firestoreInstance = FirebaseFirestore.instance;
+
   final _journeyRef = FirebaseFirestore.instance
       .collection("journey")
       .withConverter(fromFirestore: Journey.fromFirestore, toFirestore: (Journey journey, _) => journey.toFirestore());
@@ -61,5 +63,16 @@ class JourneyRepo {
 
   Future<QuerySnapshot<Journey>> getPrevJourneyRequest(String driverId, DocumentSnapshot<Journey> lastVisible) {
     return getDefaultJourneyQuery(driverId).endBeforeDocument(lastVisible).limitToLast(1).get();
+  }
+
+  Future<void> cancelJourneyAsPassenger(QueryDocumentSnapshot<Journey> journey) async {
+    await _firestoreInstance.runTransaction((transaction) async {
+      final snapshot = await transaction.get(journey.reference);
+      if (snapshot.data()?.isPickedUp != true) {
+        journey.reference.update({"isCancelled": true});
+      } else {
+        throw Exception("Cannot cancel after picking up.");
+      }
+    });
   }
 }

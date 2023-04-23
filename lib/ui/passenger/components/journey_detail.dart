@@ -29,6 +29,8 @@ class JourneyDetail extends StatefulWidget {
 }
 
 class _JourneyDetailState extends State<JourneyDetail> {
+  final _journeyRepo = JourneyRepo();
+
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
@@ -112,14 +114,7 @@ class _JourneyDetailState extends State<JourneyDetail> {
                                     TextButton(
                                         onPressed: () async {
                                           try {
-                                            await FirebaseFirestore.instance.runTransaction((transaction) async {
-                                              final snapshot = await transaction.get(widget.journey!.reference);
-                                              if (snapshot.data()?.isPickedUp != true) {
-                                                widget.journey!.reference.update({"isCancelled": true});
-                                              } else {
-                                                throw Exception("Cannot cancel after picking up.");
-                                              }
-                                            });
+                                            await _journeyRepo.cancelJourneyAsPassenger(widget.journey!);
                                           } catch (exception) {
                                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                                 content: Text(

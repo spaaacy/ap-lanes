@@ -50,7 +50,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   String? _lastName;
   String? _driverId;
   LatLng? _destinationLatLng;
-  String? _userLocationDescription;
+  String? _locationDescription;
   bool _isSearching = false;
   bool _isPickedUp = false;
   bool _hasDriver = false;
@@ -182,7 +182,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             _searchController.clear();
             _driverListener?.cancel();
             _markers.removeWhere((e) => e.markerId == "driver-marker");
-            if (_currentPosition != null) {
+            if (_currentPosition != null && _locationDescription == null) {
               MapHelper.resetCamera(_mapController!, _currentPosition!);
             }
             setState(() {});
@@ -312,7 +312,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                 });
                               },
                               onDescription: (description) {
-                                _userLocationDescription = description;
+                                _locationDescription = description;
                               },
                             ),
                           ),
@@ -331,7 +331,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                           child: PassengerGoButton(
                             isSearching: _isSearching,
                             hasDriver: _hasDriver,
-                            updateIsSearching: (isSearching) {
+                            updateIsSearching: (isSearching) { // TODO: Fix here
                               _passengerRepo.updateIsSearching(_passenger!, isSearching);
                               setState(() {
                                 _isSearching = isSearching;
@@ -343,8 +343,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                                     userId: firebaseUser!.uid,
                                     startLatLng: _toApu ? _destinationLatLng! : apuLatLng,
                                     endLatLng: _toApu ? apuLatLng : _destinationLatLng!,
-                                    startDescription: _toApu ? _userLocationDescription! : apuDescription,
-                                    endDescription: _toApu ? apuDescription : _userLocationDescription!),
+                                    startDescription: _toApu ? _locationDescription! : apuDescription,
+                                    endDescription: _toApu ? apuDescription : _locationDescription!),
                               );
                             },
                             deleteJourney: () {
