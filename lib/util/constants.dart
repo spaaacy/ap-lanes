@@ -2,7 +2,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:logger/logger.dart';
 
-const String androidApiKey = "AIzaSyBxzNQzM1OTbB0MsFsIconRZTZS2ajsSIM";
+const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
 
 // Firebase Authentication
 const String signedIn = "SIGNED_IN";
