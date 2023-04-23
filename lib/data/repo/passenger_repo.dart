@@ -1,4 +1,3 @@
-import 'package:apu_rideshare/data/model/firestore/journey.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../model/firestore/passenger.dart';

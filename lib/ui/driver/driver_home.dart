@@ -1,10 +1,5 @@
 import 'dart:async';
 
-import 'package:apu_rideshare/data/model/map/marker_info.dart';
-import 'package:apu_rideshare/data/repo/driver_repo.dart';
-import 'package:apu_rideshare/data/repo/journey_repo.dart';
-import 'package:apu_rideshare/ui/driver/state/driver_home_state.dart';
-import 'package:apu_rideshare/util/greeting.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -17,8 +12,12 @@ import 'package:collection/collection.dart';
 import '../../data/model/firestore/driver.dart';
 import '../../data/model/firestore/journey.dart';
 import '../../data/model/firestore/user.dart';
+import '../../data/model/map/marker_info.dart';
+import '../../data/repo/driver_repo.dart';
+import '../../data/repo/journey_repo.dart';
 import '../../data/repo/user_repo.dart';
 import '../../util/constants.dart';
+import '../../util/greeting.dart';
 import '../../util/map_helper.dart';
 import '../common/app_drawer.dart';
 import '../common/map_view.dart';
@@ -26,6 +25,7 @@ import '../passenger/passenger_home.dart';
 import 'components/journey_request_popup.dart';
 import 'components/ongoing_journey_popup.dart';
 import 'components/setup_driver_profile_dialog.dart';
+import 'state/driver_home_state.dart';
 
 class DriverHome extends StatefulWidget {
   const DriverHome({super.key});

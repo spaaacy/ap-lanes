@@ -1,10 +1,10 @@
-import 'package:apu_rideshare/data/model/firestore/driver.dart';
-import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/model/firestore/driver.dart';
 import '../../data/model/firestore/user.dart';
+import '../../data/repo/driver_repo.dart';
 import '../../services/auth_service.dart';
 import '../auth/auth_wrapper.dart';
 import '../driver/driver_home.dart';

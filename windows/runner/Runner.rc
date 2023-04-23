@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "apu_rideshare" "\0"
+            VALUE "CompanyName", "com.apu" "\0"
+            VALUE "FileDescription", "ap_lanes" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "apu_rideshare" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "apu_rideshare.exe" "\0"
-            VALUE "ProductName", "apu_rideshare" "\0"
+            VALUE "InternalName", "ap_lanes" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2023 com.apu. All rights reserved." "\0"
+            VALUE "OriginalFilename", "ap_lanes.exe" "\0"
+            VALUE "ProductName", "ap_lanes" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -1,18 +1,5 @@
 import 'dart:async';
 
-import 'package:apu_rideshare/data/model/firestore/driver.dart';
-import 'package:apu_rideshare/data/model/firestore/journey.dart';
-import 'package:apu_rideshare/data/model/firestore/user.dart';
-import 'package:apu_rideshare/data/model/map/marker_info.dart';
-import 'package:apu_rideshare/data/repo/driver_repo.dart';
-import 'package:apu_rideshare/data/repo/passenger_repo.dart';
-import 'package:apu_rideshare/ui/common/app_drawer.dart';
-import 'package:apu_rideshare/ui/common/map_view.dart';
-import 'package:apu_rideshare/ui/passenger/components/journey_detail.dart';
-import 'package:apu_rideshare/ui/passenger/components/passenger_go_button.dart';
-import 'package:apu_rideshare/ui/passenger/components/search_bar.dart';
-import 'package:apu_rideshare/util/constants.dart';
-import 'package:apu_rideshare/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -20,10 +7,23 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/model/firestore/driver.dart';
+import '../../data/model/firestore/journey.dart';
 import '../../data/model/firestore/passenger.dart';
+import '../../data/model/firestore/user.dart';
+import '../../data/model/map/marker_info.dart';
+import '../../data/repo/driver_repo.dart';
 import '../../data/repo/journey_repo.dart';
+import '../../data/repo/passenger_repo.dart';
 import '../../data/repo/user_repo.dart';
+import '../../util/constants.dart';
 import '../../util/greeting.dart';
+import '../../util/map_helper.dart';
+import '../common/app_drawer.dart';
+import '../common/map_view.dart';
+import 'components/journey_detail.dart';
+import 'components/passenger_go_button.dart';
+import 'components/search_bar.dart';
 
 class PassengerHome extends StatefulWidget {
   const PassengerHome({super.key});

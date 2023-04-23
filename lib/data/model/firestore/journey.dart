@@ -1,6 +1,7 @@
-import 'package:apu_rideshare/util/location_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../../../util/location_helpers.dart';
 
 class Journey {
   final String userId;

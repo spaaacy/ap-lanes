@@ -1,6 +1,6 @@
 {
-    "name": "apu_rideshare",
-    "short_name": "apu_rideshare",
+    "name": "ap_lanes",
+    "short_name": "ap_lanes",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,10 +1,10 @@
-import 'package:apu_rideshare/firebase_options.dart';
-import 'package:apu_rideshare/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'firebase_options.dart';
+import 'services/auth_service.dart';
 import 'ui/auth/auth_wrapper.dart';
 
 Future<void> main() async {

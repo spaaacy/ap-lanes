@@ -1,16 +1,6 @@
-import 'package:apu_rideshare/data/model/firestore/journey.dart';
-import 'package:apu_rideshare/data/repo/journey_repo.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-
-import '../../../data/model/firestore/passenger.dart';
-import '../../../data/repo/passenger_repo.dart';
 
 class PassengerGoButton extends StatefulWidget {
   bool isSearching;
@@ -35,7 +25,7 @@ class PassengerGoButton extends StatefulWidget {
 class _PassengerGoButtonState extends State<PassengerGoButton> {
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = context.watch<User?>();
+    final firebaseUser = context.watch<firebase_auth.User?>();
 
     if (!widget.hasDriver) {
     return
