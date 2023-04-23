@@ -70,7 +70,6 @@ class _PassengerHomeState extends State<PassengerHome> {
   late StreamSubscription<Position> _locationListener;
   final Set<MarkerInfo> _markers = {};
 
-
   @override
   void initState() {
     super.initState();
@@ -119,7 +118,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               if (_passenger!.data().isSearching) {
                 _passengerRepo.updateIsSearching(_passenger!, false);
               }
-              
+
               final driverId = _journey!.data().driverId;
 
               // Get name
@@ -266,7 +265,11 @@ class _PassengerHomeState extends State<PassengerHome> {
                                         _polylines.clear();
                                         _polylines.add(polylines);
                                         MapHelper.setCameraToRoute(
-                                            mapController: _mapController!, polylines: _polylines,);
+                                          mapController: _mapController!,
+                                          polylines: _polylines,
+                                          topOffsetPercentage: 0.5,
+                                          bottomOffsetPercentage: 0.25,
+                                        );
                                         _routeDistance = MapHelper.calculateRouteDistance(polylines);
                                       });
                                     });
@@ -286,6 +289,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                                       MapHelper.setCameraToRoute(
                                         mapController: _mapController!,
                                         polylines: _polylines,
+                                        topOffsetPercentage: 0.5,
+                                        bottomOffsetPercentage: 0.25,
                                       );
                                       _markers.add(MarkerInfo(markerId: "start", position: start));
                                       _markers.add(MarkerInfo(markerId: "destination", position: end));
@@ -316,7 +321,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                     ];
                   }
                 }()),
-
                 ...?(() {
                   if (_destinationLatLng != null || _isSearching) {
                     return [

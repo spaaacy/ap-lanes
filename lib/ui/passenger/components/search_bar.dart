@@ -69,7 +69,7 @@ class SearchBar extends StatelessWidget {
         textFieldConfiguration: TextFieldConfiguration(
           controller: controller,
           decoration: InputDecoration(
-            suffixIcon: userLocation != null
+            suffixIcon: (userLocation != null || controller.text.isNotEmpty)
                 ? IconButton(
                     icon: Icon(Icons.close),
                     color: Colors.black,
