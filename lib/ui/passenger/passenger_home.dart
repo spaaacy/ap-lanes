@@ -119,8 +119,10 @@ class _PassengerHomeState extends State<PassengerHome> {
               if (_passenger!.data().isSearching) {
                 _passengerRepo.updateIsSearching(_passenger!, false);
               }
-
+              
               final driverId = _journey!.data().driverId;
+
+              // Get name
               final driverUser = await _userRepo.getUser(driverId);
               final driverName = driverUser.data().getFullName();
 
@@ -131,6 +133,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                 _hasDriver = true;
                 _polylines.clear();
                 _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
+                _routeDistance = null;
                 setState(() {});
 
                 // Sets the marker
@@ -300,6 +303,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   if (_currentPosition != null) {
                                     MapHelper.resetCamera(_mapController, _currentPosition!);
                                   }
+                                  _routeDistance = null;
                                 });
                               },
                               onDescription: (description) {
