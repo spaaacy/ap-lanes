@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -34,18 +35,14 @@ class OngoingJourneyPopup extends StatefulWidget {
 
 class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   final UserRepo _userRepo = UserRepo();
+  final DriverRepo _driverRepo = DriverRepo();
   Timer? timer;
 
-  void updateDriverLatLng() {
+  Future<void> updateDriverLatLng() async {
     DriverHomeState state = Provider.of<DriverHomeState>(context, listen: false);
-    FirebaseFirestore.instance.runTransaction((transaction) async {
-      if (state.driver == null) return;
-
-      var ss = await transaction.get<Driver>(state.driver!.reference);
-      var pos = await Geolocator.getCurrentPosition();
-
-      transaction.update(ss.reference, {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
-    });
+    if (state.driver == null) return;
+    var pos = await Geolocator.getCurrentPosition();
+    _driverRepo.updateDriver(state.driver! , {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
   }
 
   @override
