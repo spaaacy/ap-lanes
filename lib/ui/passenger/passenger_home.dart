@@ -47,8 +47,8 @@ class _PassengerHomeState extends State<PassengerHome> {
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
-  late StreamSubscription<QuerySnapshot<Journey>> _journeyListener;
-  late StreamSubscription<Position> _locationListener;
+  StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
+  StreamSubscription<Position>? _locationListener;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
   String? _lastName;
@@ -88,8 +88,8 @@ class _PassengerHomeState extends State<PassengerHome> {
           final latLng = LatLng(position.latitude, position.longitude);
           setState(() {
             _currentPosition = latLng;
-            _markers[const MarkerId("user-marker")] = Marker(
-              markerId: const MarkerId("user-marker"),
+            _markers[const MarkerId("user")] = Marker(
+              markerId: const MarkerId("user"),
               position: _currentPosition!,
               icon: _userIcon,
             );
@@ -160,7 +160,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                     final latLng = driver.docs.first.data().currentLatLng;
                     if (latLng != null && _currentPosition != null) {
                       setState(() {
-                        _markers[const MarkerId("driver-marker")] =
+                        _markers[const MarkerId("driver")] =
                             Marker(markerId: const MarkerId("driver-marker"), position: latLng, icon: _driverIcon);
                         MapHelper.setCameraBetweenMarkers(
                           mapController: _mapController!,
@@ -371,8 +371,8 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   @override
   void dispose() async {
-    _journeyListener.cancel();
-    _locationListener.cancel();
+    _journeyListener?.cancel();
+    _locationListener?.cancel();
     _driverListener?.cancel();
     super.dispose();
   }
