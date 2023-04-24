@@ -6,23 +6,24 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/model/firestore/driver.dart';
 import '../../data/model/firestore/journey.dart';
 import '../../data/model/firestore/passenger.dart';
 import '../../data/model/firestore/user.dart';
-import '../../data/model/map/marker_info.dart';
 import '../../data/repo/driver_repo.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/passenger_repo.dart';
 import '../../data/repo/user_repo.dart';
+import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/greeting.dart';
 import '../../util/map_helper.dart';
 import '../common/app_drawer.dart';
 import '../common/map_view.dart';
 import 'components/journey_detail.dart';
-import 'components/passenger_go_button.dart';
+import 'components/go_button.dart';
 import 'components/search_bar.dart';
 
 class PassengerHome extends StatefulWidget {
@@ -34,23 +35,26 @@ class PassengerHome extends StatefulWidget {
 
 class _PassengerHomeState extends State<PassengerHome> {
   final _searchController = TextEditingController();
+  String _sessionToken = const Uuid().v4();
 
   final _passengerRepo = PassengerRepo();
   final _userRepo = UserRepo();
   final _journeyRepo = JourneyRepo();
   final _driverRepo = DriverRepo();
+  final _placeService = PlaceService();
 
   late final firebase_auth.User? firebaseUser;
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
   late StreamSubscription<QuerySnapshot<Journey>> _journeyListener;
+  late StreamSubscription<Position> _locationListener;
+  StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
-  double? _routeDistance;
   String? _lastName;
-  String? _driverId;
+  double? _routeDistance;
   LatLng? _destinationLatLng;
-  String? _locationDescription;
+  String? _destinationDescription;
   bool _isSearching = false;
   bool _isPickedUp = false;
   bool _hasDriver = false;
@@ -58,146 +62,137 @@ class _PassengerHomeState extends State<PassengerHome> {
   bool _toApu = false;
   String? _driverName;
   String? _driverLicensePlate;
-  StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
   // Google Map Variables
   GoogleMapController? _mapController;
-  final Set<Polyline> _polylines = <Polyline>{};
   late final BitmapDescriptor _userIcon;
   late final BitmapDescriptor _driverIcon;
+  late final BitmapDescriptor _locationIcon;
   bool _shouldCenter = true;
   LatLng? _currentPosition;
-  late StreamSubscription<Position> _locationListener;
-  final Set<MarkerInfo> _markers = {};
+  final Set<Polyline> _polylines = <Polyline>{};
+  final Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
+  late String _mapStyle;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
-    MapHelper.getCustomIcon('assets/icons/user.png', userIconSize).then((icon) => setState(() => _userIcon = icon));
-    MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize).then((icon) => setState(() => _driverIcon = icon));
-
-    _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
-      final latLng = LatLng(position.latitude, position.longitude);
-      setState(() {
-        _currentPosition = latLng;
-        _markers.removeWhere((element) => element.markerId == "user-marker");
-        _markers.add(MarkerInfo(markerId: "user-marker", position: _currentPosition!, icon: _userIcon));
-
-        if (_shouldCenter) {
-          if (_currentPosition != null) {
-            MapHelper.resetCamera(_mapController, _currentPosition!);
-          }
-        }
-      });
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
-      if (firebaseUser != null) {
-        _passenger = await _passengerRepo.getPassenger(firebaseUser!.uid);
-        _isSearching = _passenger!.data().isSearching;
+      _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
+      _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
+      _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
 
-        _userRepo.getUser(firebaseUser!.uid).then((userData) {
+      if (mounted) {
+        _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
+          final latLng = LatLng(position.latitude, position.longitude);
           setState(() {
-            _user = userData;
-            _lastName = userData.data().lastName;
+            _currentPosition = latLng;
+            _markers[const MarkerId("user-marker")] = Marker(
+              markerId: const MarkerId("user-marker"),
+              position: _currentPosition!,
+              icon: _userIcon,
+            );
+
+            if (_shouldCenter) {
+              MapHelper.resetCamera(_mapController, _currentPosition);
+            }
           });
         });
-
-        _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
-          if (journey.docs.isNotEmpty) {
-            _journey = journey.docs.first;
-            _inJourney = true;
-            setState(() {});
-
-            if (_journey!.data().driverId.isNotEmpty) {
-              setState(() {
-                _isPickedUp = _journey!.data().isPickedUp;
-              });
-
-              if (_passenger!.data().isSearching) {
-                _passengerRepo.updateIsSearching(_passenger!, false);
-              }
-
-              final driverId = _journey!.data().driverId;
-
-              // Get name
-              final driverUser = await _userRepo.getUser(driverId);
-              final driverName = driverUser.data().getFullName();
-
-              _driverRepo.getDriver(driverId).then((driver) {
-                // Sets journey details
-                _driverName = driverName;
-                _driverLicensePlate = driver!.data().licensePlate;
-                _hasDriver = true;
-                _polylines.clear();
-                _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
-                _routeDistance = null;
-                setState(() {});
-
-                // Sets the marker
-                if (_driverId != driverId) {
-                  // Used to ensure multiple listen calls are not made
-                  if (_driverListener != null) {
-                    _driverListener!.cancel();
-                  }
-
-                  _driverId = driverId;
-                  _driverListener = _driverRepo.listenToDriver(_driverId!).listen((driver) {
-                    if (driver.docs.isNotEmpty) {
-                      final latLng = driver.docs.first.data().currentLatLng;
-                      if (latLng != null && _currentPosition != null) {
-                        setState(() {
-                          MapHelper.setCameraBetweenMarkers(
-                            mapController: _mapController!,
-                            firstLatLng: latLng,
-                            secondLatLng: _currentPosition!,
-                            topOffsetPercentage: 3,
-                            bottomOffsetPercentage: 1,
-                          );
-                          _markers.removeWhere((e) => e.markerId == "driver-marker");
-                          _markers.add(
-                            MarkerInfo(
-                              markerId: "driver-marker",
-                              position: latLng,
-                              icon: _driverIcon,
-                            ),
-                          );
-                        });
-                      }
-                    }
-                  });
-                }
-              });
-            }
-          } else if (_journey != null) {
-            // Runs after journey completion
-            _driverName = null;
-            _driverLicensePlate = null;
-            _journey = null;
-            _isSearching = false;
-            _inJourney = false;
-            _isPickedUp = false;
-            _hasDriver = false;
-            _searchController.clear();
-            _driverListener?.cancel();
-            _markers.removeWhere((e) => e.markerId == "driver-marker");
-            if (_currentPosition != null && _locationDescription == null) {
-              MapHelper.resetCamera(_mapController!, _currentPosition!);
-            }
-            setState(() {});
-          }
-        });
       }
+
+      await initializeFirestore();
     });
   }
 
+  Future<void> initializeFirestore() async {
+    firebaseUser = context.read<firebase_auth.User?>();
+
+    if (firebaseUser != null) {
+      // Set user and last name
+      _user = (await _userRepo.getUser(firebaseUser!.uid))!;
+      _lastName = _user!.data().lastName;
+      setState(() {});
+
+      // Set passenger and isSearching
+      _passenger = (await _passengerRepo.getPassenger(firebaseUser!.uid))!;
+      _isSearching = _passenger!.data().isSearching;
+
+      _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
+        if (journey.docs.isNotEmpty) {
+          setState(() {
+            _journey = journey.docs.first;
+            _inJourney = true;
+          });
+
+          if (_journey!.data().driverId.isNotEmpty) {
+            setState(() {
+              _isPickedUp = _journey!.data().isPickedUp;
+            });
+
+            if (_isSearching) {
+              _passengerRepo.updateIsSearching(_passenger!, false);
+            }
+
+            // Get driver name
+            final driverId = _journey!.data().driverId;
+            _userRepo.getUser(driverId).then((driver) {
+              if (driver != null) {
+                _driverName = driver.data().getFullName();
+              }
+            });
+
+            _driverRepo.getDriver(driverId).then((driver) {
+              // Sets journey details
+              if (driver != null) {
+                setState(() {
+                  _hasDriver = true;
+                  _driverLicensePlate = driver.data().licensePlate;
+                  _routeDistance = null;
+                  _polylines.clear();
+                  _markers.remove(const MarkerId("start"));
+                  _markers.remove(const MarkerId("destination"));
+                });
+
+                // Used to ensure multiple listen calls are not made
+                _driverListener ??= _driverRepo.listenToDriver(driverId).listen((driver) {
+                  if (driver.docs.isNotEmpty) {
+                    final latLng = driver.docs.first.data().currentLatLng;
+                    if (latLng != null && _currentPosition != null) {
+                      setState(() {
+                        _markers[const MarkerId("driver-marker")] =
+                            Marker(markerId: const MarkerId("driver-marker"), position: latLng, icon: _driverIcon);
+                        MapHelper.setCameraBetweenMarkers(
+                          mapController: _mapController!,
+                          firstLatLng: latLng,
+                          secondLatLng: _currentPosition!,
+                          topOffsetPercentage: 3,
+                          bottomOffsetPercentage: 1,
+                        );
+                      });
+                    }
+                  }
+                });
+              }
+            });
+          }
+        } else if (_journey != null) {
+          // Runs after journey completion/deletion/cancellation
+          resetState();
+        }
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return _user == null
+        ? const Scaffold(body: Align(child: CircularProgressIndicator()))
+    : Scaffold(
       appBar: AppBar(
         title: Text(
-          Greeting.getGreeting(_lastName),
+          getGreeting(_lastName),
           style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
@@ -214,9 +209,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             );
           }),
-      body: (_passenger == null || _user == null)
-          ? const Align(child: CircularProgressIndicator())
-          : Stack(
+      body: Stack(
               children: [
                 MapView(
                   userLatLng: _currentPosition,
@@ -227,10 +220,12 @@ class _PassengerHomeState extends State<PassengerHome> {
                   },
                   markers: _markers,
                   polylines: _polylines,
-                  setMapController: (controller) {
+                  onMapCreated: (controller) async {
                     setState(() {
                       _mapController = controller;
                     });
+                    _mapStyle = await MapHelper.getMapStyle();
+                    controller.setMapStyle(_mapStyle);
                   },
                   mapController: _mapController,
                 ),
@@ -252,6 +247,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                           child: Align(
                             alignment: Alignment.topCenter,
                             child: SearchBar(
+                              sessionToken: _sessionToken,
                               routeDistance: _routeDistance,
                               toApu: _toApu,
                               updateToApu: (toApu) {
@@ -260,7 +256,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   if (_destinationLatLng != null) {
                                     final start = _toApu ? _destinationLatLng! : apuLatLng;
                                     final end = _toApu ? apuLatLng : _destinationLatLng!;
-                                    MapHelper.drawRoute(start, end).then((polylines) {
+                                    _placeService.generateRoute(start, end).then((polylines) {
                                       setState(() {
                                         _polylines.clear();
                                         _polylines.add(polylines);
@@ -277,13 +273,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                                 });
                               },
                               controller: _searchController,
-                              userLocation: _destinationLatLng,
+                              destinationLatLng: _destinationLatLng,
                               onLatLng: (latLng) {
                                 setState(() {
                                   _destinationLatLng = latLng;
                                   final start = _toApu ? _destinationLatLng! : apuLatLng;
                                   final end = _toApu ? apuLatLng : _destinationLatLng!;
-                                  MapHelper.drawRoute(start, end).then((polylines) {
+                                  _placeService.generateRoute(start, end).then((polylines) {
                                     setState(() {
                                       _polylines.add(polylines);
                                       MapHelper.setCameraToRoute(
@@ -292,8 +288,16 @@ class _PassengerHomeState extends State<PassengerHome> {
                                         topOffsetPercentage: 0.5,
                                         bottomOffsetPercentage: 0.25,
                                       );
-                                      _markers.add(MarkerInfo(markerId: "start", position: start));
-                                      _markers.add(MarkerInfo(markerId: "destination", position: end));
+                                      _markers[const MarkerId("start")] = Marker(
+                                        markerId: const MarkerId("start"),
+                                        position: start,
+                                        icon: _locationIcon,
+                                      );
+                                      _markers[const MarkerId("destination")] = Marker(
+                                        markerId: const MarkerId("destination"),
+                                        position: end,
+                                        icon: _locationIcon,
+                                      );
                                       _routeDistance = MapHelper.calculateRouteDistance(polylines);
                                     });
                                   });
@@ -304,7 +308,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   _destinationLatLng = null;
                                   _polylines.clear();
                                   _routeDistance = null;
-                                  _markers.removeWhere((e) => e.markerId == "start" || e.markerId == "destination");
+                                  _markers.remove(const MarkerId("start"));
+                                  _markers.remove(const MarkerId("destination"));
                                   if (_currentPosition != null) {
                                     MapHelper.resetCamera(_mapController, _currentPosition!);
                                   }
@@ -312,7 +317,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                                 });
                               },
                               onDescription: (description) {
-                                _locationDescription = description;
+                                _destinationDescription = description;
+                                _sessionToken = const Uuid().v4();
                               },
                             ),
                           ),
@@ -328,11 +334,13 @@ class _PassengerHomeState extends State<PassengerHome> {
                         bottom: 100.0,
                         child: Align(
                           alignment: Alignment.bottomCenter,
-                          child: PassengerGoButton(
+                          child: GoButton(
                             isSearching: _isSearching,
                             hasDriver: _hasDriver,
-                            updateIsSearching: (isSearching) { // TODO: Fix here
-                              _passengerRepo.updateIsSearching(_passenger!, isSearching);
+                            updateIsSearching: (isSearching) {
+                              if (_passenger != null) {
+                                _passengerRepo.updateIsSearching(_passenger!, isSearching);
+                              }
                               setState(() {
                                 _isSearching = isSearching;
                               });
@@ -343,8 +351,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                                     userId: firebaseUser!.uid,
                                     startLatLng: _toApu ? _destinationLatLng! : apuLatLng,
                                     endLatLng: _toApu ? apuLatLng : _destinationLatLng!,
-                                    startDescription: _toApu ? _locationDescription! : apuDescription,
-                                    endDescription: _toApu ? apuDescription : _locationDescription!),
+                                    startDescription: _toApu ? _destinationDescription! : apuDescription,
+                                    endDescription: _toApu ? apuDescription : _destinationDescription!),
                               );
                             },
                             deleteJourney: () {
@@ -367,5 +375,28 @@ class _PassengerHomeState extends State<PassengerHome> {
     _locationListener.cancel();
     _driverListener?.cancel();
     super.dispose();
+  }
+
+  Future<void> resetState() async {
+    setState(() {
+      _driverName = null;
+      _driverLicensePlate = null;
+      _journey = null;
+      _isSearching = false;
+      _inJourney = false;
+      _isPickedUp = false;
+      _hasDriver = false;
+      _searchController.clear();
+      _routeDistance = null;
+      _destinationDescription = null;
+      _destinationLatLng = null;
+      _polylines.clear();
+      _markers.remove(const MarkerId("driver-marker"));
+      _markers.remove(const MarkerId("start"));
+      _markers.remove(const MarkerId("destination"));
+      MapHelper.resetCamera(_mapController!, _currentPosition);
+    });
+    await _driverListener?.cancel();
+    _driverListener = null;
   }
 }

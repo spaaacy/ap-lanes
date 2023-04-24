@@ -6,16 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../services/place_service.dart';
-import 'location_permissions.dart';
+import 'location_helpers.dart';
 import 'resize_asset.dart';
 
 class MapHelper {
-  static Future<Polyline> drawRoute(LatLng start, LatLng end) async {
-    final placeService = PlaceService();
-    return placeService.generateRoute(start, end);
-  }
-
   static void setCameraToRoute({
     required GoogleMapController? mapController,
     required Set<Polyline> polylines,
@@ -99,7 +93,7 @@ class MapHelper {
   }
 
   static Stream<Position> getCurrentPosition(BuildContext context) async* {
-    final hasPermissions = await LocationPermissions.handleLocationPermission(context);
+    final hasPermissions = await handleLocationPermission(context);
 
     if (hasPermissions) {
       yield* Geolocator.getPositionStream(
@@ -109,7 +103,7 @@ class MapHelper {
   }
 
   static Future<BitmapDescriptor> getCustomIcon(String path, int size) async {
-    final Uint8List? resizedIcon = await ResizeAsset.getBytesFromAsset(path, size);
+    final Uint8List? resizedIcon = await getBytesFromAsset(path, size);
     return resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
