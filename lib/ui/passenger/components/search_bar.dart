@@ -42,9 +42,7 @@ class SearchBar extends StatelessWidget {
         hideOnError: true,
         suggestionsBoxDecoration: const SuggestionsBoxDecoration(
           color: Colors.white70,
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(12.0),
-          ),
+          borderRadius: BorderRadius.all(Radius.circular(12.0)),
           elevation: 0.0,
         ),
         suggestionsCallback: (pattern) async {
@@ -94,8 +92,8 @@ class SearchBar extends StatelessWidget {
             if (routeDistance != null) {
               return [
                 Container(
-                    decoration: const BoxDecoration(
-                        color: Colors.black54, borderRadius: BorderRadius.all(Radius.circular(25))),
+                    decoration:
+                        const BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.all(Radius.circular(25))),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(

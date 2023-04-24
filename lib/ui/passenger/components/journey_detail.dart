@@ -54,10 +54,10 @@ class JourneyDetail extends StatelessWidget {
                         ...(() {
                           if (driverName != null && driverLicensePlate != null) {
                             return [
-                              Text("Driver Name", style: Theme.of(context).textTheme.bodyMedium),
+                              Text("Driver Name", style: Theme.of(context).textTheme.bodySmall),
                               Text(driverName!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
-                              Text("License Plate", style: Theme.of(context).textTheme.bodyMedium),
+                              Text("License Plate", style: Theme.of(context).textTheme.bodySmall),
                               Text(driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                             ];
@@ -69,11 +69,11 @@ class JourneyDetail extends StatelessWidget {
                         ...?(() {
                           if (journey != null) {
                             return [
-                              Text("TO", style: Theme.of(context).textTheme.bodyMedium),
+                              Text("TO", style: Theme.of(context).textTheme.bodySmall),
                               Text(journey!.data().endDescription,
                                   style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
-                              Text("FROM", style: Theme.of(context).textTheme.bodyMedium),
+                              Text("FROM", style: Theme.of(context).textTheme.bodySmall),
                               Text(journey!.data().startDescription,
                                   style: Theme.of(context).textTheme.titleSmall),
                             ];

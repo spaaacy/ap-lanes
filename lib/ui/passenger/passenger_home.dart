@@ -15,6 +15,7 @@ import '../../data/repo/driver_repo.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/passenger_repo.dart';
 import '../../data/repo/user_repo.dart';
+import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/greeting.dart';
 import '../../util/map_helper.dart';
@@ -37,6 +38,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   final _userRepo = UserRepo();
   final _journeyRepo = JourneyRepo();
   final _driverRepo = DriverRepo();
+  final _placeService = PlaceService();
 
   late final firebase_auth.User? firebaseUser;
   QueryDocumentSnapshot<Passenger>? _passenger;
@@ -48,7 +50,6 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   double? _routeDistance;
   String? _lastName;
-  String? _driverId;
   LatLng? _destinationLatLng;
   String? _locationDescription;
   bool _isSearching = false;
@@ -73,107 +74,107 @@ class _PassengerHomeState extends State<PassengerHome> {
   initState() {
     super.initState();
 
-    if (mounted) {
-      _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
-        final latLng = LatLng(position.latitude, position.longitude);
-        setState(() {
-          _currentPosition = latLng;
-          _markers[const MarkerId("user-marker")] = Marker(
-            markerId: const MarkerId("user-marker"),
-            position: _currentPosition,
-            icon: _userIcon,
-          );
-
-          if (_shouldCenter) {
-            MapHelper.resetCamera(_mapController, _currentPosition);
-          }
-        });
-      });
-    }
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
       _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
       _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
 
-      firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
-      if (firebaseUser != null) {
-        _passenger = await _passengerRepo.getPassenger(firebaseUser!.uid);
-        _isSearching = _passenger!.data().isSearching;
-
-        _userRepo.getUser(firebaseUser!.uid).then((userData) {
+      if (mounted) {
+        _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
+          final latLng = LatLng(position.latitude, position.longitude);
           setState(() {
-            _user = userData;
-            _lastName = userData.data().lastName;
+            _currentPosition = latLng;
+            _markers[const MarkerId("user-marker")] = Marker(
+              markerId: const MarkerId("user-marker"),
+              position: _currentPosition,
+              icon: _userIcon,
+            );
+
+            if (_shouldCenter) {
+              MapHelper.resetCamera(_mapController, _currentPosition);
+            }
           });
         });
+      }
 
-        _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
-          if (journey.docs.isNotEmpty) {
+      await initializeFirestore();
+    });
+  }
+
+  Future<void> initializeFirestore() async {
+    firebaseUser = context.read<firebase_auth.User?>();
+
+    if (firebaseUser != null) {
+      // Set user and last name
+      _user = (await _userRepo.getUser(firebaseUser!.uid))!;
+      _lastName = _user!.data().lastName;
+      setState(() {});
+
+      // Set passenger and isSearching
+      _passenger = (await _passengerRepo.getPassenger(firebaseUser!.uid))!;
+      _isSearching = _passenger!.data().isSearching;
+
+      _journeyListener = _journeyRepo.listenForJourney(firebaseUser!.uid).listen((journey) async {
+        if (journey.docs.isNotEmpty) {
+          setState(() {
             _journey = journey.docs.first;
             _inJourney = true;
-            setState(() {});
+          });
 
-            if (_journey!.data().driverId.isNotEmpty) {
-              setState(() {
-                _isPickedUp = _journey!.data().isPickedUp;
-              });
+          if (_journey!.data().driverId.isNotEmpty) {
+            setState(() {
+              _isPickedUp = _journey!.data().isPickedUp;
+            });
 
-              if (_passenger!.data().isSearching) {
-                _passengerRepo.updateIsSearching(_passenger!, false);
-              }
-
-              final driverId = _journey!.data().driverId;
-
-              // Get name
-              final driverUser = await _userRepo.getUser(driverId);
-              final driverName = driverUser.data().getFullName();
-
-              _driverRepo.getDriver(driverId).then((driver) {
-                // Sets journey details
-                _driverName = driverName;
-                _driverLicensePlate = driver!.data().licensePlate;
-                _hasDriver = true;
-                _polylines.clear();
-                _markers.remove(const MarkerId("start"));
-                _markers.remove(const MarkerId("destination"));
-                _routeDistance = null;
-                setState(() {});
-
-                // Sets the marker
-                if (_driverId != driverId) {
-                  // Used to ensure multiple listen calls are not made
-                  if (_driverListener != null) {
-                    _driverListener!.cancel();
-                  }
-
-                  _driverId = driverId;
-                  _driverListener = _driverRepo.listenToDriver(_driverId!).listen((driver) {
-                    if (driver.docs.isNotEmpty) {
-                      final latLng = driver.docs.first.data().currentLatLng;
-                      if (latLng != null && _currentPosition != null) {
-                        setState(() {
-                          MapHelper.setCameraBetweenMarkers(
-                            mapController: _mapController!,
-                            firstLatLng: latLng,
-                            secondLatLng: _currentPosition!,
-                            topOffsetPercentage: 3,
-                            bottomOffsetPercentage: 1,
-                          );
-                          _markers[const MarkerId("driver-marker")] = Marker(
-                            markerId: const MarkerId("driver-marker"),
-                            position: latLng,
-                            icon: _driverIcon,
-                          );
-                        });
-                      }
-                    }
-                  });
-                }
-              });
+            if (_isSearching) {
+              _passengerRepo.updateIsSearching(_passenger!, false);
             }
-          } else if (_journey != null) {
-            // Runs after journey completion
+
+            // Get driver name
+            final driverId = _journey!.data().driverId;
+            _userRepo.getUser(driverId).then((driver) {
+              if (driver != null) {
+                _driverName = driver.data().getFullName();
+              }
+            });
+
+            _driverRepo.getDriver(driverId).then((driver) {
+              // Sets journey details
+              if (driver != null) {
+                setState(() {
+                  _hasDriver = true;
+                  _driverLicensePlate = driver.data().licensePlate;
+                  _routeDistance = null;
+                  _polylines.clear();
+                  _markers.remove(const MarkerId("start"));
+                  _markers.remove(const MarkerId("destination"));
+                });
+
+                // Used to ensure multiple listen calls are not made
+                _driverListener ??= _driverRepo.listenToDriver(driverId).listen((driver) {
+                  if (driver.docs.isNotEmpty) {
+                    final latLng = driver.docs.first.data().currentLatLng;
+                    if (latLng != null) {
+                      setState(() {
+                        _markers[const MarkerId("driver-marker")] =
+                            Marker(markerId: const MarkerId("driver-marker"), position: latLng, icon: _driverIcon);
+                        MapHelper.setCameraBetweenMarkers(
+                          mapController: _mapController!,
+                          firstLatLng: latLng,
+                          secondLatLng: _currentPosition,
+                          topOffsetPercentage: 3,
+                          bottomOffsetPercentage: 1,
+                        );
+                      });
+                    }
+                  }
+                });
+              }
+            });
+          }
+        } else if (_journey != null) {
+          // Runs after journey completion
+          setState(() {
             _driverName = null;
             _driverLicensePlate = null;
             _journey = null;
@@ -184,19 +185,20 @@ class _PassengerHomeState extends State<PassengerHome> {
             _searchController.clear();
             _driverListener?.cancel();
             _markers.remove(const MarkerId("driver-marker"));
-            if (_currentPosition != null && _locationDescription == null) {
-              MapHelper.resetCamera(_mapController!, _currentPosition!);
+            if (_locationDescription == null) {
+              MapHelper.resetCamera(_mapController!, _currentPosition);
             }
-            setState(() {});
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return _user == null
+        ? const Scaffold(body: Align(child: CircularProgressIndicator()))
+    : Scaffold(
       appBar: AppBar(
         title: Text(
           getGreeting(_lastName),
@@ -216,9 +218,7 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             );
           }),
-      body: (_passenger == null || _user == null)
-          ? const Align(child: CircularProgressIndicator())
-          : Stack(
+      body: Stack(
               children: [
                 MapView(
                   userLatLng: _currentPosition,
@@ -262,7 +262,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   if (_destinationLatLng != null) {
                                     final start = _toApu ? _destinationLatLng! : apuLatLng;
                                     final end = _toApu ? apuLatLng : _destinationLatLng!;
-                                    MapHelper.drawRoute(start, end).then((polylines) {
+                                    _placeService.generateRoute(start, end).then((polylines) {
                                       setState(() {
                                         _polylines.clear();
                                         _polylines.add(polylines);
@@ -285,7 +285,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   _destinationLatLng = latLng;
                                   final start = _toApu ? _destinationLatLng! : apuLatLng;
                                   final end = _toApu ? apuLatLng : _destinationLatLng!;
-                                  MapHelper.drawRoute(start, end).then((polylines) {
+                                  _placeService.generateRoute(start, end).then((polylines) {
                                     setState(() {
                                       _polylines.add(polylines);
                                       MapHelper.setCameraToRoute(
@@ -343,11 +343,12 @@ class _PassengerHomeState extends State<PassengerHome> {
                             isSearching: _isSearching,
                             hasDriver: _hasDriver,
                             updateIsSearching: (isSearching) {
-                              // TODO: Fix here
-                              _passengerRepo.updateIsSearching(_passenger!, isSearching);
-                              setState(() {
-                                _isSearching = isSearching;
-                              });
+                              if (_passenger != null) {
+                                _passengerRepo.updateIsSearching(_passenger!, isSearching);
+                                setState(() {
+                                  _isSearching = isSearching;
+                                });
+                              }
                             },
                             createJourney: () {
                               _journeyRepo.createJourney(

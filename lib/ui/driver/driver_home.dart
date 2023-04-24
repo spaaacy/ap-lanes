@@ -15,6 +15,7 @@ import '../../data/model/firestore/user.dart';
 import '../../data/repo/driver_repo.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/user_repo.dart';
+import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/greeting.dart';
 import '../../util/map_helper.dart';
@@ -40,6 +41,7 @@ class _DriverHomeState extends State<DriverHome> {
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
+  final _placeService = PlaceService();
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Driver>? _driver;
   QueryDocumentSnapshot<Journey>? _availableJourneySnapshot;
@@ -56,7 +58,7 @@ class _DriverHomeState extends State<DriverHome> {
   void updateJourneyRoutePolylines(Journey journey) {
     final start = journey.startLatLng;
     final end = journey.endLatLng;
-    MapHelper.drawRoute(start, end).then((polylines) {
+    _placeService.generateRoute(start, end).then((polylines) {
       setState(() {
         _polylines.clear();
         _polylines.add(polylines);

@@ -1,6 +1,5 @@
 // Google Maps API Key
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:logger/logger.dart';
 
 const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
 
@@ -11,9 +10,6 @@ const String signedUp = "SIGNED_UP";
 // User Type
 const String passenger = "PASSENGER";
 const String driver = "DRIVER";
-
-// Logger
-Logger logger = Logger();
 
 // Icon Size
 const int userIconSize = 90;

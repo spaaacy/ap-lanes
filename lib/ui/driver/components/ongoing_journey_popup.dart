@@ -132,7 +132,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                         getStatusMessage(),
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                       ),
-                      FutureBuilder<QueryDocumentSnapshot<User>>(
+                      FutureBuilder<QueryDocumentSnapshot<User>?>(
                         future: _userRepo.getUser(widget.activeJourney!.data()!.userId),
                         builder: (context, passengerSnapshot) {
                           return Text(
