@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:apu_rideshare/data/repo/driver_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../data/model/firestore/driver.dart';
 import '../../../data/model/firestore/journey.dart';
 import '../../../data/model/firestore/user.dart';
+import '../../../data/repo/driver_repo.dart';
 import '../../../data/repo/user_repo.dart';
 import '../../../util/url_helpers.dart';
 import '../state/driver_home_state.dart';
@@ -161,7 +161,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                     Container(
                       margin: const EdgeInsets.only(top: 2),
                       height: 44,
-                      width: 64,
+                      width: 62,
                       decoration: ShapeDecoration(
                         shape: RoundedRectangleBorder(
                           side: const BorderSide(

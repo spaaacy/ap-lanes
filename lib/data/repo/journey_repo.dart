@@ -53,8 +53,8 @@ class JourneyRepo {
         .orderBy("createdAt", descending: false);
   }
 
-  Future<QuerySnapshot<Journey>> getFirstJourneyRequest(String driverId) {
-    return getDefaultJourneyQuery(driverId).limit(1).get();
+  Stream<QuerySnapshot<Journey>> getFirstJourneyRequest(String driverId) {
+    return getDefaultJourneyQuery(driverId).limit(1).snapshots();
   }
 
   Future<QuerySnapshot<Journey>> getNextJourneyRequest(String driverId, DocumentSnapshot<Journey> lastVisible) {

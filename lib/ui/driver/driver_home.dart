@@ -89,16 +89,19 @@ class _DriverHomeState extends State<DriverHome> {
     _markers.remove(const MarkerId("destination"));
 
     if (_isSearching) {
-      final nextJourneySnapshot = await _journeyRepo.getFirstJourneyRequest(firebaseUser!.uid);
-      if (nextJourneySnapshot.size > 0) {
-        updateJourneyRoutePolylines(nextJourneySnapshot.docs.first.data());
-        setState(() {
+      StreamSubscription<QuerySnapshot<Journey>>? journeyListener;
+      journeyListener = _journeyRepo.getFirstJourneyRequest(firebaseUser!.uid).listen((nextJourneySnapshot) {
+        if (nextJourneySnapshot.size > 0) {
+          journeyListener?.cancel();
+          updateJourneyRoutePolylines(nextJourneySnapshot.docs.first.data());
           _availableJourneySnapshot = nextJourneySnapshot.docs.first;
-        });
-      }
+        }
+      });
     } else {
+      _availableJourneySnapshot = null;
       MapHelper.resetCamera(_mapController, _currentPosition);
     }
+    setState(() {});
   }
 
   @override
