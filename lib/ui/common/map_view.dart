@@ -5,30 +5,22 @@ import '../../util/map_helper.dart';
 
 class MapView extends StatelessWidget {
   
-  LatLng? userLatLng;
-  Set<Polyline> polylines;
-  GoogleMapController? mapController;
-  final Function(GoogleMapController) setMapController;
+  final LatLng? userLatLng;
+  final Set<Polyline> polylines;
+  final GoogleMapController? mapController;
+  final Function(GoogleMapController) onMapCreated;
   final Function(bool) setShouldCenter;
-  Map<MarkerId, Marker> markers;
+  final Map<MarkerId, Marker> markers;
 
-  MapView({
+  const MapView({
     super.key,
     this.userLatLng,
     required this.setShouldCenter,
     required this.polylines,
-    required this.setMapController,
+    required this.onMapCreated,
     required this.mapController,
     required this.markers,
   });
-  
-  late String _mapStyle;
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    setMapController(controller);
-    _mapStyle = await MapHelper.getMapStyle();
-    controller.setMapStyle(_mapStyle);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +31,10 @@ class MapView extends StatelessWidget {
         : Stack(
             children: [
               GoogleMap(
-                polylines: polylines != null ? polylines! : <Polyline>{},
+                polylines: polylines,
                 mapToolbarEnabled: false,
                 zoomControlsEnabled: false,
-                onMapCreated: _onMapCreated,
+                onMapCreated: onMapCreated,
                 initialCameraPosition: CameraPosition(target: userLatLng!, zoom: 17.0),
                 onCameraMove: (_) {
                   setShouldCenter(false);
@@ -54,7 +46,7 @@ class MapView extends StatelessWidget {
                 right: 24.0,
                 child: Align(
                   alignment: Alignment.bottomRight,
-                  child: Container(
+                  child: SizedBox(
                     height: 60,
                     width: 60,
                     child: ElevatedButton(

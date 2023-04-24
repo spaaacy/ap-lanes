@@ -51,6 +51,7 @@ class _DriverHomeState extends State<DriverHome> {
   late final BitmapDescriptor _locationIcon; // Use this for location markers
   late final BitmapDescriptor _driverIcon;
   bool _shouldCenter = true;
+  late String _mapStyle;
   final Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
   LatLng? _currentPosition;
   late StreamSubscription<Position> _locationListener;
@@ -411,9 +412,13 @@ class _DriverHomeState extends State<DriverHome> {
               markers: _markers,
               polylines: _polylines,
               mapController: _mapController,
-              setMapController: (controller) => setState(() {
-                _mapController = controller;
-              }),
+              onMapCreated: (controller) async {
+                setState(() {
+                  _mapController = controller;
+                });
+                _mapStyle = await MapHelper.getMapStyle();
+                controller.setMapStyle(_mapStyle);
+              },
               setShouldCenter: (shouldCenter) {
                 setState(() {
                   _shouldCenter = shouldCenter;

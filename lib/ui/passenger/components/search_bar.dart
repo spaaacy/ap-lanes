@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../services/place_service.dart';
 
@@ -9,8 +8,9 @@ class SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final Function(LatLng) onLatLng;
   final Function(bool) updateToApu;
-  bool toApu;
-  LatLng? userLocation;
+  final bool toApu;
+  final String sessionToken;
+  final LatLng? destinationLatLng;
   final Function() clearUserLocation;
   final Function(String) onDescription;
   final double? routeDistance;
@@ -18,16 +18,16 @@ class SearchBar extends StatelessWidget {
   SearchBar({
     super.key,
     required this.controller,
+    required this.sessionToken,
     required this.onLatLng,
     required this.updateToApu,
     required this.toApu,
-    required this.userLocation,
+    required this.destinationLatLng,
     required this.clearUserLocation,
     required this.onDescription,
     required this.routeDistance,
   });
 
-  String _sessionToken = Uuid().v4();
   final _placeService = PlaceService();
 
   @override
@@ -46,7 +46,7 @@ class SearchBar extends StatelessWidget {
           elevation: 0.0,
         ),
         suggestionsCallback: (pattern) async {
-          final results = await _placeService.fetchSuggestions(lang, pattern, _sessionToken);
+          final results = await _placeService.fetchSuggestions(lang, pattern, sessionToken);
           return results.take(4);
         },
         itemBuilder: (context, suggestion) {
@@ -58,25 +58,24 @@ class SearchBar extends StatelessWidget {
             ),
           );
         },
-        onSuggestionSelected: (suggestion) {
-          _placeService.fetchLatLong(lang, suggestion.placeId, _sessionToken).then((latLng) => onLatLng(latLng));
-          onDescription(suggestion.description);
+        onSuggestionSelected: (suggestion) async {
+          await _placeService.fetchLatLong(lang, suggestion.placeId, sessionToken).then((latLng) => onLatLng(latLng));
           controller.text = suggestion.description;
-          _sessionToken = Uuid().v4();
+          onDescription(suggestion.description);
         },
         textFieldConfiguration: TextFieldConfiguration(
           controller: controller,
           decoration: InputDecoration(
-            suffixIcon: (userLocation != null || controller.text.isNotEmpty)
+            suffixIcon: (destinationLatLng != null || controller.text.isNotEmpty)
                 ? IconButton(
-                    icon: Icon(Icons.close),
+                    icon: const Icon(Icons.close),
                     color: Colors.black,
                     onPressed: () {
                       clearUserLocation();
-                      controller.text = "";
+                      controller.clear();
                     })
                 : null,
-            border: OutlineInputBorder(borderSide: BorderSide.none),
+            border: const OutlineInputBorder(borderSide: BorderSide.none),
             hintText: "Where do you wish to go?",
             filled: true,
             fillColor: Colors.white70,
@@ -104,11 +103,11 @@ class SearchBar extends StatelessWidget {
               ];
             }
           }()),
-          Spacer(),
+          const Spacer(),
           Container(
               decoration: BoxDecoration(
                   shape: BoxShape.rectangle, color: Colors.black54, borderRadius: BorderRadius.circular(25)),
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
               child: Text(toApu ? "TO APU" : "FROM APU",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white))),
           const SizedBox(

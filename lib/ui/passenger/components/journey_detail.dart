@@ -21,7 +21,7 @@ class JourneyDetail extends StatelessWidget {
     required this.inJourney,
     required this.journey,
   });
-  
+
   final _journeyRepo = JourneyRepo();
 
   @override
@@ -54,28 +54,35 @@ class JourneyDetail extends StatelessWidget {
                         ...(() {
                           if (driverName != null && driverLicensePlate != null) {
                             return [
-                              Text("Driver Name", style: Theme.of(context).textTheme.bodySmall),
+                              Text("Your Driver",
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
                               Text(driverName!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
-                              Text("License Plate", style: Theme.of(context).textTheme.bodySmall),
+                              Text("License Plate",
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
                               Text(driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                             ];
                           } else {
-                            return [Text("Finding an driver...", style: Theme.of(context).textTheme.titleSmall, textAlign: TextAlign.center,)];
+                            return [
+                              Text(
+                                "Finding an driver...",
+                                style: Theme.of(context).textTheme.titleSmall,
+                                textAlign: TextAlign.center,
+                              )
+                            ];
                           }
                         }()),
-                        SizedBox(height: 8.0),
+                        const SizedBox(height: 8.0),
                         ...?(() {
                           if (journey != null) {
                             return [
-                              Text("TO", style: Theme.of(context).textTheme.bodySmall),
-                              Text(journey!.data().endDescription,
-                                  style: Theme.of(context).textTheme.titleSmall),
+                              Text("TO", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text(journey!.data().endDescription, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
-                              Text("FROM", style: Theme.of(context).textTheme.bodySmall),
-                              Text(journey!.data().startDescription,
-                                  style: Theme.of(context).textTheme.titleSmall),
+                              Text("FROM",
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text(journey!.data().startDescription, style: Theme.of(context).textTheme.titleSmall),
                             ];
                           }
                         }())
@@ -83,9 +90,7 @@ class JourneyDetail extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 4.0,
-                ),
+                const SizedBox(height: 4.0),
                 ...?(() {
                   if (hasDriver && !isPickedUp) {
                     return [
