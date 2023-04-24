@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../data/model/firestore/journey.dart';
 import '../../../data/repo/journey_repo.dart';
 
-class JourneyDetail extends StatefulWidget {
+class JourneyDetail extends StatelessWidget {
   final String? driverName;
   final String? driverLicensePlate;
   final bool hasDriver;
@@ -12,7 +12,7 @@ class JourneyDetail extends StatefulWidget {
   final bool inJourney;
   final QueryDocumentSnapshot<Journey>? journey;
 
-  const JourneyDetail({
+  JourneyDetail({
     super.key,
     required this.driverName,
     required this.driverLicensePlate,
@@ -21,12 +21,7 @@ class JourneyDetail extends StatefulWidget {
     required this.inJourney,
     required this.journey,
   });
-
-  @override
-  State<JourneyDetail> createState() => _JourneyDetailState();
-}
-
-class _JourneyDetailState extends State<JourneyDetail> {
+  
   final _journeyRepo = JourneyRepo();
 
   @override
@@ -37,7 +32,7 @@ class _JourneyDetailState extends State<JourneyDetail> {
         child: Align(
           alignment: Alignment.topCenter,
           child: AnimatedOpacity(
-            opacity: (widget.inJourney) ? 1.0 : 0.0,
+            opacity: (inJourney) ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -57,13 +52,13 @@ class _JourneyDetailState extends State<JourneyDetail> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ...(() {
-                          if (widget.driverName != null && widget.driverLicensePlate != null) {
+                          if (driverName != null && driverLicensePlate != null) {
                             return [
                               Text("Driver Name", style: Theme.of(context).textTheme.bodyMedium),
-                              Text(widget.driverName!, style: Theme.of(context).textTheme.titleSmall),
+                              Text(driverName!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                               Text("License Plate", style: Theme.of(context).textTheme.bodyMedium),
-                              Text(widget.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
+                              Text(driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                             ];
                           } else {
@@ -72,14 +67,14 @@ class _JourneyDetailState extends State<JourneyDetail> {
                         }()),
                         SizedBox(height: 8.0),
                         ...?(() {
-                          if (widget.journey != null) {
+                          if (journey != null) {
                             return [
                               Text("TO", style: Theme.of(context).textTheme.bodyMedium),
-                              Text(widget.journey!.data().endDescription,
+                              Text(journey!.data().endDescription,
                                   style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                               Text("FROM", style: Theme.of(context).textTheme.bodyMedium),
-                              Text(widget.journey!.data().startDescription,
+                              Text(journey!.data().startDescription,
                                   style: Theme.of(context).textTheme.titleSmall),
                             ];
                           }
@@ -92,7 +87,7 @@ class _JourneyDetailState extends State<JourneyDetail> {
                   height: 4.0,
                 ),
                 ...?(() {
-                  if (widget.hasDriver && !widget.isPickedUp) {
+                  if (hasDriver && !isPickedUp) {
                     return [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -112,7 +107,7 @@ class _JourneyDetailState extends State<JourneyDetail> {
                                     TextButton(
                                         onPressed: () async {
                                           try {
-                                            await _journeyRepo.cancelJourneyAsPassenger(widget.journey!);
+                                            await _journeyRepo.cancelJourneyAsPassenger(journey!);
                                           } catch (exception) {
                                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                                 content: Text(
