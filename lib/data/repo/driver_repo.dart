@@ -16,8 +16,8 @@ class DriverRepo {
   }
 
   Future<QueryDocumentSnapshot<Driver>?> getDriver(String id) async {
-    final snapshot = await _driverRef.where('id', isEqualTo: id).get();
-    if (snapshot.docs.isNotEmpty) {
+    final snapshot = await _driverRef.where('id', isEqualTo: id).limit(1).get();
+    if (snapshot.size > 0) {
       return snapshot.docs.first;
     }
     return null;
@@ -29,7 +29,7 @@ class DriverRepo {
   }
 
   Stream<QuerySnapshot<Driver>> listenToDriver(String userId) {
-    return _driverRef.where("id", isEqualTo: userId).snapshots();
+    return _driverRef.where("id", isEqualTo: userId).limit(1).snapshots();
   }
 
 }

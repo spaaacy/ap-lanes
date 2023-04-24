@@ -86,12 +86,10 @@ class PlaceService {
       polylineId: PolylineId("polyline"),
       points: points,
       width: 5,
-      color: Colors.blue.withOpacity(0.8),
+      color: Colors.blue,
       startCap: Cap.roundCap,
       endCap: Cap.roundCap,
     );
-
-    logger.d("PANZY: NEW ROUTE!!!!");
 
     return polyline;
   }
