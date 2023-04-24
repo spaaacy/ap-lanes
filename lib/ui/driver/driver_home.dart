@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:collection/collection.dart';
 
 import '../../data/model/firestore/driver.dart';
 import '../../data/model/firestore/journey.dart';
@@ -89,16 +89,19 @@ class _DriverHomeState extends State<DriverHome> {
     _markers.remove(const MarkerId("destination"));
 
     if (_isSearching) {
-      final nextJourneySnapshot = await _journeyRepo.getFirstJourneyRequest(firebaseUser!.uid);
-      if (nextJourneySnapshot.size > 0) {
-        updateJourneyRoutePolylines(nextJourneySnapshot.docs.first.data());
-        setState(() {
+      StreamSubscription<QuerySnapshot<Journey>>? journeyListener;
+      journeyListener = _journeyRepo.getFirstJourneyRequest(firebaseUser!.uid).listen((nextJourneySnapshot) {
+        if (nextJourneySnapshot.size > 0) {
+          journeyListener?.cancel();
+          updateJourneyRoutePolylines(nextJourneySnapshot.docs.first.data());
           _availableJourneySnapshot = nextJourneySnapshot.docs.first;
-        });
-      }
+        }
+      });
     } else {
+      _availableJourneySnapshot = null;
       MapHelper.resetCamera(_mapController, _currentPosition);
     }
+    setState(() {});
   }
 
   @override
@@ -277,84 +280,68 @@ class _DriverHomeState extends State<DriverHome> {
         return;
       }
 
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        if (activeJourney == null) return;
-
-        var ss = await transaction.get<Journey>(activeJourney.reference);
-        if (!ss.exists) {
-          throw Exception("Error occurred when trying to update drop-off status of given Journey.");
-        }
-
-        if (ss.data()!.isCompleted) {
-          throw Exception("Cannot update drop-off status of completed Journey.");
-        }
-
-        transaction.update(ss.reference, {'isCompleted': true, 'isPickedUp': true});
+      try {
+        await _journeyRepo.completeJourney(activeJourney);
 
         _markers.remove(const MarkerId("drop-off"));
         _markers.remove(const MarkerId("pick-up"));
+
         MapHelper.resetCamera(_mapController, _currentPosition!);
-      });
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                e.toString(),
+              ),
+            ),
+          );
+        }
+      }
     }
 
     void onJourneyPickUp(DocumentSnapshot<Journey>? activeJourney) async {
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        if (activeJourney == null) return;
-
-        var ss = await transaction.get<Journey>(activeJourney.reference);
-        if (!ss.exists) {
-          throw Exception("Error occurred when trying to update picked-up status of given Journey.");
-        }
-
-        if (ss.data()!.isCompleted) {
-          throw Exception("Cannot update picked-up status of completed Journey.");
-        }
-
-        if (ss.data()!.isPickedUp) {
-          transaction.update(ss.reference, {'isPickedUp': false});
-          setState(() {
-            _markers.remove(const MarkerId("drop-off"));
-            _markers[const MarkerId("pick-up")] = Marker(
-              markerId: const MarkerId("pick-up"),
-              position: ss.data()!.startLatLng,
-              icon: _locationIcon,
-            );
-            updateCameraBoundsWithPopup(_currentPosition, ss.data()!.startLatLng);
-          });
-        } else {
-          transaction.update(ss.reference, {'isPickedUp': true});
+      try {
+        bool isPickedUp = await _journeyRepo.updateJourneyPickUpStatus(activeJourney);
+        if (isPickedUp) {
           setState(() {
             _markers.remove(const MarkerId("pick-up"));
             _markers[const MarkerId("pick-up")] = Marker(
               markerId: const MarkerId("pick-up"),
-              position: ss.data()!.endLatLng,
+              position: activeJourney!.data()!.endLatLng,
               icon: _locationIcon,
             );
-            updateCameraBoundsWithPopup(_currentPosition, ss.data()!.endLatLng);
+            updateCameraBoundsWithPopup(_currentPosition, activeJourney.data()!.endLatLng);
+          });
+        } else {
+          setState(() {
+            _markers.remove(const MarkerId("drop-off"));
+            _markers[const MarkerId("pick-up")] = Marker(
+              markerId: const MarkerId("pick-up"),
+              position: activeJourney!.data()!.startLatLng,
+              icon: _locationIcon,
+            );
+            updateCameraBoundsWithPopup(_currentPosition, activeJourney.data()!.startLatLng);
           });
         }
-      });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
 
     void onJourneyAccept(QueryDocumentSnapshot<Journey> acceptedJourney) async {
       try {
-        DocumentSnapshot<Journey>? updatedJourney =
-            await FirebaseFirestore.instance.runTransaction((transaction) async {
-          var ss = await transaction.get<Journey>(acceptedJourney.reference);
-          if (!ss.exists) {
-            throw Exception("Journey does not exist!");
-          }
-
-          if (ss.data()!.isCompleted || ss.data()!.driverId.isNotEmpty) {
-            throw Exception("Journey already has a driver!");
-          }
-
-          transaction.update(ss.reference, {'driverId': firebaseUser!.uid});
-
-          toggleIsSearching();
-
-          return ss;
-        });
+        DocumentSnapshot<Journey>? updatedJourney = await _journeyRepo.acceptJourneyRequest(
+          acceptedJourney,
+          firebaseUser!.uid,
+        );
+        toggleIsSearching();
         setState(() {
           _polylines.clear();
           _markers.remove(const MarkerId("start"));
@@ -371,7 +358,7 @@ class _DriverHomeState extends State<DriverHome> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("A problem occurred when accepting this request: $e"),
+              content: Text(e.toString()),
             ),
           );
         }

@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../data/model/firestore/driver.dart';
 import '../../../data/model/firestore/journey.dart';
 import '../../../data/model/firestore/user.dart';
+import '../../../data/repo/driver_repo.dart';
 import '../../../data/repo/user_repo.dart';
 import '../../../util/url_helpers.dart';
 import '../state/driver_home_state.dart';
@@ -34,18 +35,14 @@ class OngoingJourneyPopup extends StatefulWidget {
 
 class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   final UserRepo _userRepo = UserRepo();
+  final DriverRepo _driverRepo = DriverRepo();
   Timer? timer;
 
-  void updateDriverLatLng() {
+  Future<void> updateDriverLatLng() async {
     DriverHomeState state = Provider.of<DriverHomeState>(context, listen: false);
-    FirebaseFirestore.instance.runTransaction((transaction) async {
-      if (state.driver == null) return;
-
-      var ss = await transaction.get<Driver>(state.driver!.reference);
-      var pos = await Geolocator.getCurrentPosition();
-
-      transaction.update(ss.reference, {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
-    });
+    if (state.driver == null) return;
+    var pos = await Geolocator.getCurrentPosition();
+    _driverRepo.updateDriver(state.driver! , {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
   }
 
   @override
@@ -164,7 +161,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                     Container(
                       margin: const EdgeInsets.only(top: 2),
                       height: 44,
-                      width: 64,
+                      width: 62,
                       decoration: ShapeDecoration(
                         shape: RoundedRectangleBorder(
                           side: const BorderSide(

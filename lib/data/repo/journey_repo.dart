@@ -53,8 +53,8 @@ class JourneyRepo {
         .orderBy("createdAt", descending: false);
   }
 
-  Future<QuerySnapshot<Journey>> getFirstJourneyRequest(String driverId) {
-    return getDefaultJourneyQuery(driverId).limit(1).get();
+  Stream<QuerySnapshot<Journey>> getFirstJourneyRequest(String driverId) {
+    return getDefaultJourneyQuery(driverId).limit(1).snapshots();
   }
 
   Future<QuerySnapshot<Journey>> getNextJourneyRequest(String driverId, DocumentSnapshot<Journey> lastVisible) {
@@ -73,6 +73,63 @@ class JourneyRepo {
       } else {
         throw Exception("Cannot cancel after picking up.");
       }
+    });
+  }
+
+  Future<void> completeJourney(DocumentSnapshot<Journey>? activeJourney) {
+    return _firestoreInstance.runTransaction((transaction) async {
+      if (activeJourney == null) return;
+
+      var ss = await transaction.get<Journey>(activeJourney.reference);
+      if (!ss.exists) {
+        throw Exception("Error occurred when trying to update drop-off status of given Journey.");
+      }
+
+      if (ss.data()!.isCompleted) {
+        throw Exception("Cannot update drop-off status of completed Journey.");
+      }
+
+      transaction.update(ss.reference, {'isCompleted': true, 'isPickedUp': true});
+    });
+  }
+
+  Future<bool> updateJourneyPickUpStatus(DocumentSnapshot<Journey>? activeJourney) {
+    return _firestoreInstance.runTransaction((transaction) async {
+      if (activeJourney == null) throw Exception('Active journey provided is null.');
+
+      var ss = await transaction.get<Journey>(activeJourney.reference);
+      if (!ss.exists) {
+        throw Exception("Error occurred when trying to update picked-up status of given Journey.");
+      }
+
+      if (ss.data()!.isCompleted) {
+        throw Exception("Cannot update picked-up status of completed Journey.");
+      }
+
+      if (ss.data()!.isPickedUp) {
+        transaction.update(ss.reference, {'isPickedUp': false});
+        return false;
+      } else {
+        transaction.update(ss.reference, {'isPickedUp': true});
+        return true;
+      }
+    });
+  }
+
+  Future<DocumentSnapshot<Journey>?> acceptJourneyRequest(DocumentSnapshot<Journey> acceptedJourney, String userId) {
+    return _firestoreInstance.runTransaction((transaction) async {
+      var ss = await transaction.get<Journey>(acceptedJourney.reference);
+      if (!ss.exists) {
+        throw Exception("Journey does not exist!");
+      }
+
+      if (ss.data()!.isCompleted || ss.data()!.driverId.isNotEmpty) {
+        throw Exception("Journey already has a driver!");
+      }
+
+      transaction.update(ss.reference, {'driverId': userId});
+
+      return ss;
     });
   }
 }
