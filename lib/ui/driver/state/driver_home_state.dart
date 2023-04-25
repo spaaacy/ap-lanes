@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../data/model/firestore/driver.dart';
-import '../../../data/model/firestore/journey.dart';
-import '../../../data/model/firestore/user.dart';
+import '../../../data/model/remote/driver.dart';
+import '../../../data/model/remote/journey.dart';
+import '../../../data/model/remote/user.dart';
 
 class DriverHomeState extends ChangeNotifier {
   QueryDocumentSnapshot<User>? _user;

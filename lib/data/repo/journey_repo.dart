@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../model/firestore/journey.dart';
+import '../model/remote/journey.dart';
 
 class JourneyRepo {
   JourneyRepo();

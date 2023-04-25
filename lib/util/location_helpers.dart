@@ -13,6 +13,11 @@ LatLng getLatLngFromString(String? latLngString) {
   return latLng;
 }
 
+String trimDescription(String description) {
+  final trimmed = description.split(", ").toList();
+  return "${trimmed[0]}, ${trimmed[1]}, ${trimmed[2]}";
+}
+
 Future<bool> handleLocationPermission(context) async {
   bool serviceEnabled;
   LocationPermission permission;

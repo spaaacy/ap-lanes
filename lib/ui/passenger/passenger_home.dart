@@ -8,10 +8,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../data/model/firestore/driver.dart';
-import '../../data/model/firestore/journey.dart';
-import '../../data/model/firestore/passenger.dart';
-import '../../data/model/firestore/user.dart';
+import '../../data/model/remote/driver.dart';
+import '../../data/model/remote/journey.dart';
+import '../../data/model/remote/passenger.dart';
+import '../../data/model/remote/user.dart';
+import '../../data/model/remote/driver.dart';
+import '../../data/model/remote/journey.dart';
+import '../../data/model/remote/passenger.dart';
+import '../../data/model/remote/user.dart';
 import '../../data/repo/driver_repo.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/passenger_repo.dart';

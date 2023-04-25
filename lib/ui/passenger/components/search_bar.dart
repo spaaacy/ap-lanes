@@ -1,3 +1,4 @@
+import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -53,14 +54,14 @@ class SearchBar extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              suggestion.description,
+              trimDescription(suggestion.description),
               style: const TextStyle(fontSize: 16.0),
             ),
           );
         },
         onSuggestionSelected: (suggestion) async {
           await _placeService.fetchLatLong(lang, suggestion.placeId, sessionToken).then((latLng) => onLatLng(latLng));
-          controller.text = suggestion.description;
+          controller.text = trimDescription(suggestion.description);
           onDescription(suggestion.description);
         },
         textFieldConfiguration: TextFieldConfiguration(

@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart';
 
-import '../model/firestore/user.dart' as model;
+import '../model/remote/user.dart' as model;
+
 
 class UserRepo {
   final _userRef = FirebaseFirestore.instance.collection("user").withConverter(

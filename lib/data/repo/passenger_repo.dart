@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../model/firestore/passenger.dart';
+import '../model/remote/passenger.dart';
 
 class PassengerRepo {
   final _passengerRef = FirebaseFirestore.instance

@@ -16,8 +16,7 @@ class PlaceService {
       return [];
     }
 
-    final request =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=establishment&language=$lang&components=country:my&key=$androidApiKey&sessiontoken=$sessionToken';
+    final request = "https://jma3dj321j.execute-api.ap-southeast-2.amazonaws.com/fetch-suggestions?input=$input&lang=$lang&sessiontoken=$sessionToken";
     final response = await client.get(Uri.parse(request));
 
     if (response.statusCode == 200) {
@@ -43,6 +42,7 @@ class PlaceService {
     if (placeId.isEmpty) {
       return const LatLng(0.0, 0.0);
     }
+
 
     final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey&sessiontoken=$sessionToken";
 
