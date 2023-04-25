@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../model/firestore/driver.dart';
+import '../model/remote/driver.dart';
+
 
 class DriverRepo {
   DriverRepo();

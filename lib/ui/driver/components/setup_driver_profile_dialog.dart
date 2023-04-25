@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../data/model/firestore/driver.dart';
+import '../../../data/model/remote/driver.dart';
 import '../../../data/repo/driver_repo.dart';
 import '../../../util/ui_helpers.dart' as ui_helper;
 

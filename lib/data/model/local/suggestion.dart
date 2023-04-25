@@ -8,4 +8,7 @@ class Suggestion {
   String toString() {
     return 'Suggestion(description: $description, placeId: $placeId)';
   }
+
+
+
 }

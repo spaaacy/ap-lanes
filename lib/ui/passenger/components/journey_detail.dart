@@ -1,7 +1,8 @@
+import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../../../data/model/firestore/journey.dart';
+import '../../../data/model/remote/journey.dart';
 import '../../../data/repo/journey_repo.dart';
 
 class JourneyDetail extends StatelessWidget {
@@ -78,11 +79,11 @@ class JourneyDetail extends StatelessWidget {
                           if (journey != null) {
                             return [
                               Text("TO", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(journey!.data().endDescription, style: Theme.of(context).textTheme.titleSmall),
+                              Text(trimDescription(journey!.data().endDescription), style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                               Text("FROM",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(journey!.data().startDescription, style: Theme.of(context).textTheme.titleSmall),
+                              Text(trimDescription(journey!.data().startDescription), style: Theme.of(context).textTheme.titleSmall),
                             ];
                           }
                         }())

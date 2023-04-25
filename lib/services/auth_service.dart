@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../data/model/firestore/passenger.dart';
-import '../data/model/firestore/user.dart' as model;
+import '../data/model/remote/passenger.dart';
+import '../data/model/remote/user.dart' as model;
 import '../data/repo/passenger_repo.dart';
 import '../data/repo/user_repo.dart';
 import '../util/constants.dart';
