@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../data/model/firestore/driver.dart';
 import '../../../data/repo/driver_repo.dart';
@@ -23,9 +24,16 @@ class SetupDriverProfileDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+              ],
+              textCapitalization: TextCapitalization.characters,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your first name';
+                  return 'Please enter your car license plate';
+                }
+                if (value.length > 9) {
+                  return 'Your license plate is too long';
                 }
                 return null;
               },
@@ -46,11 +54,10 @@ class SetupDriverProfileDialog extends StatelessWidget {
           onPressed: () async {
             if (_driverSetupFormKey.currentState!.validate()) {
               ui_helper.showLoaderDialog(context, 'Loading...');
-              String licensePlate = _licensePlateController.text.trim();
-              await _driverRepo.createDriver(Driver(
-                  id: userId,
-                  licensePlate: licensePlate,
-                  isAvailable: false));
+              String licensePlate = _licensePlateController.text.trim().toUpperCase();
+              await _driverRepo.createDriver(
+                Driver(id: userId, licensePlate: licensePlate, isAvailable: false),
+              );
 
               if (context.mounted) {
                 Navigator.of(context).pop();
