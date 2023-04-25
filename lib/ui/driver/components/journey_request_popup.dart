@@ -1,11 +1,11 @@
+import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/model/firestore/journey.dart';
 
 class JourneyRequestPopup extends StatelessWidget {
-
-  const JourneyRequestPopup({
+  JourneyRequestPopup({
     super.key,
     required this.isSearching,
     required this.journey,
@@ -19,6 +19,7 @@ class JourneyRequestPopup extends StatelessWidget {
   final void Function(int direction) onNavigate;
   final void Function(QueryDocumentSnapshot<Journey>) onAccept;
   final double routeDistance;
+  final UserRepo _userRepo = UserRepo();
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +65,26 @@ class JourneyRequestPopup extends StatelessWidget {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text(
+                              'PASSENGER',
+                              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                            ),
+                            FutureBuilder(
+                              future: _userRepo.getUser(journey!.data().userId),
+                              builder: (context, snapshot) {
+                                var passengerName = "Loading...";
+
+                                if (snapshot.hasData) {
+                                  passengerName = snapshot.data!.data().getFullName();
+                                }
+
+                                return Text(
+                                  passengerName,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
                             Text(
                               'FROM',
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),

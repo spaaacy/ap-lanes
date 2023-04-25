@@ -45,7 +45,7 @@ class _DriverHomeState extends State<DriverHome> {
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Driver>? _driver;
   QueryDocumentSnapshot<Journey>? _availableJourneySnapshot;
-  late StreamSubscription<QuerySnapshot<Journey>> _activeJourneyListener;
+  StreamSubscription<QuerySnapshot<Journey>>? _activeJourneyListener;
   GoogleMapController? _mapController;
   final Set<Polyline> _polylines = <Polyline>{};
   late final BitmapDescriptor _locationIcon; // Use this for location markers
@@ -141,35 +141,7 @@ class _DriverHomeState extends State<DriverHome> {
         firebaseUser = context.read<firebase_auth.User?>();
       }
       if (firebaseUser != null) {
-        _activeJourneyListener = _journeyRepo.getOngoingJourney(firebaseUser!.uid).listen((ss) {
-          if (ss.size > 0) {
-            setState(() {
-              _activeJourney = ss.docs.first;
-
-              if (_activeJourney!.data()!.isPickedUp) {
-                _markers[const MarkerId("drop-off")] = Marker(
-                  markerId: const MarkerId("drop-off"),
-                  position: _activeJourney!.data()!.endLatLng,
-                  icon: _locationIcon,
-                );
-                updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.endLatLng);
-              } else {
-                _markers[const MarkerId("pick-up")] = Marker(
-                  markerId: const MarkerId("pick-up"),
-                  position: _activeJourney!.data()!.startLatLng,
-                  icon: _locationIcon,
-                );
-                updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.startLatLng);
-              }
-            });
-          } else {
-            setState(() {
-              _markers.remove(const MarkerId("drop-off"));
-              _markers.remove(const MarkerId("pick-up"));
-              _activeJourney = null;
-            });
-          }
-        });
+        startOngoingJourneyListener();
 
         var userData = await _userRepo.getUser(firebaseUser!.uid);
         setState(() {
@@ -186,7 +158,7 @@ class _DriverHomeState extends State<DriverHome> {
             _updateJourneyRequestListener();
           });
         } else {
-          if (!context.mounted) return;
+          if (!mounted) return;
           var result = await showDialog<String?>(
             context: context,
             builder: (ctx) => SetupDriverProfileDialog(userId: firebaseUser!.uid),
@@ -198,7 +170,7 @@ class _DriverHomeState extends State<DriverHome> {
               _driver = driverSnapshot;
             });
           } else {
-            if (!context.mounted) return;
+            if (!mounted) return;
 
             await showDialog(
               context: context,
@@ -216,7 +188,7 @@ class _DriverHomeState extends State<DriverHome> {
               ),
             );
 
-            if (!context.mounted) return;
+            if (!mounted) return;
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (BuildContext context) => const PassengerHome(),
@@ -225,6 +197,61 @@ class _DriverHomeState extends State<DriverHome> {
             );
           }
         }
+      }
+    });
+  }
+
+  void startOngoingJourneyListener() async {
+    await _activeJourneyListener?.cancel();
+
+    _activeJourneyListener = _journeyRepo.getOngoingJourney(firebaseUser!.uid).listen((ss) async {
+      if (ss.size == 0 && _activeJourney != null) {
+        await _activeJourneyListener?.cancel();
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Journey Cancelled"),
+            content: const Text("The journey has been cancelled by the passenger."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge,
+                ),
+                child: const Text("Ok"),
+              )
+            ],
+          ),
+        );
+      }
+
+      if (ss.size > 0) {
+        setState(() {
+          _activeJourney = ss.docs.first;
+
+          if (_activeJourney!.data()!.isPickedUp) {
+            _markers[const MarkerId("drop-off")] = Marker(
+              markerId: const MarkerId("drop-off"),
+              position: _activeJourney!.data()!.endLatLng,
+              icon: _locationIcon,
+            );
+            updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.endLatLng);
+          } else {
+            _markers[const MarkerId("pick-up")] = Marker(
+              markerId: const MarkerId("pick-up"),
+              position: _activeJourney!.data()!.startLatLng,
+              icon: _locationIcon,
+            );
+            updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.startLatLng);
+          }
+        });
+      } else {
+        setState(() {
+          _markers.remove(const MarkerId("drop-off"));
+          _markers.remove(const MarkerId("pick-up"));
+          _activeJourney = null;
+        });
       }
     });
   }
@@ -244,7 +271,7 @@ class _DriverHomeState extends State<DriverHome> {
 
   @override
   void dispose() {
-    _activeJourneyListener.cancel();
+    _activeJourneyListener?.cancel();
     _locationListener.cancel();
     super.dispose();
   }
@@ -284,9 +311,13 @@ class _DriverHomeState extends State<DriverHome> {
 
       try {
         await _journeyRepo.completeJourney(activeJourney);
+        await _activeJourneyListener?.cancel();
 
-        _markers.remove(const MarkerId("drop-off"));
-        _markers.remove(const MarkerId("pick-up"));
+        setState(() {
+          _markers.remove(const MarkerId("drop-off"));
+          _markers.remove(const MarkerId("pick-up"));
+          _activeJourney = null;
+        });
 
         MapHelper.resetCamera(_mapController, _currentPosition!);
       } catch (e) {
@@ -355,6 +386,7 @@ class _DriverHomeState extends State<DriverHome> {
             icon: _locationIcon,
           );
           updateCameraBoundsWithPopup(_currentPosition, updatedJourney.data()!.startLatLng);
+          startOngoingJourneyListener();
         });
       } catch (e) {
         if (context.mounted) {
