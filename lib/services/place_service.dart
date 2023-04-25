@@ -40,12 +40,11 @@ class PlaceService {
   }
 
   Future<LatLng> fetchLatLong(String lang, String placeId, String sessionToken) async {
-    // String sessionToken
     if (placeId.isEmpty) {
       return const LatLng(0.0, 0.0);
     }
 
-    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey";
+    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey&sessiontoken=$sessionToken";
 
     final response = await client.get(Uri.parse(request));
 
@@ -66,7 +65,7 @@ class PlaceService {
     }
   }
 
-  Future<Polyline> generateRoute(LatLng start, LatLng end) async {
+  Future<Polyline> fetchRoute(LatLng start, LatLng end) async {
     final polylinePoints = PolylinePoints();
     final points = <LatLng>[];
 
