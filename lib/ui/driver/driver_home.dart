@@ -59,7 +59,7 @@ class _DriverHomeState extends State<DriverHome> {
   void updateJourneyRoutePolylines(Journey journey) {
     final start = journey.startLatLng;
     final end = journey.endLatLng;
-    _placeService.generateRoute(start, end).then((polylines) {
+    _placeService.fetchRoute(start, end).then((polylines) {
       setState(() {
         _polylines.clear();
         _polylines.add(polylines);
@@ -133,11 +133,13 @@ class _DriverHomeState extends State<DriverHome> {
       });
     }
 
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
       _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
 
-      firebaseUser = Provider.of<firebase_auth.User?>(context, listen: false);
+      if (mounted) {
+        firebaseUser = context.read<firebase_auth.User?>();
+      }
       if (firebaseUser != null) {
         startOngoingJourneyListener();
 

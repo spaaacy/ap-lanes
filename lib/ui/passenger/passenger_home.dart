@@ -256,7 +256,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   if (_destinationLatLng != null) {
                                     final start = _toApu ? _destinationLatLng! : apuLatLng;
                                     final end = _toApu ? apuLatLng : _destinationLatLng!;
-                                    _placeService.generateRoute(start, end).then((polylines) {
+                                    _placeService.fetchRoute(start, end).then((polylines) {
                                       setState(() {
                                         _polylines.clear();
                                         _polylines.add(polylines);
@@ -279,7 +279,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                   _destinationLatLng = latLng;
                                   final start = _toApu ? _destinationLatLng! : apuLatLng;
                                   final end = _toApu ? apuLatLng : _destinationLatLng!;
-                                  _placeService.generateRoute(start, end).then((polylines) {
+                                  _placeService.fetchRoute(start, end).then((polylines) {
                                     setState(() {
                                       _polylines.add(polylines);
                                       MapHelper.setCameraToRoute(
