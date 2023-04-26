@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/model/remote/driver.dart';
+import '../../data/model/remote/feedback.dart' as remote;
 import '../../data/model/remote/user.dart';
 import '../../data/repo/driver_repo.dart';
+import '../../data/repo/feedback_repo.dart';
 import '../../services/auth_service.dart';
 import '../auth/auth_wrapper.dart';
 import '../driver/driver_home.dart';
@@ -15,8 +17,10 @@ class AppDrawer extends StatelessWidget {
   final bool isDriver;
   final bool isNavigationLocked;
   final void Function() onNavigateWhenLocked;
+  final _feedbackFormKey = GlobalKey<FormState>();
+  final _feedbackController = TextEditingController();
 
-  const AppDrawer({
+  AppDrawer({
     super.key,
     required this.user,
     required this.isDriver,
@@ -27,9 +31,10 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final DriverRepo driverRepo = DriverRepo();
+    final FeedbackRepo feedbackRepo = FeedbackRepo();
 
     return Drawer(
-      child: ListView(
+      child: Column(
         children: [
           SizedBox(
             height: 200,
@@ -118,7 +123,7 @@ class AppDrawer extends StatelessWidget {
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),
-            title: const Text('Log out'),
+            title: const Text('Log Out'),
             onTap: () {
               context.read<AuthService>().signOut();
               Navigator.of(context).pushReplacement(
@@ -128,6 +133,57 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ListTile(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text("What would you like to report?"),
+                            content: Form(
+                                key: _feedbackFormKey,
+                                child: TextFormField(
+                                  decoration: const InputDecoration(hintText: "Report an issue"),
+                                  controller: _feedbackController,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Cannot submit empty feedback!";
+                                    }
+                                    return null;
+                                  },
+                                )),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context, "Cancel");
+                                },
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (_feedbackFormKey.currentState!.validate()) {
+                                    feedbackRepo.createFeedback(remote.Feedback(feedback: _feedbackController.text.trim()));
+                                    Navigator.pop(context, "Send");
+                                  }
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Text("Send"),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        });
+                  },
+                  title: const Text("Report an Issue"),
+                  leading: const Icon(Icons.bug_report)),
+            ),
+          )
         ],
       ),
     );
