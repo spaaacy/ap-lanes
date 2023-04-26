@@ -1,9 +1,9 @@
-import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../services/place_service.dart';
+import '../../../util/location_helpers.dart';
 
 class SearchBar extends StatelessWidget {
   final TextEditingController controller;

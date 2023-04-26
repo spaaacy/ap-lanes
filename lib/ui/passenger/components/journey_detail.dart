@@ -1,9 +1,9 @@
-import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/model/remote/journey.dart';
 import '../../../data/repo/journey_repo.dart';
+import '../../../util/location_helpers.dart';
 
 class JourneyDetail extends StatelessWidget {
   final String? driverName;
