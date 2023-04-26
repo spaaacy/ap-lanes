@@ -37,7 +37,7 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: 200,
+            height: 210,
             child: DrawerHeader(
               decoration: const BoxDecoration(
                 color: Colors.black,
@@ -85,6 +85,11 @@ class AppDrawer extends StatelessWidget {
                               }),
                         )
                       ];
+                    } else {
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        child: const Text('   '),
+                      );
                     }
                   }())
                 ],
@@ -165,7 +170,8 @@ class AppDrawer extends StatelessWidget {
                               TextButton(
                                 onPressed: () {
                                   if (_feedbackFormKey.currentState!.validate()) {
-                                    feedbackRepo.createFeedback(remote.Feedback(feedback: _feedbackController.text.trim()));
+                                    feedbackRepo
+                                        .createFeedback(remote.Feedback(feedback: _feedbackController.text.trim()));
                                     Navigator.pop(context, "Send");
                                   }
                                 },
