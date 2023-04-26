@@ -113,8 +113,8 @@ class _DriverHomeState extends State<DriverHome> {
         final latLng = LatLng(position.latitude, position.longitude);
         setState(() {
           _currentPosition = latLng;
-          _markers[const MarkerId("driver-marker")] = Marker(
-            markerId: const MarkerId("driver-marker"),
+          _markers[const MarkerId("driver")] = Marker(
+            markerId: const MarkerId("driver"),
             position: _currentPosition!,
             icon: _driverIcon,
           );

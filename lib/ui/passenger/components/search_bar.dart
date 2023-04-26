@@ -46,8 +46,8 @@ class SearchBar extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(12.0)),
           elevation: 0.0,
         ),
-        suggestionsCallback: (pattern) async {
-          final results = await _placeService.fetchSuggestions(lang, pattern, sessionToken);
+        suggestionsCallback: (input) async {
+          final results = await _placeService.fetchSuggestions(input, lang, sessionToken);
           return results.take(4);
         },
         itemBuilder: (context, suggestion) {
@@ -60,7 +60,7 @@ class SearchBar extends StatelessWidget {
           );
         },
         onSuggestionSelected: (suggestion) async {
-          await _placeService.fetchLatLong(lang, suggestion.placeId, sessionToken).then((latLng) => onLatLng(latLng));
+          await _placeService.fetchLatLng(suggestion.placeId, lang, sessionToken).then((latLng) => onLatLng(latLng));
           controller.text = trimDescription(suggestion.description);
           onDescription(suggestion.description);
         },
