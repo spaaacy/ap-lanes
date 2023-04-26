@@ -2,7 +2,7 @@
     package="com.apu.ap_lanes">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
    <application
-        android:label="ap_lanes"
+        android:label="APLanes"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
        <meta-data android:name="com.google.android.geo.API_KEY"
