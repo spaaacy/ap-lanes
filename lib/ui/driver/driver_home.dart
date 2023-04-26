@@ -283,7 +283,7 @@ class _DriverHomeState extends State<DriverHome> {
   }
 
   bool isLoading() {
-    return _user == null || _driver == null || _currentPosition == null;
+    return _user == null || _driver == null;
   }
 
   @override
@@ -410,7 +410,9 @@ class _DriverHomeState extends State<DriverHome> {
         ..mapController = _mapController
         ..activeJourney = _activeJourney
         ..polylines = _polylines,
-      child: Scaffold(
+      child: isLoading()
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : Scaffold(
         appBar: AppBar(
           title: Text(
             getGreeting(_user?.data().lastName),
@@ -429,9 +431,7 @@ class _DriverHomeState extends State<DriverHome> {
                 ),
               );
             }),
-        body: isLoading()
-            ? const Center(child: CircularProgressIndicator())
-            : Stack(
+        body: Stack(
                 children: [
                   MapView(
                     userLatLng: _currentPosition,

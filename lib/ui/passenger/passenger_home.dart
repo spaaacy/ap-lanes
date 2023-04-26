@@ -188,11 +188,14 @@ class _PassengerHomeState extends State<PassengerHome> {
     }
   }
 
+  bool isLoading() {
+    return _user == null || _passenger == null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return _user == null
-        ? const Scaffold(body: Align(child: CircularProgressIndicator()))
+    return isLoading()
+        ? const Scaffold(body: Center(child: CircularProgressIndicator()))
     : Scaffold(
       appBar: AppBar(
         title: Text(
