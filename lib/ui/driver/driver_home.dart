@@ -4,13 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/model/remote/journey.dart';
 import '../../data/model/remote/driver.dart';
+import '../../data/model/remote/journey.dart';
 import '../../data/model/remote/user.dart';
 import '../../data/repo/driver_repo.dart';
 import '../../data/repo/journey_repo.dart';
@@ -283,6 +282,10 @@ class _DriverHomeState extends State<DriverHome> {
     });
   }
 
+  bool isLoading() {
+    return _user == null || _driver == null || _currentPosition == null;
+  }
+
   @override
   Widget build(BuildContext context) {
     void onJourneyDropOff(DocumentSnapshot<Journey>? activeJourney) async {
@@ -426,92 +429,94 @@ class _DriverHomeState extends State<DriverHome> {
                 ),
               );
             }),
-        body: Stack(
-          children: [
-            MapView(
-              userLatLng: _currentPosition,
-              markers: _markers,
-              polylines: _polylines,
-              mapController: _mapController,
-              onMapCreated: (controller) async {
-                setState(() {
-                  _mapController = controller;
-                });
-                _mapStyle = await MapHelper.getMapStyle();
-                controller.setMapStyle(_mapStyle);
-              },
-              setShouldCenter: (shouldCenter) {
-                setState(() {
-                  _shouldCenter = shouldCenter;
-                });
-              },
-            ),
-            Positioned.fill(
-              bottom: 100.0,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: (() {
-                  if (_activeJourney == null) {
-                    return ElevatedButton(
-                      onPressed: () {
-                        toggleIsSearching();
-                        _updateJourneyRequestListener();
-                      },
-                      style: ElevatedButtonTheme.of(context).style?.copyWith(
-                            shape: const MaterialStatePropertyAll(CircleBorder()),
-                            padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
-                            elevation: const MaterialStatePropertyAll(6.0),
-                          ),
-                      child: _isSearching
-                          ? const Icon(
-                              Icons.close,
-                              size: 20,
-                            )
-                          : const Text("GO"),
-                    );
-                  }
-                }()),
-              ),
-            ),
-            (() {
-              if (_activeJourney != null) {
-                return OngoingJourneyPopup(
-                  activeJourney: _activeJourney,
-                  onDropOff: onJourneyDropOff,
-                  onPickUp: onJourneyPickUp,
-                );
-              } else {
-                return JourneyRequestPopup(
-                  isSearching: _isSearching,
-                  journey: _availableJourneySnapshot,
-                  routeDistance: MapHelper.calculateRouteDistance(_polylines.firstOrNull),
-                  onNavigate: (direction) async {
-                    QuerySnapshot<Journey> newJourneyRequest;
-                    if (direction == 1) {
-                      newJourneyRequest = await _journeyRepo.getNextJourneyRequest(
-                        firebaseUser!.uid,
-                        _availableJourneySnapshot!,
+        body: isLoading()
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  MapView(
+                    userLatLng: _currentPosition,
+                    markers: _markers,
+                    polylines: _polylines,
+                    mapController: _mapController,
+                    onMapCreated: (controller) async {
+                      setState(() {
+                        _mapController = controller;
+                      });
+                      _mapStyle = await MapHelper.getMapStyle();
+                      controller.setMapStyle(_mapStyle);
+                    },
+                    setShouldCenter: (shouldCenter) {
+                      setState(() {
+                        _shouldCenter = shouldCenter;
+                      });
+                    },
+                  ),
+                  Positioned.fill(
+                    bottom: 100.0,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: (() {
+                        if (_activeJourney == null) {
+                          return ElevatedButton(
+                            onPressed: () {
+                              toggleIsSearching();
+                              _updateJourneyRequestListener();
+                            },
+                            style: ElevatedButtonTheme.of(context).style?.copyWith(
+                                  shape: const MaterialStatePropertyAll(CircleBorder()),
+                                  padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
+                                  elevation: const MaterialStatePropertyAll(6.0),
+                                ),
+                            child: _isSearching
+                                ? const Icon(
+                                    Icons.close,
+                                    size: 20,
+                                  )
+                                : const Text("GO"),
+                          );
+                        }
+                      }()),
+                    ),
+                  ),
+                  (() {
+                    if (_activeJourney != null) {
+                      return OngoingJourneyPopup(
+                        activeJourney: _activeJourney,
+                        onDropOff: onJourneyDropOff,
+                        onPickUp: onJourneyPickUp,
                       );
                     } else {
-                      newJourneyRequest = await _journeyRepo.getPrevJourneyRequest(
-                        firebaseUser!.uid,
-                        _availableJourneySnapshot!,
+                      return JourneyRequestPopup(
+                        isSearching: _isSearching,
+                        journey: _availableJourneySnapshot,
+                        routeDistance: MapHelper.calculateRouteDistance(_polylines.firstOrNull),
+                        onNavigate: (direction) async {
+                          QuerySnapshot<Journey> newJourneyRequest;
+                          if (direction == 1) {
+                            newJourneyRequest = await _journeyRepo.getNextJourneyRequest(
+                              firebaseUser!.uid,
+                              _availableJourneySnapshot!,
+                            );
+                          } else {
+                            newJourneyRequest = await _journeyRepo.getPrevJourneyRequest(
+                              firebaseUser!.uid,
+                              _availableJourneySnapshot!,
+                            );
+                          }
+                          if (newJourneyRequest.size > 0 &&
+                              newJourneyRequest.docs.first.id != _availableJourneySnapshot!.id) {
+                            updateJourneyRoutePolylines(newJourneyRequest.docs.first.data());
+                            setState(() {
+                              _availableJourneySnapshot = newJourneyRequest.docs.first;
+                            });
+                          }
+                        },
+                        onAccept: onJourneyAccept,
                       );
                     }
-                    if (newJourneyRequest.size > 0 &&
-                        newJourneyRequest.docs.first.id != _availableJourneySnapshot!.id) {
-                      updateJourneyRoutePolylines(newJourneyRequest.docs.first.data());
-                      setState(() {
-                        _availableJourneySnapshot = newJourneyRequest.docs.first;
-                      });
-                    }
-                  },
-                  onAccept: onJourneyAccept,
-                );
-              }
-            }()),
-          ],
-        ),
+                  }()),
+                ],
+              ),
       ),
     );
   }
