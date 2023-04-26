@@ -1,8 +1,8 @@
-import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/model/remote/journey.dart';
+import '../../../data/repo/user_repo.dart';
 
 class JourneyRequestPopup extends StatelessWidget {
   JourneyRequestPopup({
