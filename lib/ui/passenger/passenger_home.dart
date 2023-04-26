@@ -165,7 +165,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                     if (latLng != null && _currentPosition != null) {
                       setState(() {
                         _markers[const MarkerId("driver")] =
-                            Marker(markerId: const MarkerId("driver-marker"), position: latLng, icon: _driverIcon);
+                            Marker(markerId: const MarkerId("driver"), position: latLng, icon: _driverIcon);
                         MapHelper.setCameraBetweenMarkers(
                           mapController: _mapController!,
                           firstLatLng: latLng,
@@ -268,7 +268,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                           mapController: _mapController!,
                                           polylines: _polylines,
                                           topOffsetPercentage: 0.5,
-                                          bottomOffsetPercentage: 0.25,
+                                          bottomOffsetPercentage: 0.5,
                                         );
                                         _routeDistance = MapHelper.calculateRouteDistance(polylines);
                                       });
@@ -290,7 +290,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                                         mapController: _mapController!,
                                         polylines: _polylines,
                                         topOffsetPercentage: 0.5,
-                                        bottomOffsetPercentage: 0.25,
+                                        bottomOffsetPercentage: 0.5,
                                       );
                                       _markers[const MarkerId("start")] = Marker(
                                         markerId: const MarkerId("start"),
@@ -395,7 +395,7 @@ class _PassengerHomeState extends State<PassengerHome> {
       _destinationDescription = null;
       _destinationLatLng = null;
       _polylines.clear();
-      _markers.remove(const MarkerId("driver-marker"));
+      _markers.remove(const MarkerId("driver"));
       _markers.remove(const MarkerId("start"));
       _markers.remove(const MarkerId("destination"));
       MapHelper.resetCamera(_mapController!, _currentPosition);

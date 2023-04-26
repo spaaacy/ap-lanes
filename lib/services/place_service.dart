@@ -5,18 +5,19 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
 
-import '../data/model/map/suggestion.dart';
+import '../data/model/local/suggestion.dart';
 import '../util/constants.dart';
 
 class PlaceService {
   final client = Client();
 
-  Future<List<Suggestion>> fetchSuggestions(String lang, String input, String sessionToken) async {
+  Future<List<Suggestion>> fetchSuggestions(String input, String lang, String sessionToken) async {
     if (input.isEmpty) {
       return [];
     }
 
-    final request = "https://jma3dj321j.execute-api.ap-southeast-2.amazonaws.com/fetch-suggestions?input=$input&lang=$lang&sessiontoken=$sessionToken";
+    final request =
+        "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=establishment&language=$lang&components=country:my&key=$androidApiKey&sessiontoken=$sessionToken";
     final response = await client.get(Uri.parse(request));
 
     if (response.statusCode == 200) {
@@ -38,13 +39,13 @@ class PlaceService {
     }
   }
 
-  Future<LatLng> fetchLatLong(String lang, String placeId, String sessionToken) async {
+  Future<LatLng> fetchLatLng(String placeId, String lang, String sessionToken) async {
     if (placeId.isEmpty) {
       return const LatLng(0.0, 0.0);
     }
 
-
-    final request = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey&sessiontoken=$sessionToken";
+    final request =
+        "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey&sessiontoken=$sessionToken";
 
     final response = await client.get(Uri.parse(request));
 
@@ -61,7 +62,7 @@ class PlaceService {
 
       throw Exception(result['error_message']);
     } else {
-      throw Exception('Failed to fetch suggestion');
+      throw Exception('Failed to fetch latitude longitude');
     }
   }
 
@@ -69,10 +70,11 @@ class PlaceService {
     final polylinePoints = PolylinePoints();
     final points = <LatLng>[];
 
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(androidApiKey,
-        PointLatLng(start.latitude, start.longitude),
-        PointLatLng(end.latitude, end.longitude),
-        travelMode: TravelMode.driving
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      androidApiKey,
+      PointLatLng(start.latitude, start.longitude),
+      PointLatLng(end.latitude, end.longitude),
+      travelMode: TravelMode.driving,
     );
 
     if (result.status == "OK") {
@@ -92,5 +94,4 @@ class PlaceService {
 
     return polyline;
   }
-
 }

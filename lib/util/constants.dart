@@ -1,6 +1,7 @@
 // Google Maps API Key
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+// Maps API
 const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
 
 // Firebase Authentication
