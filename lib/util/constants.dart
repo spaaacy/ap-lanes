@@ -8,10 +8,6 @@ const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
 const String signedIn = "SIGNED_IN";
 const String signedUp = "SIGNED_UP";
 
-// User Type
-const String passenger = "PASSENGER";
-const String driver = "DRIVER";
-
 // Icon Size
 const int userIconSize = 90;
 const int driverIconSize = 120;

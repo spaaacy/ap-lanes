@@ -66,6 +66,7 @@ class _PassengerHomeState extends State<PassengerHome> {
   bool _toApu = false;
   String? _driverName;
   String? _driverLicensePlate;
+  String? _driverPhone;
 
   // Google Map Variables
   GoogleMapController? _mapController;
@@ -143,6 +144,7 @@ class _PassengerHomeState extends State<PassengerHome> {
             _userRepo.getUser(driverId).then((driver) {
               if (driver != null) {
                 _driverName = driver.data().getFullName();
+                _driverPhone = driver.data().phoneNumber;
               }
             });
 
@@ -241,6 +243,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                     inJourney: _inJourney,
                     driverName: _driverName,
                     driverLicensePlate: _driverLicensePlate,
+                    driverPhone: _driverPhone,
                     isPickedUp: _isPickedUp,
                     hasDriver: _hasDriver,
                     journey: _journey,
@@ -388,6 +391,7 @@ class _PassengerHomeState extends State<PassengerHome> {
     setState(() {
       _driverName = null;
       _driverLicensePlate = null;
+      _driverPhone = null;
       _journey = null;
       _isSearching = false;
       _inJourney = false;
