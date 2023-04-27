@@ -48,10 +48,10 @@ class AuthService {
     _userRepo.createUser(
       model.User(
         id: id!,
-        userType: passenger,
         email: userEmail!,
         firstName: firstName,
         lastName: lastName,
+        phoneNumber: "TEMPORARY" // TODO: Change this @wooneusean
       ),
     );
 

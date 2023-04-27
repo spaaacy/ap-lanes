@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/model/remote/journey.dart';
 import '../../../data/repo/journey_repo.dart';
@@ -8,6 +9,7 @@ import '../../../util/location_helpers.dart';
 class JourneyDetail extends StatelessWidget {
   final String? driverName;
   final String? driverLicensePlate;
+  final String? driverPhone;
   final bool hasDriver;
   final bool isPickedUp;
   final bool inJourney;
@@ -17,6 +19,7 @@ class JourneyDetail extends StatelessWidget {
     super.key,
     required this.driverName,
     required this.driverLicensePlate,
+    required this.driverPhone,
     required this.hasDriver,
     required this.isPickedUp,
     required this.inJourney,
@@ -53,7 +56,7 @@ class JourneyDetail extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ...(() {
-                          if (driverName != null && driverLicensePlate != null) {
+                          if (driverName != null && driverLicensePlate != null && driverPhone != null) {
                             return [
                               Text("Your Driver",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
@@ -63,6 +66,9 @@ class JourneyDetail extends StatelessWidget {
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
                               Text(driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
+                              Text("License Plate",
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text(driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                             ];
                           } else {
                             return [
@@ -79,11 +85,13 @@ class JourneyDetail extends StatelessWidget {
                           if (journey != null) {
                             return [
                               Text("TO", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(trimDescription(journey!.data().endDescription), style: Theme.of(context).textTheme.titleSmall),
+                              Text(trimDescription(journey!.data().endDescription),
+                                  style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                               Text("FROM",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(trimDescription(journey!.data().startDescription), style: Theme.of(context).textTheme.titleSmall),
+                              Text(trimDescription(journey!.data().startDescription),
+                                  style: Theme.of(context).textTheme.titleSmall),
                             ];
                           }
                         }())
@@ -93,44 +101,60 @@ class JourneyDetail extends StatelessWidget {
                 ),
                 const SizedBox(height: 4.0),
                 ...?(() {
-                  if (hasDriver && !isPickedUp) {
+                  if (hasDriver) {
                     return [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        onPressed: () {
-                          showDialog<String>(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text("Cancel journey"),
-                                  content: const Text("Are you sure you would like to cancel your journey?"),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context, "No");
-                                        },
-                                        child: const Text("No")),
-                                    TextButton(
-                                        onPressed: () async {
-                                          try {
-                                            await _journeyRepo.cancelJourneyAsPassenger(journey!);
-                                          } catch (exception) {
-                                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                content: Text(
-                                                    "Sorry, you cannot cancel the journey after being picked up.")));
-                                          } finally {
-                                            Navigator.pop(context, "Yes");
-                                          }
-                                        },
-                                        child: const Text("Yes")),
-                                  ],
-                                );
-                              });
-                        },
-                        child: const Padding(
-                          padding: EdgeInsets.only(left: 8.0, right: 8.0),
-                          child: Text("Cancel"),
-                        ),
+                      Row(
+                        children: [
+                          ...?(() {
+                            if (!isPickedUp) {
+                              return [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  onPressed: () {
+                                    showDialog<String>(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text("Cancel journey"),
+                                            content: const Text("Are you sure you would like to cancel your journey?"),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context, "No");
+                                                  },
+                                                  child: const Text("No")),
+                                              TextButton(
+                                                  onPressed: () async {
+                                                    try {
+                                                      await _journeyRepo.cancelJourneyAsPassenger(journey!);
+                                                    } catch (exception) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                          content: Text(
+                                                              "Sorry, you cannot cancel the journey after being picked up.")));
+                                                    } finally {
+                                                      Navigator.pop(context, "Yes");
+                                                    }
+                                                  },
+                                                  child: const Text("Yes")),
+                                            ],
+                                          );
+                                        });
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(left: 8.0, right: 8.0),
+                                    child: Text("Cancel"),
+                                  ),
+                                )
+                              ];
+                            }
+                          }()),
+                          const Spacer(),
+                          IconButton(
+                              onPressed: () {
+                                launchUrl(Uri.parse("tel://${driverPhone?.trim()}"));
+                              },
+                              icon: const Icon(Icons.phone)),
+                        ],
                       )
                     ];
                   }
