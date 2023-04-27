@@ -52,6 +52,7 @@ class AuthService {
         email: userEmail!,
         firstName: firstName,
         lastName: lastName,
+        phoneNumber: "TEMPORARY" // TODO: Change this @wooneusean
       ),
     );
 

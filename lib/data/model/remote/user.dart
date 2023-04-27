@@ -6,6 +6,7 @@ class User {
   final String email;
   final String firstName;
   final String lastName;
+  final String phoneNumber;
 
   User({
     required this.id,
@@ -13,6 +14,7 @@ class User {
     required this.email,
     required this.firstName,
     required this.lastName,
+    required this.phoneNumber,
   });
 
   Map<String, dynamic> toFirestore() {
@@ -22,6 +24,7 @@ class User {
       if (email != null) "email": email,
       if (firstName != null) "firstName": firstName,
       if (lastName != null) "lastName": lastName,
+      if (phoneNumber != null) "phoneNumber": phoneNumber,
     };
   }
 
@@ -36,6 +39,7 @@ class User {
       email: data?['email'],
       firstName: data?['firstName'],
       lastName: data?['lastName'],
+      phoneNumber: data?['phoneNumber'],
     );
   }
 
