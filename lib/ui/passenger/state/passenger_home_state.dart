@@ -68,6 +68,14 @@ class PassengerHomeState extends ChangeNotifier {
   /*
   * Functions
   * */
+  @override
+  void dispose() {
+    _driverListener?.cancel();
+    _journeyListener?.cancel();
+    _locationListener?.cancel();
+    super.dispose();
+  }
+
   void initializeIcons() async {
     _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
     _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
