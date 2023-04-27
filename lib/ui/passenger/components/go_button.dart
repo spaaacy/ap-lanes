@@ -2,36 +2,26 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class GoButton extends StatelessWidget {
-  final bool isSearching;
-  final bool hasDriver;
-  final Function(bool) updateIsSearching;
-  final Function() createJourney;
-  final Function() deleteJourney;
+import '../state/passenger_home_state.dart';
 
-  const GoButton({
-    super.key,
-    required this.isSearching,
-    required this.hasDriver,
-    required this.updateIsSearching,
-    required this.createJourney,
-    required this.deleteJourney,
-  });
+class GoButton extends StatelessWidget {
+  const GoButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<firebase_auth.User?>();
+    final state = Provider.of<PassengerHomeState>(context);
 
-    if (!hasDriver) {
+    if (!state.hasDriver) {
       return ElevatedButton(
           onPressed: () {
             if (firebaseUser != null) {
-              if (!isSearching) {
-                updateIsSearching(true);
-                createJourney();
+              if (!state.isSearching) {
+                state.updateIsSearching(true);
+                state.createJourney();
               } else {
-                updateIsSearching(false);
-                deleteJourney();
+                state.updateIsSearching(false);
+                state.deleteJourney();
               }
             }
           },
@@ -40,7 +30,7 @@ class GoButton extends StatelessWidget {
                 padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
                 elevation: const MaterialStatePropertyAll(6.0),
               ),
-          child: !isSearching
+          child: !state.isSearching
               ? const Text("GO")
               : const Icon(
                   Icons.close,
@@ -48,7 +38,7 @@ class GoButton extends StatelessWidget {
                   size: 20,
                 ));
     } else {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 }
