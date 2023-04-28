@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 enum UserMode {passengerMode, driverMode}
 
-class UserModeState extends ChangeNotifier {
+class UserWrapperState extends ChangeNotifier {
   UserMode _userMode = UserMode.passengerMode;
 
   UserMode get userMode => _userMode;

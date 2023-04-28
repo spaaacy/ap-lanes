@@ -19,13 +19,14 @@ import '../../util/constants.dart';
 import '../../util/greeting.dart';
 import '../../util/map_helper.dart';
 import '../common/app_drawer.dart';
-import '../common/map_view.dart';
+import '../common/map_view/map_view.dart';
+import '../common/map_view/map_view_state.dart';
 import '../passenger/passenger_home.dart';
-import '../passenger/state/passenger_home_state.dart';
+import '../passenger/passenger_home_state.dart';
 import 'components/journey_request_popup.dart';
 import 'components/ongoing_journey_popup.dart';
 import 'components/setup_driver_profile_dialog.dart';
-import 'state/driver_home_state.dart';
+import 'driver_home_state.dart';
 
 class DriverHome extends StatefulWidget {
   const DriverHome({super.key});
@@ -34,59 +35,54 @@ class DriverHome extends StatefulWidget {
   State<DriverHome> createState() => _DriverHomeState();
 }
 
+
 class _DriverHomeState extends State<DriverHome> {
-  bool _isSearching = false;
-  DocumentSnapshot<Journey>? _activeJourney;
+  late final MapViewState mapViewState;
   late final firebase_auth.User? firebaseUser;
+
+  bool _isSearching = false;
+
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
   final _placeService = PlaceService();
+  DocumentSnapshot<Journey>? _activeJourney;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Driver>? _driver;
   QueryDocumentSnapshot<Journey>? _availableJourneySnapshot;
   StreamSubscription<QuerySnapshot<Journey>>? _activeJourneyListener;
-  GoogleMapController? _mapController;
-  final Set<Polyline> _polylines = <Polyline>{};
-  late final BitmapDescriptor _locationIcon; // Use this for location markers
-  late final BitmapDescriptor _driverIcon;
-  bool _shouldCenter = true;
-  late String _mapStyle;
-  final Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
-  LatLng? _currentPosition;
-  late StreamSubscription<Position> _locationListener;
 
   void updateJourneyRoutePolylines(Journey journey) {
     final start = journey.startLatLng;
     final end = journey.endLatLng;
     _placeService.fetchRoute(start, end).then((polylines) {
       setState(() {
-        _polylines.clear();
-        _polylines.add(polylines);
+        mapViewState.polylines.clear();
+        mapViewState.polylines.add(polylines);
         MapHelper.setCameraToRoute(
-          mapController: _mapController!,
-          polylines: _polylines,
+          mapController: mapViewState.mapController!,
+          polylines: mapViewState.polylines,
           topOffsetPercentage: 1,
           bottomOffsetPercentage: 0.2,
         );
-        _markers[const MarkerId("start")] = Marker(
+        mapViewState.markers[const MarkerId("start")] = Marker(
           markerId: const MarkerId("start"),
           position: start,
-          icon: _locationIcon,
+          icon: mapViewState.locationIcon!,
         );
-        _markers[const MarkerId("destination")] = Marker(
+        mapViewState.markers[const MarkerId("destination")] = Marker(
           markerId: const MarkerId("destination"),
           position: end,
-          icon: _locationIcon,
+          icon: mapViewState.locationIcon!,
         );
       });
     });
   }
 
   Future<void> _updateJourneyRequestListener() async {
-    _polylines.clear();
-    _markers.remove(const MarkerId("start"));
-    _markers.remove(const MarkerId("destination"));
+    mapViewState.polylines.clear();
+    mapViewState.markers.remove(const MarkerId("start"));
+    mapViewState.markers.remove(const MarkerId("destination"));
 
     if (_isSearching) {
       StreamSubscription<QuerySnapshot<Journey>>? journeyListener;
@@ -99,7 +95,7 @@ class _DriverHomeState extends State<DriverHome> {
       });
     } else {
       _availableJourneySnapshot = null;
-      MapHelper.resetCamera(_mapController, _currentPosition);
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
     }
     setState(() {});
   }
@@ -107,36 +103,9 @@ class _DriverHomeState extends State<DriverHome> {
   @override
   initState() {
     super.initState();
-
-    if (mounted) {
-      _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
-        final latLng = LatLng(position.latitude, position.longitude);
-        setState(() {
-          _currentPosition = latLng;
-          _markers[const MarkerId("driver")] = Marker(
-            markerId: const MarkerId("driver"),
-            position: _currentPosition!,
-            icon: _driverIcon,
-          );
-
-          if (_activeJourney == null) {
-            if (_shouldCenter) {
-              MapHelper.resetCamera(_mapController, _currentPosition!);
-            }
-          } else {
-            LatLng targetLatLng = _activeJourney!.data()!.isPickedUp
-                ? _activeJourney!.data()!.endLatLng
-                : _activeJourney!.data()!.startLatLng;
-            updateCameraBoundsWithPopup(latLng, targetLatLng);
-          }
-        });
-      });
-    }
+    mapViewState = context.read<MapViewState>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
-      _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
-
       if (mounted) {
         firebaseUser = context.read<firebase_auth.User?>();
       }
@@ -235,25 +204,25 @@ class _DriverHomeState extends State<DriverHome> {
           _activeJourney = ss.docs.first;
 
           if (_activeJourney!.data()!.isPickedUp) {
-            _markers[const MarkerId("drop-off")] = Marker(
+            mapViewState.markers[const MarkerId("drop-off")] = Marker(
               markerId: const MarkerId("drop-off"),
               position: _activeJourney!.data()!.endLatLng,
-              icon: _locationIcon,
+              icon: mapViewState.locationIcon!,
             );
-            updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.endLatLng);
+            updateCameraBoundsWithPopup(mapViewState.currentPosition, _activeJourney!.data()!.endLatLng);
           } else {
-            _markers[const MarkerId("pick-up")] = Marker(
+            mapViewState.markers[const MarkerId("pick-up")] = Marker(
               markerId: const MarkerId("pick-up"),
               position: _activeJourney!.data()!.startLatLng,
-              icon: _locationIcon,
+              icon: mapViewState.locationIcon!,
             );
-            updateCameraBoundsWithPopup(_currentPosition, _activeJourney!.data()!.startLatLng);
+            updateCameraBoundsWithPopup(mapViewState.currentPosition, _activeJourney!.data()!.startLatLng);
           }
         });
       } else {
         setState(() {
-          _markers.remove(const MarkerId("drop-off"));
-          _markers.remove(const MarkerId("pick-up"));
+          mapViewState.markers.remove(const MarkerId("drop-off"));
+          mapViewState.markers.remove(const MarkerId("pick-up"));
           _activeJourney = null;
         });
       }
@@ -265,7 +234,7 @@ class _DriverHomeState extends State<DriverHome> {
       return;
     }
     MapHelper.setCameraBetweenMarkers(
-      mapController: _mapController,
+      mapController: mapViewState.mapController,
       firstLatLng: latLng,
       secondLatLng: otherLatLng,
       topOffsetPercentage: 1,
@@ -276,7 +245,6 @@ class _DriverHomeState extends State<DriverHome> {
   @override
   void dispose() {
     _activeJourneyListener?.cancel();
-    _locationListener.cancel();
     super.dispose();
   }
 
@@ -322,12 +290,12 @@ class _DriverHomeState extends State<DriverHome> {
         await _activeJourneyListener?.cancel();
 
         setState(() {
-          _markers.remove(const MarkerId("drop-off"));
-          _markers.remove(const MarkerId("pick-up"));
+          mapViewState.markers.remove(const MarkerId("drop-off"));
+          mapViewState.markers.remove(const MarkerId("pick-up"));
           _activeJourney = null;
         });
 
-        MapHelper.resetCamera(_mapController, _currentPosition!);
+        MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -346,23 +314,23 @@ class _DriverHomeState extends State<DriverHome> {
         bool isPickedUp = await _journeyRepo.updateJourneyPickUpStatus(activeJourney);
         if (isPickedUp) {
           setState(() {
-            _markers.remove(const MarkerId("pick-up"));
-            _markers[const MarkerId("pick-up")] = Marker(
+            mapViewState.markers.remove(const MarkerId("pick-up"));
+            mapViewState.markers[const MarkerId("pick-up")] = Marker(
               markerId: const MarkerId("pick-up"),
               position: activeJourney!.data()!.endLatLng,
-              icon: _locationIcon,
+              icon: mapViewState.locationIcon!,
             );
-            updateCameraBoundsWithPopup(_currentPosition, activeJourney.data()!.endLatLng);
+            updateCameraBoundsWithPopup(mapViewState.currentPosition, activeJourney.data()!.endLatLng);
           });
         } else {
           setState(() {
-            _markers.remove(const MarkerId("drop-off"));
-            _markers[const MarkerId("pick-up")] = Marker(
+            mapViewState.markers.remove(const MarkerId("drop-off"));
+            mapViewState.markers[const MarkerId("pick-up")] = Marker(
               markerId: const MarkerId("pick-up"),
               position: activeJourney!.data()!.startLatLng,
-              icon: _locationIcon,
+              icon: mapViewState.locationIcon!,
             );
-            updateCameraBoundsWithPopup(_currentPosition, activeJourney.data()!.startLatLng);
+            updateCameraBoundsWithPopup(mapViewState.currentPosition, activeJourney.data()!.startLatLng);
           });
         }
       } catch (e) {
@@ -384,16 +352,16 @@ class _DriverHomeState extends State<DriverHome> {
         );
         toggleIsSearching();
         setState(() {
-          _polylines.clear();
-          _markers.remove(const MarkerId("start"));
-          _markers.remove(const MarkerId("destination"));
+          mapViewState.polylines.clear();
+          mapViewState.markers.remove(const MarkerId("start"));
+          mapViewState.markers.remove(const MarkerId("destination"));
           _activeJourney = updatedJourney;
-          _markers[const MarkerId("pick-up")] = Marker(
+          mapViewState.markers[const MarkerId("pick-up")] = Marker(
             markerId: const MarkerId("pick-up"),
             position: updatedJourney!.data()!.startLatLng,
-            icon: _locationIcon,
+            icon: mapViewState.locationIcon!,
           );
-          updateCameraBoundsWithPopup(_currentPosition, updatedJourney.data()!.startLatLng);
+          updateCameraBoundsWithPopup(mapViewState.currentPosition, updatedJourney.data()!.startLatLng);
           startOngoingJourneyListener();
         });
       } catch (e) {
@@ -412,9 +380,9 @@ class _DriverHomeState extends State<DriverHome> {
         ..driver = _driver
         ..user = _user
         ..isSearching = _isSearching
-        ..mapController = _mapController
+        ..mapController = mapViewState.mapController
         ..activeJourney = _activeJourney
-        ..polylines = _polylines,
+        ..polylines = mapViewState.polylines,
       child: isLoading()
           ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : Scaffold(
@@ -438,24 +406,7 @@ class _DriverHomeState extends State<DriverHome> {
             }),
         body: Stack(
                 children: [
-                  MapView(
-                    userLatLng: _currentPosition,
-                    markers: _markers,
-                    polylines: _polylines,
-                    mapController: _mapController,
-                    onMapCreated: (controller) async {
-                      setState(() {
-                        _mapController = controller;
-                      });
-                      _mapStyle = await MapHelper.getMapStyle();
-                      controller.setMapStyle(_mapStyle);
-                    },
-                    setShouldCenter: (shouldCenter) {
-                      setState(() {
-                        _shouldCenter = shouldCenter;
-                      });
-                    },
-                  ),
+                  const MapView(),
                   Positioned.fill(
                     bottom: 100.0,
                     child: Align(
@@ -494,7 +445,7 @@ class _DriverHomeState extends State<DriverHome> {
                       return JourneyRequestPopup(
                         isSearching: _isSearching,
                         journey: _availableJourneySnapshot,
-                        routeDistance: MapHelper.calculateRouteDistance(_polylines.firstOrNull),
+                        routeDistance: MapHelper.calculateRouteDistance(mapViewState.polylines.firstOrNull),
                         onNavigate: (direction) async {
                           QuerySnapshot<Journey> newJourneyRequest;
                           if (direction == 1) {

@@ -13,7 +13,7 @@ import '../../../data/model/remote/user.dart';
 import '../../../data/repo/driver_repo.dart';
 import '../../../data/repo/user_repo.dart';
 import '../../../util/url_helpers.dart';
-import '../state/driver_home_state.dart';
+import '../driver_home_state.dart';
 
 enum DriverAction { idle, pickingUp, droppingOff }
 

@@ -1,29 +1,31 @@
 import 'dart:async';
 
 import 'package:ap_lanes/data/repo/driver_repo.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/cupertino.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../data/model/remote/driver.dart';
-import '../../../data/model/remote/journey.dart';
-import '../../../data/model/remote/passenger.dart';
-import '../../../data/model/remote/user.dart';
-import '../../../data/repo/journey_repo.dart';
-import '../../../data/repo/passenger_repo.dart';
-import '../../../data/repo/user_repo.dart';
-import '../../../services/place_service.dart';
-import '../../../util/constants.dart';
-import '../../../util/map_helper.dart';
+import '../../data/model/remote/driver.dart';
+import '../../data/model/remote/journey.dart';
+import '../../data/model/remote/passenger.dart';
+import '../../data/model/remote/user.dart';
+import '../../data/repo/journey_repo.dart';
+import '../../data/repo/passenger_repo.dart';
+import '../../data/repo/user_repo.dart';
+import '../../services/place_service.dart';
+import '../../util/constants.dart';
+import '../../util/map_helper.dart';
 
 class PassengerHomeState extends ChangeNotifier {
   /*
   * Variables
   * */
+  late final MapViewState mapViewState;
+
   final _passengerRepo = PassengerRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
@@ -35,7 +37,6 @@ class PassengerHomeState extends ChangeNotifier {
   QueryDocumentSnapshot<Journey>? _journey;
 
   StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
-  StreamSubscription<Position>? _locationListener;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
   String? _lastName;
@@ -54,17 +55,6 @@ class PassengerHomeState extends ChangeNotifier {
   final _searchController = TextEditingController();
   String _sessionToken = const Uuid().v4();
 
-  // Google Map Variables
-  GoogleMapController? _mapController;
-  late final BitmapDescriptor _userIcon;
-  late final BitmapDescriptor _driverIcon;
-  late final BitmapDescriptor _locationIcon;
-  bool _shouldCenter = true;
-  LatLng? _currentPosition;
-  final Set<Polyline> _polylines = <Polyline>{};
-  final Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
-  late String _mapStyle;
-
   /*
   * Functions
   * */
@@ -72,37 +62,12 @@ class PassengerHomeState extends ChangeNotifier {
   void dispose() {
     _driverListener?.cancel();
     _journeyListener?.cancel();
-    _locationListener?.cancel();
     super.dispose();
   }
 
   Future<void> initialize(BuildContext context) async {
+    mapViewState = context.read<MapViewState>();
     initializeFirestore(context);
-    initializeLocation(context);
-    await initializeIcons();
-  }
-
-  Future<void> initializeIcons() async {
-    _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
-    _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
-    _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
-  }
-
-  void initializeLocation(BuildContext context) {
-    _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
-      final latLng = LatLng(position.latitude, position.longitude);
-        _currentPosition = latLng;
-        _markers[const MarkerId("user")] = Marker(
-          markerId: const MarkerId("user"),
-          position: _currentPosition!,
-          icon: _userIcon,
-        );
-
-        if (_shouldCenter) {
-          MapHelper.resetCamera(_mapController, _currentPosition);
-        }
-      notifyListeners();
-    });
   }
   
   Future<void> initializeFirestore(BuildContext context) async {
@@ -147,22 +112,22 @@ class PassengerHomeState extends ChangeNotifier {
                 _hasDriver = true;
                 _driverLicensePlate = driver.data().licensePlate;
                 _routeDistance = null;
-                _polylines.clear();
-                _markers.remove(const MarkerId("start"));
-                _markers.remove(const MarkerId("destination"));
+                mapViewState.polylines.clear();
+                mapViewState.markers.remove(const MarkerId("start"));
+                mapViewState.markers.remove(const MarkerId("destination"));
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
                 _driverListener ??= _driverRepo.listenToDriver(driverId).listen((driver) {
                   if (driver.docs.isNotEmpty) {
                     final latLng = driver.docs.first.data().currentLatLng;
-                    if (latLng != null && _currentPosition != null) {
-                      _markers[const MarkerId("driver")] =
-                          Marker(markerId: const MarkerId("driver"), position: latLng, icon: _driverIcon);
+                    if (latLng != null && mapViewState.currentPosition != null) {
+                      mapViewState.markers[const MarkerId("driver")] =
+                          Marker(markerId: const MarkerId("driver"), position: latLng, icon: mapViewState.driverIcon!); // TODO: Recheck assertion
                       MapHelper.setCameraBetweenMarkers(
-                        mapController: _mapController!,
+                        mapController: mapViewState.mapController!,
                         firstLatLng: latLng,
-                        secondLatLng: _currentPosition!,
+                        secondLatLng: mapViewState.currentPosition!,
                         topOffsetPercentage: 3,
                         bottomOffsetPercentage: 1,
                       );
@@ -193,11 +158,11 @@ class PassengerHomeState extends ChangeNotifier {
       final start = _toApu ? _destinationLatLng! : apuLatLng;
       final end = _toApu ? apuLatLng : _destinationLatLng!;
       _placeService.fetchRoute(start, end).then((polylines) {
-        _polylines.clear();
-        _polylines.add(polylines);
+        mapViewState.polylines.clear();
+        mapViewState.polylines.add(polylines);
         MapHelper.setCameraToRoute(
-          mapController: _mapController!,
-          polylines: _polylines,
+          mapController: mapViewState.mapController!,
+          polylines: mapViewState.polylines,
           topOffsetPercentage: 0.5,
           bottomOffsetPercentage: 0.5,
         );
@@ -208,40 +173,42 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void clearUserLocation() {
+
+
     _destinationLatLng = null;
-    _polylines.clear();
+    mapViewState.polylines.clear();
     _routeDistance = null;
-    _markers.remove(const MarkerId("start"));
-    _markers.remove(const MarkerId("destination"));
-    if (_currentPosition != null) {
-      MapHelper.resetCamera(_mapController, _currentPosition!);
+    mapViewState.markers.remove(const MarkerId("start"));
+    mapViewState.markers.remove(const MarkerId("destination"));
+    if (mapViewState.currentPosition != null) {
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
     }
     _routeDistance = null;
     notifyListeners();
   }
 
-  void onLatLng(latLng) {
+  void onLatLng(BuildContext context, latLng) {
     _destinationLatLng = latLng;
     final start = _toApu ? _destinationLatLng! : apuLatLng;
     final end = _toApu ? apuLatLng : _destinationLatLng!;
     notifyListeners(); // Notifies when _destinationLatLng set
     _placeService.fetchRoute(start, end).then((polylines) {
-      _polylines.add(polylines);
+      mapViewState.polylines.add(polylines);
       MapHelper.setCameraToRoute(
-        mapController: _mapController!,
-        polylines: _polylines,
+        mapController: mapViewState.mapController!,
+        polylines: mapViewState.polylines,
         topOffsetPercentage: 0.5,
         bottomOffsetPercentage: 0.5,
       );
-      _markers[const MarkerId("start")] = Marker(
+      mapViewState.markers[const MarkerId("start")] = Marker(
         markerId: const MarkerId("start"),
         position: start,
-        icon: _locationIcon,
+        icon: mapViewState.locationIcon!,
       );
-      _markers[const MarkerId("destination")] = Marker(
+      mapViewState.markers[const MarkerId("destination")] = Marker(
         markerId: const MarkerId("destination"),
         position: end,
-        icon: _locationIcon,
+        icon: mapViewState.locationIcon!,
       );
       _routeDistance = MapHelper.calculateRouteDistance(polylines);
       notifyListeners(); // Notifies when route is received
@@ -291,11 +258,11 @@ class PassengerHomeState extends ChangeNotifier {
     routeDistance = null;
     destinationDescription = null;
     destinationLatLng = null;
-    _polylines.clear();
-    _markers.remove(const MarkerId("driver"));
-    _markers.remove(const MarkerId("start"));
-    _markers.remove(const MarkerId("destination"));
-    MapHelper.resetCamera(_mapController!, _currentPosition);
+    mapViewState.polylines.clear();
+    mapViewState.markers.remove(const MarkerId("driver"));
+    mapViewState.markers.remove(const MarkerId("start"));
+    mapViewState.markers.remove(const MarkerId("destination"));
+    MapHelper.resetCamera(mapViewState.mapController!, mapViewState.currentPosition);
     await _driverListener?.cancel();
     _driverListener = null;
     notifyListeners();
@@ -303,7 +270,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   void disposeListener() {
     _journeyListener?.cancel();
-    _locationListener?.cancel();
     _driverListener?.cancel();
   }
 
@@ -314,29 +280,9 @@ class PassengerHomeState extends ChangeNotifier {
 
   String get sessionToken => _sessionToken;
 
-  GoogleMapController? get mapController => _mapController;
-
-  BitmapDescriptor get userIcon => _userIcon;
-
-  BitmapDescriptor get driverIcon => _driverIcon;
-
-  BitmapDescriptor get locationIcon => _locationIcon;
-
-  bool get shouldCenter => _shouldCenter;
-
-  LatLng? get currentPosition => _currentPosition;
-
-  Set<Polyline> get polylines => _polylines;
-
-  Map<MarkerId, Marker> get markers => _markers;
-
-  String get mapStyle => _mapStyle;
-
   QueryDocumentSnapshot<User>? get user => _user;
 
   StreamSubscription<QuerySnapshot<Journey>>? get journeyListener => _journeyListener;
-
-  StreamSubscription<Position>? get locationListener => _locationListener;
 
   StreamSubscription<QuerySnapshot<Driver>>? get driverListener => _driverListener;
 
@@ -371,41 +317,6 @@ class PassengerHomeState extends ChangeNotifier {
   /*
   * Setters
   * */
-  set mapStyle(String value) {
-    _mapStyle = value;
-    notifyListeners();
-  }
-
-  set currentPosition(LatLng? value) {
-    _currentPosition = value;
-    notifyListeners();
-  }
-
-  set shouldCenter(bool value) {
-    _shouldCenter = value;
-    notifyListeners();
-  }
-
-  set locationIcon(BitmapDescriptor value) {
-    _locationIcon = value;
-    notifyListeners();
-  }
-
-  set driverIcon(BitmapDescriptor value) {
-    _driverIcon = value;
-    notifyListeners();
-  }
-
-  set userIcon(BitmapDescriptor value) {
-    _userIcon = value;
-    notifyListeners();
-  }
-
-  set mapController(GoogleMapController? value) {
-    _mapController = value;
-    notifyListeners();
-  }
-
   set sessionToken(String value) {
     _sessionToken = value;
     notifyListeners();
@@ -418,11 +329,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   set journeyListener(StreamSubscription<QuerySnapshot<Journey>>? value) {
     _journeyListener = value;
-    notifyListeners();
-  }
-
-  set locationListener(StreamSubscription<Position>? value) {
-    _locationListener = value;
     notifyListeners();
   }
 

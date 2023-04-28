@@ -92,26 +92,12 @@ class MapHelper {
     );
   }
 
-  static Stream<Position> getCurrentPosition(BuildContext context) async* {
-    final hasPermissions = await handleLocationPermission(context);
-
-    if (hasPermissions) {
-      yield* Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
-      );
-    }
-  }
-
   static Future<BitmapDescriptor> getCustomIcon(String path, int size) async {
     final Uint8List? resizedIcon = await getBytesFromAsset(path, size);
     return resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
   }
 
-  static Future<String> getMapStyle() async {
-    return rootBundle.loadString('assets/map_style.txt');
-  }
-
-  static void resetCamera(GoogleMapController? mapController, LatLng? currentPosition) {
+  static Future<void> resetCamera(GoogleMapController? mapController, LatLng? currentPosition) async {
     if (currentPosition == null) return;
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
