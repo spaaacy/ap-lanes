@@ -11,6 +11,7 @@ import '../../services/auth_service.dart';
 import '../auth/auth_wrapper.dart';
 import '../driver/driver_home.dart';
 import '../passenger/passenger_home.dart';
+import '../passenger/state/passenger_home_state.dart';
 
 class AppDrawer extends StatelessWidget {
   final QueryDocumentSnapshot<User>? user;
@@ -106,7 +107,11 @@ class AppDrawer extends StatelessWidget {
                     : () {
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
-                            builder: (BuildContext context) => const PassengerHome(),
+                            builder: (BuildContext context) => ChangeNotifierProvider(
+                                create: (context) {
+                                  return PassengerHomeState()..initialize(context);
+                                },
+                                child: const PassengerHome()),
                           ),
                           (_) => false,
                         );

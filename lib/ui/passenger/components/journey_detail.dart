@@ -1,42 +1,24 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../data/model/remote/journey.dart';
-import '../../../data/repo/journey_repo.dart';
 import '../../../util/location_helpers.dart';
+import '../state/passenger_home_state.dart';
 
 class JourneyDetail extends StatelessWidget {
-  final String? driverName;
-  final String? driverLicensePlate;
-  final String? driverPhone;
-  final bool hasDriver;
-  final bool isPickedUp;
-  final bool inJourney;
-  final QueryDocumentSnapshot<Journey>? journey;
-
-  JourneyDetail({
-    super.key,
-    required this.driverName,
-    required this.driverLicensePlate,
-    required this.driverPhone,
-    required this.hasDriver,
-    required this.isPickedUp,
-    required this.inJourney,
-    required this.journey,
-  });
-
-  final _journeyRepo = JourneyRepo();
+  const JourneyDetail({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final state = Provider.of<PassengerHomeState>(context);
+
     return Positioned.fill(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Align(
           alignment: Alignment.topCenter,
           child: AnimatedOpacity(
-            opacity: (inJourney) ? 1.0 : 0.0,
+            opacity: (state.inJourney) ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -56,19 +38,19 @@ class JourneyDetail extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ...(() {
-                          if (driverName != null && driverLicensePlate != null && driverPhone != null) {
+                          if (state.driverName != null && state.driverLicensePlate != null && state.driverPhone != null) {
                             return [
                               Text("Your Driver",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(driverName!, style: Theme.of(context).textTheme.titleSmall),
+                              Text(state.driverName!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                               Text("License Plate",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
+                              Text(state.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                               Text("License Plate",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
+                              Text(state.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                             ];
                           } else {
                             return [
@@ -82,15 +64,15 @@ class JourneyDetail extends StatelessWidget {
                         }()),
                         const SizedBox(height: 8.0),
                         ...?(() {
-                          if (journey != null) {
+                          if (state.journey != null) {
                             return [
                               Text("TO", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(trimDescription(journey!.data().endDescription),
+                              Text(trimDescription(state.journey!.data().endDescription),
                                   style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: 8.0),
                               Text("FROM",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(trimDescription(journey!.data().startDescription),
+                              Text(trimDescription(state.journey!.data().startDescription),
                                   style: Theme.of(context).textTheme.titleSmall),
                             ];
                           }
@@ -101,12 +83,12 @@ class JourneyDetail extends StatelessWidget {
                 ),
                 const SizedBox(height: 4.0),
                 ...?(() {
-                  if (hasDriver) {
+                  if (state.hasDriver) {
                     return [
                       Row(
                         children: [
                           ...?(() {
-                            if (!isPickedUp) {
+                            if (!state.isPickedUp) {
                               return [
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -126,7 +108,7 @@ class JourneyDetail extends StatelessWidget {
                                               TextButton(
                                                   onPressed: () async {
                                                     try {
-                                                      await _journeyRepo.cancelJourneyAsPassenger(journey!);
+                                                      await state.cancelJourneyAsPassenger();
                                                     } catch (exception) {
                                                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                                           content: Text(
@@ -151,7 +133,7 @@ class JourneyDetail extends StatelessWidget {
                           const Spacer(),
                           IconButton(
                               onPressed: () {
-                                launchUrl(Uri.parse("tel://${driverPhone?.trim()}"));
+                                launchUrl(Uri.parse("tel://${state.driverPhone?.trim()}"));
                               },
                               icon: const Icon(Icons.phone)),
                         ],

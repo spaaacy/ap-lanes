@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../passenger/passenger_home.dart';
+import '../passenger/state/passenger_home_state.dart';
 import 'login_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -16,7 +17,12 @@ class AuthWrapper extends StatelessWidget {
     final firebaseUser = context.watch<User?>();
 
     if (firebaseUser != null) {
-      return const PassengerHome();
+      return ChangeNotifierProvider<PassengerHomeState>(
+        create: (context) {
+          return PassengerHomeState()..initialize(context);
+        },
+        child: const PassengerHome(),
+      );
     } else {
       return AuthScreen();
     }
