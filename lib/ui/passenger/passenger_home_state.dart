@@ -5,7 +5,6 @@ import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/cupertino.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -38,7 +37,6 @@ class PassengerHomeState extends ChangeNotifier {
   QueryDocumentSnapshot<Journey>? _journey;
 
   StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
-  StreamSubscription<Position>? _locationListener;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
   String? _lastName;
@@ -57,11 +55,6 @@ class PassengerHomeState extends ChangeNotifier {
   final _searchController = TextEditingController();
   String _sessionToken = const Uuid().v4();
 
-  // Google Map Variables
-  GoogleMapController? _mapController;
-  bool _shouldCenter = true;
-  late String _mapStyle;
-
   /*
   * Functions
   * */
@@ -69,7 +62,6 @@ class PassengerHomeState extends ChangeNotifier {
   void dispose() {
     _driverListener?.cancel();
     _journeyListener?.cancel();
-    _locationListener?.cancel();
     super.dispose();
   }
 
@@ -133,7 +125,7 @@ class PassengerHomeState extends ChangeNotifier {
                       mapViewState.markers[const MarkerId("driver")] =
                           Marker(markerId: const MarkerId("driver"), position: latLng, icon: mapViewState.driverIcon!); // TODO: Recheck assertion
                       MapHelper.setCameraBetweenMarkers(
-                        mapController: _mapController!,
+                        mapController: mapViewState.mapController!,
                         firstLatLng: latLng,
                         secondLatLng: mapViewState.currentPosition!,
                         topOffsetPercentage: 3,
@@ -169,7 +161,7 @@ class PassengerHomeState extends ChangeNotifier {
         mapViewState.polylines.clear();
         mapViewState.polylines.add(polylines);
         MapHelper.setCameraToRoute(
-          mapController: _mapController!,
+          mapController: mapViewState.mapController!,
           polylines: mapViewState.polylines,
           topOffsetPercentage: 0.5,
           bottomOffsetPercentage: 0.5,
@@ -189,7 +181,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.markers.remove(const MarkerId("start"));
     mapViewState.markers.remove(const MarkerId("destination"));
     if (mapViewState.currentPosition != null) {
-      MapHelper.resetCamera(_mapController, mapViewState.currentPosition!);
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
     }
     _routeDistance = null;
     notifyListeners();
@@ -203,7 +195,7 @@ class PassengerHomeState extends ChangeNotifier {
     _placeService.fetchRoute(start, end).then((polylines) {
       mapViewState.polylines.add(polylines);
       MapHelper.setCameraToRoute(
-        mapController: _mapController!,
+        mapController: mapViewState.mapController!,
         polylines: mapViewState.polylines,
         topOffsetPercentage: 0.5,
         bottomOffsetPercentage: 0.5,
@@ -211,12 +203,12 @@ class PassengerHomeState extends ChangeNotifier {
       mapViewState.markers[const MarkerId("start")] = Marker(
         markerId: const MarkerId("start"),
         position: start,
-        icon: mapViewState.locationIcon!, // TODO: Recheck assertion
+        icon: mapViewState.locationIcon!,
       );
       mapViewState.markers[const MarkerId("destination")] = Marker(
         markerId: const MarkerId("destination"),
         position: end,
-        icon: mapViewState.locationIcon!, // TODO: Recheck assertion
+        icon: mapViewState.locationIcon!,
       );
       _routeDistance = MapHelper.calculateRouteDistance(polylines);
       notifyListeners(); // Notifies when route is received
@@ -270,7 +262,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.markers.remove(const MarkerId("driver"));
     mapViewState.markers.remove(const MarkerId("start"));
     mapViewState.markers.remove(const MarkerId("destination"));
-    MapHelper.resetCamera(_mapController!, mapViewState.currentPosition);
+    MapHelper.resetCamera(mapViewState.mapController!, mapViewState.currentPosition);
     await _driverListener?.cancel();
     _driverListener = null;
     notifyListeners();
@@ -278,7 +270,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   void disposeListener() {
     _journeyListener?.cancel();
-    _locationListener?.cancel();
     _driverListener?.cancel();
   }
 
@@ -289,17 +280,9 @@ class PassengerHomeState extends ChangeNotifier {
 
   String get sessionToken => _sessionToken;
 
-  GoogleMapController? get mapController => _mapController;
-
-  bool get shouldCenter => _shouldCenter;
-
-  String get mapStyle => _mapStyle;
-
   QueryDocumentSnapshot<User>? get user => _user;
 
   StreamSubscription<QuerySnapshot<Journey>>? get journeyListener => _journeyListener;
-
-  StreamSubscription<Position>? get locationListener => _locationListener;
 
   StreamSubscription<QuerySnapshot<Driver>>? get driverListener => _driverListener;
 
@@ -334,21 +317,6 @@ class PassengerHomeState extends ChangeNotifier {
   /*
   * Setters
   * */
-  set mapStyle(String value) {
-    _mapStyle = value;
-    notifyListeners();
-  }
-
-  set shouldCenter(bool value) {
-    _shouldCenter = value;
-    notifyListeners();
-  }
-
-  set mapController(GoogleMapController? value) {
-    _mapController = value;
-    notifyListeners();
-  }
-
   set sessionToken(String value) {
     _sessionToken = value;
     notifyListeners();
@@ -361,11 +329,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   set journeyListener(StreamSubscription<QuerySnapshot<Journey>>? value) {
     _journeyListener = value;
-    notifyListeners();
-  }
-
-  set locationListener(StreamSubscription<Position>? value) {
-    _locationListener = value;
     notifyListeners();
   }
 

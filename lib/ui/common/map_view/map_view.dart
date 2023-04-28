@@ -1,45 +1,35 @@
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 
 import '../../../util/map_helper.dart';
 
 class MapView extends StatelessWidget {
-  
-  final LatLng? userLatLng;
-  final Set<Polyline> polylines;
-  final GoogleMapController? mapController;
-  final Function(GoogleMapController) onMapCreated;
-  final Function(bool) setShouldCenter;
-  final Map<MarkerId, Marker> markers;
-
-  const MapView({
-    super.key,
-    this.userLatLng,
-    required this.setShouldCenter,
-    required this.polylines,
-    required this.onMapCreated,
-    required this.mapController,
-    required this.markers,
-  });
+  const MapView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return userLatLng == null
+    final MapViewState mapViewState = context.watch<MapViewState>();
+    final currentPosition = mapViewState.currentPosition;
+
+    return currentPosition == null
         ? const Center(
             child: CircularProgressIndicator(),
           )
         : Stack(
             children: [
               GoogleMap(
-                polylines: polylines,
+                onCameraMove: (camera) => { if (camera.target != mapViewState.currentPosition) mapViewState.shouldCenter = false } ,
+                markers: mapViewState.markers.values.toSet(),
+                polylines: mapViewState.polylines,
+                onMapCreated: (controller) => mapViewState.onMapCreated(controller),
+                initialCameraPosition: CameraPosition(target: currentPosition, zoom: 17.0),
+                rotateGesturesEnabled: false,
+                compassEnabled: false,
                 mapToolbarEnabled: false,
                 zoomControlsEnabled: false,
-                onMapCreated: onMapCreated,
-                initialCameraPosition: CameraPosition(target: userLatLng!, zoom: 17.0),
-                onCameraMove: (_) {
-                  setShouldCenter(false);
-                },
-                markers: markers.values.toSet(),
+                buildingsEnabled: false,
               ),
               Positioned.fill(
                 bottom: 24.0,
@@ -50,9 +40,9 @@ class MapView extends StatelessWidget {
                     height: 60,
                     width: 60,
                     child: ElevatedButton(
-                      onPressed: () {
-                        MapHelper.resetCamera(mapController, userLatLng!);
-                        setShouldCenter(true);
+                      onPressed: () async {
+                        MapHelper.resetCamera(mapViewState.mapController, currentPosition);
+                        mapViewState.shouldCenter = true;
                       },
                       style: ElevatedButtonTheme.of(context).style?.copyWith(
                             shape: MaterialStatePropertyAll(

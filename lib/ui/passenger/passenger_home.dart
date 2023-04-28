@@ -17,7 +17,6 @@ class PassengerHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<PassengerHomeState>(context);
-    final mapViewState = Provider.of<MapViewState>(context);
 
     return (state.user == null || state.passenger == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
@@ -43,20 +42,7 @@ class PassengerHome extends StatelessWidget {
           }),
       body: Stack(
               children: [
-                MapView(
-                  userLatLng: mapViewState.currentPosition,
-                  setShouldCenter: (shouldCenter) {
-                    state.shouldCenter = shouldCenter;
-                  },
-                  markers: mapViewState.markers,
-                  polylines: mapViewState.polylines,
-                  onMapCreated: (controller) async {
-                    state.mapController = controller;
-                    state.mapStyle = await MapHelper.getMapStyle();
-                    controller.setMapStyle(state.mapStyle);
-                  },
-                  mapController: state.mapController,
-                ),
+                const MapView(),
                 if (state.isSearching || state.hasDriver)
                   const JourneyDetail(),
                 ...?(() {
