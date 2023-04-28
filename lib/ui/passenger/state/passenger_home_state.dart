@@ -77,11 +77,9 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   Future<void> initialize(BuildContext context) async {
+    initializeFirestore(context);
+    initializeLocation(context);
     await initializeIcons();
-    if (context.mounted){
-      initializeLocation(context);
-      initializeFirestore(context);
-    }
   }
 
   Future<void> initializeIcons() async {

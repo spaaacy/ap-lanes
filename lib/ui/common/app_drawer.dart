@@ -12,6 +12,7 @@ import '../auth/auth_wrapper.dart';
 import '../driver/driver_home.dart';
 import '../passenger/passenger_home.dart';
 import '../passenger/state/passenger_home_state.dart';
+import 'user_mode_state.dart';
 
 class AppDrawer extends StatelessWidget {
   final QueryDocumentSnapshot<User>? user;
@@ -104,19 +105,7 @@ class AppDrawer extends StatelessWidget {
                 title: const Text('Passenger Mode'),
                 onTap: isNavigationLocked
                     ? () => onNavigateWhenLocked()
-                    : () {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (BuildContext context) => ChangeNotifierProvider(
-                                create: (context) {
-                                  return PassengerHomeState()..initialize(context);
-                                },
-                                child: const PassengerHome()),
-                          ),
-                          (_) => false,
-                        );
-                      },
-              );
+                    : () => context.read<UserModeState>().userMode = UserMode.passengerMode);
             }
             return ListTile(
               leading: const Icon(Icons.drive_eta),
@@ -124,9 +113,7 @@ class AppDrawer extends StatelessWidget {
               onTap: isNavigationLocked
                   ? () => onNavigateWhenLocked()
                   : () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (BuildContext context) => const DriverHome(),
-                      ));
+                      context.read<UserModeState>().userMode = UserMode.driverMode;
                     },
             );
           }()),
@@ -136,11 +123,6 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Log Out'),
             onTap: () {
               context.read<AuthService>().signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (BuildContext context) => AuthWrapper(context: context),
-                ),
-              );
             },
           ),
           Expanded(

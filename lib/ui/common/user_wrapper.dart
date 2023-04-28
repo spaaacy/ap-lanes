@@ -15,7 +15,7 @@ class UserWrapper extends StatelessWidget {
 
     if (userMode == UserMode.passengerMode) {
       return ChangeNotifierProvider(
-        create: (context) => PassengerHomeState(),
+        create: (context) => PassengerHomeState()..initialize(context),
         child: const PassengerHome(),
       );
     } else {
