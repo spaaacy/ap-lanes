@@ -48,7 +48,7 @@ class MapViewState extends ChangeNotifier {
   }
 
   Future<void> initialize(BuildContext context) async {
-    _mapStyle = await rootBundle.loadString('assets/map_style.txt');
+    _mapStyle = await rootBundle.loadString('assets/map_style.json');
     _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
     _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', driverIconSize);
     _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);

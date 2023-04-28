@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'location_helpers.dart';
 import 'resize_asset.dart';
 
 class MapHelper {
@@ -22,14 +19,14 @@ class MapHelper {
     double minLng = polylines.first.points.first.longitude;
     double maxLat = polylines.first.points.first.latitude;
     double maxLng = polylines.first.points.first.longitude;
-    polylines.forEach((poly) {
-      poly.points.forEach((point) {
+    for (var poly in polylines) {
+      for (var point in poly.points) {
         if (point.latitude < minLat) minLat = point.latitude;
         if (point.latitude > maxLat) maxLat = point.latitude;
         if (point.longitude < minLng) minLng = point.longitude;
         if (point.longitude > maxLng) maxLng = point.longitude;
-      });
-    });
+      }
+    }
 
     final latDifference = maxLat - minLat;
     final topOffsetValue = latDifference * topOffsetPercentage;

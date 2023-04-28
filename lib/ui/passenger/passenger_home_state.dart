@@ -77,11 +77,11 @@ class PassengerHomeState extends ChangeNotifier {
       // Set user and last name
       _user = (await _userRepo.getUser(firebaseUser.uid))!;
       _lastName = _user!.data().lastName;
-      notifyListeners();
 
       // Set passenger and isSearching
       _passenger = (await _passengerRepo.getPassenger(firebaseUser.uid))!;
       _isSearching = _passenger!.data().isSearching;
+      notifyListeners();
 
       _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
         if (journey.docs.isNotEmpty) {
