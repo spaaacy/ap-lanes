@@ -77,11 +77,11 @@ class PassengerHomeState extends ChangeNotifier {
       // Set user and last name
       _user = (await _userRepo.getUser(firebaseUser.uid))!;
       _lastName = _user!.data().lastName;
-      notifyListeners();
 
       // Set passenger and isSearching
       _passenger = (await _passengerRepo.getPassenger(firebaseUser.uid))!;
       _isSearching = _passenger!.data().isSearching;
+      notifyListeners();
 
       _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
         if (journey.docs.isNotEmpty) {
@@ -113,6 +113,7 @@ class PassengerHomeState extends ChangeNotifier {
                 _driverLicensePlate = driver.data().licensePlate;
                 _routeDistance = null;
                 mapViewState.polylines.clear();
+                mapViewState.shouldCenter = true;
                 mapViewState.markers.remove(const MarkerId("start"));
                 mapViewState.markers.remove(const MarkerId("destination"));
                 notifyListeners();
@@ -124,6 +125,7 @@ class PassengerHomeState extends ChangeNotifier {
                     if (latLng != null && mapViewState.currentPosition != null) {
                       mapViewState.markers[const MarkerId("driver")] =
                           Marker(markerId: const MarkerId("driver"), position: latLng, icon: mapViewState.driverIcon!); // TODO: Recheck assertion
+                      mapViewState.shouldCenter = false;
                       MapHelper.setCameraBetweenMarkers(
                         mapController: mapViewState.mapController!,
                         firstLatLng: latLng,
@@ -160,6 +162,7 @@ class PassengerHomeState extends ChangeNotifier {
       _placeService.fetchRoute(start, end).then((polylines) {
         mapViewState.polylines.clear();
         mapViewState.polylines.add(polylines);
+        mapViewState.shouldCenter = false;
         MapHelper.setCameraToRoute(
           mapController: mapViewState.mapController!,
           polylines: mapViewState.polylines,
@@ -173,10 +176,9 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void clearUserLocation() {
-
-
     _destinationLatLng = null;
     mapViewState.polylines.clear();
+    mapViewState.shouldCenter = true;
     _routeDistance = null;
     mapViewState.markers.remove(const MarkerId("start"));
     mapViewState.markers.remove(const MarkerId("destination"));
@@ -194,6 +196,7 @@ class PassengerHomeState extends ChangeNotifier {
     notifyListeners(); // Notifies when _destinationLatLng set
     _placeService.fetchRoute(start, end).then((polylines) {
       mapViewState.polylines.add(polylines);
+      mapViewState.shouldCenter = false;
       MapHelper.setCameraToRoute(
         mapController: mapViewState.mapController!,
         polylines: mapViewState.polylines,
@@ -259,6 +262,7 @@ class PassengerHomeState extends ChangeNotifier {
     destinationDescription = null;
     destinationLatLng = null;
     mapViewState.polylines.clear();
+    mapViewState.shouldCenter = true;
     mapViewState.markers.remove(const MarkerId("driver"));
     mapViewState.markers.remove(const MarkerId("start"));
     mapViewState.markers.remove(const MarkerId("destination"));

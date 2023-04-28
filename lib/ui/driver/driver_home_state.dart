@@ -132,6 +132,7 @@ class DriverHomeState extends ChangeNotifier {
   }
 
   void updateCameraBoundsWithPopup(LatLng start, LatLng end) {
+    mapViewState.shouldCenter = false;
     MapHelper.setCameraBetweenMarkers(
       mapController: mapViewState.mapController,
       firstLatLng: start,
