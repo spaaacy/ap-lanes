@@ -20,7 +20,6 @@ class MapView extends StatelessWidget {
         : Stack(
             children: [
               GoogleMap(
-                onCameraMove: (camera) => { if (camera.target != mapViewState.currentPosition) mapViewState.shouldCenter = false } ,
                 markers: mapViewState.markers.values.toSet(),
                 polylines: mapViewState.polylines,
                 onMapCreated: (controller) => mapViewState.onMapCreated(controller),
@@ -31,34 +30,34 @@ class MapView extends StatelessWidget {
                 zoomControlsEnabled: false,
                 buildingsEnabled: false,
               ),
-              Positioned.fill(
-                bottom: 24.0,
-                right: 24.0,
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: SizedBox(
-                    height: 60,
-                    width: 60,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        MapHelper.resetCamera(mapViewState.mapController, currentPosition);
-                        mapViewState.shouldCenter = true;
-                      },
-                      style: ElevatedButtonTheme.of(context).style?.copyWith(
-                            shape: MaterialStatePropertyAll(
-                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-                            padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
-                            elevation: const MaterialStatePropertyAll(4.0),
-                          ),
-                      child: const Icon(
-                        Icons.my_location,
-                        semanticLabel: 'Recenter Map',
-                        size: 20,
+              if (mapViewState.shouldCenter)
+                Positioned.fill(
+                  bottom: 24.0,
+                  right: 24.0,
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: SizedBox(
+                      height: 60,
+                      width: 60,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await MapHelper.resetCamera(mapViewState.mapController, currentPosition);
+                        },
+                        style: ElevatedButtonTheme.of(context).style?.copyWith(
+                              shape: MaterialStatePropertyAll(
+                                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                              padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
+                              elevation: const MaterialStatePropertyAll(4.0),
+                            ),
+                        child: const Icon(
+                          Icons.my_location,
+                          semanticLabel: 'Recenter Map',
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           );
   }

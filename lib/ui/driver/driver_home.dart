@@ -59,6 +59,7 @@ class _DriverHomeState extends State<DriverHome> {
       setState(() {
         mapViewState.polylines.clear();
         mapViewState.polylines.add(polylines);
+        mapViewState.shouldCenter = false;
         MapHelper.setCameraToRoute(
           mapController: mapViewState.mapController!,
           polylines: mapViewState.polylines,
@@ -233,6 +234,7 @@ class _DriverHomeState extends State<DriverHome> {
     if (latLng == null || otherLatLng == null) {
       return;
     }
+    mapViewState.shouldCenter = false;
     MapHelper.setCameraBetweenMarkers(
       mapController: mapViewState.mapController,
       firstLatLng: latLng,
