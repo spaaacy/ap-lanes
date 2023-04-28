@@ -30,7 +30,6 @@ class PassengerHomeState extends ChangeNotifier {
   final _userRepo = UserRepo();
   final _placeService = PlaceService();
 
-  late final firebase_auth.User? _firebaseUser;
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<Journey>? _journey;
@@ -69,7 +68,29 @@ class PassengerHomeState extends ChangeNotifier {
   /*
   * Functions
   * */
-  void initializeLocation(context) {
+  @override
+  void dispose() {
+    _driverListener?.cancel();
+    _journeyListener?.cancel();
+    _locationListener?.cancel();
+    super.dispose();
+  }
+
+  Future<void> initialize(BuildContext context) async {
+    await initializeIcons();
+    if (context.mounted){
+      initializeLocation(context);
+      initializeFirestore(context);
+    }
+  }
+
+  Future<void> initializeIcons() async {
+    _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
+    _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
+    _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
+  }
+
+  void initializeLocation(BuildContext context) {
     _locationListener = MapHelper.getCurrentPosition(context).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
         _currentPosition = latLng;
@@ -87,19 +108,19 @@ class PassengerHomeState extends ChangeNotifier {
   }
   
   Future<void> initializeFirestore(BuildContext context) async {
-    _firebaseUser = context.read<firebase_auth.User?>();
+    final firebaseUser = context.read<firebase_auth.User?>();
 
-    if (_firebaseUser != null) {
+    if (firebaseUser != null) {
       // Set user and last name
-      _user = (await _userRepo.getUser(_firebaseUser!.uid))!;
+      _user = (await _userRepo.getUser(firebaseUser.uid))!;
       _lastName = _user!.data().lastName;
       notifyListeners();
 
       // Set passenger and isSearching
-      _passenger = (await _passengerRepo.getPassenger(_firebaseUser!.uid))!;
+      _passenger = (await _passengerRepo.getPassenger(firebaseUser.uid))!;
       _isSearching = _passenger!.data().isSearching;
 
-      _journeyListener = _journeyRepo.listenForJourney(_firebaseUser!.uid).listen((journey) async {
+      _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
         if (journey.docs.isNotEmpty) {
           _journey = journey.docs.first;
           _inJourney = true;
@@ -241,15 +262,18 @@ class PassengerHomeState extends ChangeNotifier {
     }
   }
 
-  void createJourney() {
-    _journeyRepo.createJourney(
-      Journey(
-          userId: _firebaseUser!.uid,
-          startLatLng: toApu ? _destinationLatLng! : apuLatLng,
-          endLatLng: toApu ? apuLatLng : _destinationLatLng!,
-          startDescription: _toApu ? _destinationDescription! : apuDescription,
-          endDescription: _toApu ? apuDescription : _destinationDescription!),
-    );
+  void createJourney(BuildContext context) {
+    final firebaseUser = context.read<firebase_auth.User?>();
+    if (firebaseUser != null){
+      _journeyRepo.createJourney(
+        Journey(
+            userId: firebaseUser.uid,
+            startLatLng: toApu ? _destinationLatLng! : apuLatLng,
+            endLatLng: toApu ? apuLatLng : _destinationLatLng!,
+            startDescription: _toApu ? _destinationDescription! : apuDescription,
+            endDescription: _toApu ? apuDescription : _destinationDescription!),
+      );
+    }
   }
 
   void deleteJourney() {
