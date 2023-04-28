@@ -19,12 +19,9 @@ class AuthWrapper extends StatelessWidget {
     if (firebaseUser != null) {
       return ChangeNotifierProvider<PassengerHomeState>(
         create: (context) {
-          return PassengerHomeState()
-          ..initializeIcons()
-          ..initializeLocation(context)
-          ..initializeFirestore(context);
+          return PassengerHomeState()..initialize(context);
         },
-        child: PassengerHome(),
+        child: const PassengerHome(),
       );
     } else {
       return AuthScreen();

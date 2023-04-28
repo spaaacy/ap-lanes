@@ -21,6 +21,7 @@ import '../../util/map_helper.dart';
 import '../common/app_drawer.dart';
 import '../common/map_view.dart';
 import '../passenger/passenger_home.dart';
+import '../passenger/state/passenger_home_state.dart';
 import 'components/journey_request_popup.dart';
 import 'components/ongoing_journey_popup.dart';
 import 'components/setup_driver_profile_dialog.dart';
@@ -190,7 +191,11 @@ class _DriverHomeState extends State<DriverHome> {
             if (!mounted) return;
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (BuildContext context) => PassengerHome(),
+                builder: (BuildContext context) => ChangeNotifierProvider(
+                    create: (context) {
+                      return PassengerHomeState()..initialize(context);
+                    },
+                    child: const PassengerHome()),
               ),
               (_) => false,
             );

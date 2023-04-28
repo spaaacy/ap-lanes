@@ -76,7 +76,15 @@ class PassengerHomeState extends ChangeNotifier {
     super.dispose();
   }
 
-  void initializeIcons() async {
+  Future<void> initialize(BuildContext context) async {
+    await initializeIcons();
+    if (context.mounted){
+      initializeLocation(context);
+      initializeFirestore(context);
+    }
+  }
+
+  Future<void> initializeIcons() async {
     _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
     _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', userIconSize);
     _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);

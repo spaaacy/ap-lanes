@@ -109,12 +109,9 @@ class AppDrawer extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (BuildContext context) => ChangeNotifierProvider(
                                 create: (context) {
-                                  return PassengerHomeState()
-                                    ..initializeIcons()
-                                    ..initializeLocation(context)
-                                    ..initializeFirestore(context);
+                                  return PassengerHomeState()..initialize(context);
                                 },
-                                child: PassengerHome()),
+                                child: const PassengerHome()),
                           ),
                           (_) => false,
                         );

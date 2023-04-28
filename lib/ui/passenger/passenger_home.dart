@@ -11,7 +11,7 @@ import 'components/search_bar.dart';
 import 'state/passenger_home_state.dart';
 
 class PassengerHome extends StatelessWidget {
-  // TODO: Dispose
+  const PassengerHome({super.key});
 
   @override
   Widget build(BuildContext context) {
