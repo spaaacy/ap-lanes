@@ -15,7 +15,6 @@ class MapViewState extends ChangeNotifier {
   /*
   * Variables
   * */
-  late final UserMode _userMode;
   GoogleMapController? _mapController;
   BitmapDescriptor? _userIcon;
   BitmapDescriptor? _driverIcon;
@@ -49,7 +48,6 @@ class MapViewState extends ChangeNotifier {
   }
 
   Future<void> initialize(BuildContext context) async {
-    _userMode = context.read<UserWrapperState>().userMode;
     _mapStyle = await rootBundle.loadString('assets/map_style.txt');
     _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
     _driverIcon = await MapHelper.getCustomIcon('assets/icons/driver.png', driverIconSize);
@@ -65,7 +63,7 @@ class MapViewState extends ChangeNotifier {
     if (hasPermissions) {
       _locationListener = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
-      ).listen((position) {
+      ).listen((position) async {
         final latLng = LatLng(position.latitude, position.longitude);
         _currentPosition = latLng;
         _markers[const MarkerId("user")] = Marker(
