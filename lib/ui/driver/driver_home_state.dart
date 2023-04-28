@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:ap_lanes/ui/common/user_mode_state.dart';
+import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
 import 'package:ap_lanes/util/constants.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,7 +20,6 @@ import '../../../data/repo/driver_repo.dart';
 import '../../../data/repo/journey_repo.dart';
 import '../../../data/repo/user_repo.dart';
 import '../../../services/place_service.dart';
-import '../components/setup_driver_profile_dialog.dart';
 
 class DriverHomeState extends ChangeNotifier {
   late final BuildContext context;

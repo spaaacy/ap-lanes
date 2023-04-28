@@ -6,7 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../../util/url_helpers.dart';
-import '../state/driver_home_state.dart';
+import '../driver_home_state.dart';
 
 enum DriverAction { idle, pickingUp, droppingOff }
 
