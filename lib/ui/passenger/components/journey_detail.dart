@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../util/location_helpers.dart';
-import '../state/passenger_home_state.dart';
+import '../passenger_home_state.dart';
 
 class JourneyDetail extends StatelessWidget {
   const JourneyDetail({super.key});

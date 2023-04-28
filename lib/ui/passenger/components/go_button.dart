@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../state/passenger_home_state.dart';
+import '../passenger_home_state.dart';
 
 class GoButton extends StatelessWidget {
   const GoButton({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../util/map_helper.dart';
+import '../../../util/map_helper.dart';
 
 class MapView extends StatelessWidget {
   

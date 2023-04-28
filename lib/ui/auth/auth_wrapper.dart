@@ -3,10 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../common/user_mode_state.dart';
-import '../common/user_wrapper.dart';
-import '../passenger/passenger_home.dart';
-import '../passenger/state/passenger_home_state.dart';
+import '../common/map_view/map_view_state.dart';
+import '../common/user_wrapper/user_wrapper.dart';
+import '../common/user_wrapper/user_wrapper_state.dart';
 import 'login_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -19,9 +18,13 @@ class AuthWrapper extends StatelessWidget {
     final firebaseUser = context.watch<User?>();
 
     if (firebaseUser != null) {
-      return ChangeNotifierProvider<UserModeState>(
-          create: (context) => UserModeState(),
-          child: const UserWrapper());
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UserWrapperState>(create: (context) => UserWrapperState()),
+          ChangeNotifierProvider<MapViewState>(create: (context) => MapViewState()..initialize(context))
+        ],
+        child: const UserWrapper(),
+      );
     } else {
       return AuthScreen();
     }

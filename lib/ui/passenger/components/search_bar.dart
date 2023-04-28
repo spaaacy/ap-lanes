@@ -4,10 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../../../services/place_service.dart';
 import '../../../util/location_helpers.dart';
-import '../state/passenger_home_state.dart';
+import '../passenger_home_state.dart';
 
 class SearchBar extends StatelessWidget {
-
   final _placeService = PlaceService();
 
   SearchBar({super.key});
@@ -42,7 +41,9 @@ class SearchBar extends StatelessWidget {
           );
         },
         onSuggestionSelected: (suggestion) async {
-          await _placeService.fetchLatLng(suggestion.placeId, lang, state.sessionToken).then((latLng) => state.onLatLng(latLng));
+          await _placeService
+              .fetchLatLng(suggestion.placeId, lang, state.sessionToken)
+              .then((latLng) => state.onLatLng(context, latLng));
           state.searchController.text = trimDescription(suggestion.description);
           state.onDescription(suggestion.description);
         },

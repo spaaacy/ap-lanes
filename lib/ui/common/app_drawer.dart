@@ -11,8 +11,8 @@ import '../../services/auth_service.dart';
 import '../auth/auth_wrapper.dart';
 import '../driver/driver_home.dart';
 import '../passenger/passenger_home.dart';
-import '../passenger/state/passenger_home_state.dart';
-import 'user_mode_state.dart';
+import '../passenger/passenger_home_state.dart';
+import 'user_wrapper/user_wrapper_state.dart';
 
 class AppDrawer extends StatelessWidget {
   final QueryDocumentSnapshot<User>? user;
@@ -105,7 +105,7 @@ class AppDrawer extends StatelessWidget {
                 title: const Text('Passenger Mode'),
                 onTap: isNavigationLocked
                     ? () => onNavigateWhenLocked()
-                    : () => context.read<UserModeState>().userMode = UserMode.passengerMode);
+                    : () => context.read<UserWrapperState>().userMode = UserMode.passengerMode);
             }
             return ListTile(
               leading: const Icon(Icons.drive_eta),
@@ -113,7 +113,7 @@ class AppDrawer extends StatelessWidget {
               onTap: isNavigationLocked
                   ? () => onNavigateWhenLocked()
                   : () {
-                      context.read<UserModeState>().userMode = UserMode.driverMode;
+                      context.read<UserWrapperState>().userMode = UserMode.driverMode;
                     },
             );
           }()),

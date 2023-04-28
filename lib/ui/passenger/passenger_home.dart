@@ -4,11 +4,12 @@ import 'package:provider/provider.dart';
 import '../../util/greeting.dart';
 import '../../util/map_helper.dart';
 import '../common/app_drawer.dart';
-import '../common/map_view.dart';
+import '../common/map_view/map_view.dart';
+import '../common/map_view/map_view_state.dart';
 import 'components/go_button.dart';
 import 'components/journey_detail.dart';
 import 'components/search_bar.dart';
-import 'state/passenger_home_state.dart';
+import 'passenger_home_state.dart';
 
 class PassengerHome extends StatelessWidget {
   const PassengerHome({super.key});
@@ -16,7 +17,8 @@ class PassengerHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<PassengerHomeState>(context);
-    
+    final mapViewState = Provider.of<MapViewState>(context);
+
     return (state.user == null || state.passenger == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
     : Scaffold(
@@ -42,12 +44,12 @@ class PassengerHome extends StatelessWidget {
       body: Stack(
               children: [
                 MapView(
-                  userLatLng: state.currentPosition,
+                  userLatLng: mapViewState.currentPosition,
                   setShouldCenter: (shouldCenter) {
                     state.shouldCenter = shouldCenter;
                   },
-                  markers: state.markers,
-                  polylines: state.polylines,
+                  markers: mapViewState.markers,
+                  polylines: mapViewState.polylines,
                   onMapCreated: (controller) async {
                     state.mapController = controller;
                     state.mapStyle = await MapHelper.getMapStyle();
