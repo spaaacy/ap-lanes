@@ -12,12 +12,15 @@ class SignUpScreen extends StatelessWidget {
   final passwordController = TextEditingController();
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
+  final phoneNumberController = TextEditingController();
 
   final _signUpFormKey = GlobalKey<FormState>();
   final _emailRegExp = RegExp(
     r"(tp\d{6}@mail\.apu\.edu\.my|[\w\d.!#$%&'*+/=?^_`{|}~-]+@apu\.edu\.my)",
     caseSensitive: false,
   );
+
+  final _phoneRegExp = RegExp(r"\+60\d{8,10}");
 
   @override
   Widget build(BuildContext context) {
@@ -63,16 +66,32 @@ class SignUpScreen extends StatelessWidget {
                 decoration: const InputDecoration(hintText: "Email"),
               ),
               TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty || value.length <= 6) {
-                      return 'Your password must be longer than 6 characters';
-                    }
+                validator: (value) {
+                  if (value == null || value.isEmpty || value.length <= 6) {
+                    return 'Your password must be longer than 6 characters';
+                  }
 
-                    return null;
-                  },
-                  obscureText: true,
-                  controller: passwordController,
-                  decoration: const InputDecoration(hintText: "Password")),
+                  return null;
+                },
+                obscureText: true,
+                controller: passwordController,
+                decoration: const InputDecoration(hintText: "Password"),
+              ),
+              TextFormField(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Your phone number cannot be empty';
+                  }
+
+                  if (!_phoneRegExp.hasMatch(value)) {
+                    return "Phone number format: +60XXXXXXXXX";
+                  }
+
+                  return null;
+                },
+                controller: phoneNumberController,
+                decoration: const InputDecoration(hintText: "Phone Number"),
+              ),
               const SizedBox(height: 8.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -86,12 +105,14 @@ class SignUpScreen extends StatelessWidget {
                           String password = passwordController.text.trim();
                           String firstName = firstNameController.text.trim();
                           String lastName = lastNameController.text.trim();
+                          String phoneNumber = phoneNumberController.text.trim();
 
                           String result = await context.read<AuthService>().signUp(
                                 email: email,
                                 password: password,
                                 firstName: firstName,
                                 lastName: lastName,
+                                phoneNumber: phoneNumber,
                               );
 
                           if (context.mounted) {
