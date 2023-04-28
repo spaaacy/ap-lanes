@@ -1,4 +1,7 @@
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/util/map_helper.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +10,7 @@ class JourneyRequestPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final MapViewState mapViewState = context.watch<MapViewState>();
     final state = Provider.of<DriverHomeState>(context);
 
     final matchmakingButtonTheme = FilledButtonTheme.of(context).style?.copyWith(
@@ -83,7 +87,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              "${state.routeDistance.toStringAsFixed(2)} km",
+                              "${MapHelper.calculateRouteDistance(mapViewState.polylines.firstOrNull).toStringAsFixed(2)} km",
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                           ],

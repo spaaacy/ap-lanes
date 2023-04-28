@@ -19,7 +19,6 @@ class AppDrawer extends StatelessWidget {
   final _feedbackFormKey = GlobalKey<FormState>();
   final _feedbackController = TextEditingController();
 
-  late final MapViewState mapViewState;
 
   AppDrawer({
     super.key,
@@ -31,7 +30,7 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    mapViewState = context.watch<MapViewState>();
+    final MapViewState mapViewState = context.watch<MapViewState>();
     final DriverRepo driverRepo = DriverRepo();
     final FeedbackRepo feedbackRepo = FeedbackRepo();
 

@@ -6,7 +6,6 @@ import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -110,12 +109,11 @@ class DriverHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  double get routeDistance => MapHelper.calculateRouteDistance(mapViewState.polylines.firstOrNull);
-
   //endregion
 
   Future<void> initialize(BuildContext context) async {
     this.context = context;
+    mapViewState = context.read<MapViewState>();
     initializeFirestore();
   }
 
@@ -155,8 +153,6 @@ class DriverHomeState extends ChangeNotifier {
       driver = driverData;
       // todo: maybe make this check for ongoing journeys instead
       isSearching = _driver?.data().isAvailable == true;
-
-      updateJourneyRequestListener();
     } else {
       if (!context.mounted) return;
 
@@ -256,6 +252,7 @@ class DriverHomeState extends ChangeNotifier {
         if (_activeJourney != null) {
           var previousJourney = await _activeJourney!.reference.get();
           if (previousJourney.exists && previousJourney.data()!.isCancelled) {
+            _activeJourneyListener?.cancel();
             if (context.mounted) {
               await showDialog(
                 context: context,
@@ -279,6 +276,7 @@ class DriverHomeState extends ChangeNotifier {
         mapViewState.markers.remove(const MarkerId("drop-off"));
         mapViewState.markers.remove(const MarkerId("pick-up"));
         activeJourney = null;
+        MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
       }
     });
   }
@@ -424,6 +422,8 @@ class DriverHomeState extends ChangeNotifier {
         position: end,
         icon: mapViewState.locationIcon!,
       );
+      mapViewState.notifyListeners();
+      notifyListeners();
     });
   }
 
@@ -453,5 +453,6 @@ class DriverHomeState extends ChangeNotifier {
   void toggleIsSearching() {
     _driverRepo.updateDriver(driver!, {'isAvailable': !isSearching});
     isSearching = !isSearching;
+    mapViewState.shouldCenter = !isSearching;
   }
 }
