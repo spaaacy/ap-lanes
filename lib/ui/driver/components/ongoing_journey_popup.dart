@@ -18,28 +18,6 @@ class OngoingJourneyPopup extends StatefulWidget {
 }
 
 class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
-  // final UserRepo _userRepo = UserRepo();
-  // final DriverRepo _driverRepo = DriverRepo();
-  // Timer? timer;
-
-  // Future<void> updateDriverLatLng() async {
-  //   if (state.driver == null) return;
-  //   var pos = await Geolocator.getCurrentPosition();
-  //   _driverRepo.updateDriver(state.driver!, {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
-  // }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   timer = Timer.periodic(const Duration(seconds: 15), (timer) => updateDriverLatLng());
-  // }
-  //
-  // @override
-  // void dispose() {
-  //   timer?.cancel();
-  //   super.dispose();
-  // }
-
   void _handleNavigationAppLaunch(String value) {
     final state = Provider.of<DriverHomeState>(context, listen: false);
 
@@ -107,7 +85,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
     }
 
     return TweenAnimationBuilder(
-      curve: Curves.bounceInOut,
+      curve: Curves.easeIn,
       duration: const Duration(milliseconds: 250),
       tween: Tween<double>(begin: state.activeJourney != null ? 1 : 0, end: state.activeJourney != null ? 0 : 1),
       builder: (_, topOffset, w) {

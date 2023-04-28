@@ -17,7 +17,7 @@ class JourneyRequestPopup extends StatelessWidget {
         );
 
     return TweenAnimationBuilder(
-      curve: Curves.bounceInOut,
+      curve: Curves.easeIn,
       duration: const Duration(milliseconds: 250),
       tween: Tween<double>(begin: state.isSearching ? 1 : 0, end: state.isSearching ? 0 : 1),
       builder: (_, topOffset, child) {
