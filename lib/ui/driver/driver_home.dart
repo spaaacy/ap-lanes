@@ -1,12 +1,13 @@
+
+import 'package:ap_lanes/ui/common/map_view/map_view.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../util/greeting.dart';
 import '../common/app_drawer.dart';
-import '../common/map_view.dart';
 import 'components/journey_request_popup.dart';
 import 'components/ongoing_journey_popup.dart';
-import 'state/driver_home_state.dart';
 
 class DriverHome extends StatelessWidget {
   const DriverHome({super.key});
@@ -36,16 +37,7 @@ class DriverHome extends StatelessWidget {
           }),
       body: Stack(
         children: [
-          MapView(
-            userLatLng: state.currentPosition,
-            markers: state.markers,
-            polylines: state.polylines,
-            mapController: state.mapController,
-            onMapCreated: state.onMapCreated,
-            setShouldCenter: (shouldCenter) {
-              state.shouldCenter = shouldCenter;
-            },
-          ),
+         const MapView(),
           Positioned.fill(
             bottom: 100.0,
             child: Align(
