@@ -32,17 +32,18 @@ class AuthService {
     required String password,
     required String firstName,
     required String lastName,
+    required String phoneNumber,
   }) async {
     try {
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-      _registerUser(firstName: firstName, lastName: lastName);
+      _registerUser(firstName: firstName, lastName: lastName, phoneNumber: phoneNumber);
       return signedIn;
     } on FirebaseAuthException catch (e) {
       return e.message ?? "";
     }
   }
 
-  void _registerUser({required String firstName, required String lastName}) {
+  void _registerUser({required String firstName, required String lastName, required String phoneNumber}) {
     final id = _firebaseAuth.currentUser?.uid;
     final userEmail = _firebaseAuth.currentUser?.email;
     _userRepo.createUser(
@@ -51,7 +52,7 @@ class AuthService {
         email: userEmail!,
         firstName: firstName,
         lastName: lastName,
-        phoneNumber: "TEMPORARY" // TODO: Change this @wooneusean
+        phoneNumber: phoneNumber,
       ),
     );
 
