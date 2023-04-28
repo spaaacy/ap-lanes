@@ -4,6 +4,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 // Maps API
 const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
 
+// User Modes
+const String passengerMode = "PASSENGER_MODE";
+const String driverMode = "DRIVER_MODE";
+
 // Firebase Authentication
 const String signedIn = "SIGNED_IN";
 const String signedUp = "SIGNED_UP";
