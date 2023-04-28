@@ -1,64 +1,70 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter_platform_interface/src/types/location.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/model/remote/driver.dart';
-import '../../../data/model/remote/journey.dart';
-import '../../../data/model/remote/user.dart';
-import '../../../data/repo/driver_repo.dart';
-import '../../../data/repo/user_repo.dart';
 import '../../../util/url_helpers.dart';
 import '../state/driver_home_state.dart';
 
 enum DriverAction { idle, pickingUp, droppingOff }
 
 class OngoingJourneyPopup extends StatefulWidget {
-  final DocumentSnapshot<Journey>? activeJourney;
-  final void Function(DocumentSnapshot<Journey>?) onPickUp;
-  final void Function(DocumentSnapshot<Journey>?) onDropOff;
-
-  const OngoingJourneyPopup({
-    super.key,
-    required this.activeJourney,
-    required this.onPickUp,
-    required this.onDropOff,
-  });
+  const OngoingJourneyPopup({super.key});
 
   @override
   State<OngoingJourneyPopup> createState() => _OngoingJourneyPopupState();
 }
 
 class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
-  final UserRepo _userRepo = UserRepo();
-  final DriverRepo _driverRepo = DriverRepo();
-  Timer? timer;
+  // final UserRepo _userRepo = UserRepo();
+  // final DriverRepo _driverRepo = DriverRepo();
+  // Timer? timer;
 
-  Future<void> updateDriverLatLng() async {
-    DriverHomeState state = Provider.of<DriverHomeState>(context, listen: false);
-    if (state.driver == null) return;
-    var pos = await Geolocator.getCurrentPosition();
-    _driverRepo.updateDriver(state.driver! , {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
-  }
+  // Future<void> updateDriverLatLng() async {
+  //   if (state.driver == null) return;
+  //   var pos = await Geolocator.getCurrentPosition();
+  //   _driverRepo.updateDriver(state.driver!, {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
+  // }
 
-  @override
-  void initState() {
-    super.initState();
-    timer = Timer.periodic(const Duration(seconds: 15), (timer) => updateDriverLatLng());
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   timer = Timer.periodic(const Duration(seconds: 15), (timer) => updateDriverLatLng());
+  // }
+  //
+  // @override
+  // void dispose() {
+  //   timer?.cancel();
+  //   super.dispose();
+  // }
 
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
+  void _handleNavigationAppLaunch(String value) {
+    final state = Provider.of<DriverHomeState>(context, listen: false);
+
+    Future<void> Function(LatLng latLng) launchFunction;
+    switch (value) {
+      case 'google-maps':
+        launchFunction = launchGoogleMaps;
+        break;
+      case 'waze':
+      default:
+        launchFunction = launchWaze;
+        break;
+    }
+
+    if (!state.activeJourney!.data().isPickedUp) {
+      launchFunction(state.activeJourney!.data().startLatLng);
+    } else {
+      launchFunction(state.activeJourney!.data().endLatLng);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = Provider.of<DriverHomeState>(context);
+
     final buttonBarTheme = FilledButtonTheme.of(context).style?.copyWith(
           elevation: const MaterialStatePropertyAll(2),
           padding: const MaterialStatePropertyAll(
@@ -67,10 +73,10 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
         );
 
     DriverAction getCurrentDriverAction() {
-      if (widget.activeJourney == null) return DriverAction.idle;
+      if (state.activeJourney == null) return DriverAction.idle;
 
       DriverAction action = DriverAction.pickingUp;
-      if (widget.activeJourney!.data()!.isPickedUp && !widget.activeJourney!.data()!.isCompleted) {
+      if (state.activeJourney!.data().isPickedUp && !state.activeJourney!.data().isCompleted) {
         action = DriverAction.droppingOff;
       }
       return action;
@@ -91,9 +97,9 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
     String getTargetLocation() {
       switch (getCurrentDriverAction()) {
         case DriverAction.droppingOff:
-          return widget.activeJourney!.data()!.endDescription;
+          return state.activeJourney!.data().endDescription;
         case DriverAction.pickingUp:
-          return widget.activeJourney!.data()!.startDescription;
+          return state.activeJourney!.data().startDescription;
         case DriverAction.idle:
         default:
           return "Unknown";
@@ -103,7 +109,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
     return TweenAnimationBuilder(
       curve: Curves.bounceInOut,
       duration: const Duration(milliseconds: 250),
-      tween: Tween<double>(begin: widget.activeJourney != null ? 1 : 0, end: widget.activeJourney != null ? 0 : 1),
+      tween: Tween<double>(begin: state.activeJourney != null ? 1 : 0, end: state.activeJourney != null ? 0 : 1),
       builder: (_, topOffset, w) {
         return Positioned.fill(
           left: 12,
@@ -129,16 +135,9 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                         getStatusMessage(),
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                       ),
-                      FutureBuilder<QueryDocumentSnapshot<User>?>(
-                        future: _userRepo.getUser(widget.activeJourney!.data()!.userId),
-                        builder: (context, passengerSnapshot) {
-                          return Text(
-                            passengerSnapshot.hasData
-                                ? '${passengerSnapshot.data?.data().getFullName()}'
-                                : 'Loading...',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          );
-                        },
+                      Text(
+                        state.activeJourneyPassenger?.data().getFullName() ?? 'Loading...',
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -173,24 +172,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                         ),
                       ),
                       child: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          Future<void> Function(LatLng latLng) launchFunction;
-                          switch (value) {
-                            case 'google-maps':
-                              launchFunction = launchGoogleMaps;
-                              break;
-                            case 'waze':
-                            default:
-                              launchFunction = launchWaze;
-                              break;
-                          }
-
-                          if (!widget.activeJourney!.data()!.isPickedUp) {
-                            launchFunction(widget.activeJourney!.data()!.startLatLng);
-                          } else {
-                            launchFunction(widget.activeJourney!.data()!.endLatLng);
-                          }
-                        },
+                        onSelected: _handleNavigationAppLaunch,
                         icon: const Icon(Icons.navigation, size: 20),
                         itemBuilder: (context) => [
                           PopupMenuItem(
@@ -226,7 +208,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                     ),
                     const SizedBox(width: 8),
                     (() {
-                      if (widget.activeJourney?.get('isPickedUp') == true) {
+                      if (state.activeJourney?.get('isPickedUp') == true) {
                         return OutlinedButton(
                           style: buttonBarTheme?.copyWith(
                             elevation: const MaterialStatePropertyAll(0),
@@ -238,7 +220,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                             ),
                             foregroundColor: const MaterialStatePropertyAll(Colors.blue),
                           ),
-                          onPressed: () => widget.onPickUp(widget.activeJourney),
+                          onPressed: () => state.onJourneyPickUp(),
                           child: const Icon(Icons.undo),
                         );
                       } else {
@@ -247,7 +229,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                             style: buttonBarTheme?.copyWith(
                               backgroundColor: const MaterialStatePropertyAll(Colors.blue),
                             ),
-                            onPressed: () => widget.onPickUp(widget.activeJourney),
+                            onPressed: () => state.onJourneyPickUp(),
                             child: Text(
                               'PICK-UP',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -260,7 +242,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                       }
                     }()),
                     ...?(() {
-                      if (widget.activeJourney?.get('isPickedUp') == true) {
+                      if (state.activeJourney?.get('isPickedUp') == true) {
                         return [
                           const SizedBox(width: 8),
                           Expanded(
@@ -268,7 +250,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                               style: buttonBarTheme?.copyWith(
                                 backgroundColor: const MaterialStatePropertyAll(Colors.green),
                               ),
-                              onPressed: () => widget.onDropOff(widget.activeJourney),
+                              onPressed: () => state.onJourneyDropOff(),
                               child: Text(
                                 'DROP-OFF',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(

@@ -1,3 +1,4 @@
+import 'package:ap_lanes/ui/driver/state/driver_home_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,9 +20,10 @@ class UserWrapper extends StatelessWidget {
         child: const PassengerHome(),
       );
     } else {
-      return const DriverHome();
+      return ChangeNotifierProvider(
+        create: (context) => DriverHomeState()..initialize(context),
+        child: const DriverHome(),
+      );
     }
-
   }
 }
-

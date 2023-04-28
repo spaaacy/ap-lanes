@@ -87,11 +87,6 @@ class AppDrawer extends StatelessWidget {
                               }),
                         )
                       ];
-                    } else {
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                        child: const Text('   '),
-                      );
                     }
                   }())
                 ],
