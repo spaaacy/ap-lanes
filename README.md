@@ -1,4 +1,6 @@
-# APU Rideshare
+# APLanes
+
+![alt text]https://github.com/spaaacy/ap-lanes/blob/master/assets/icons/icon_1024.png?raw=true)
 
 An UBER-like ridesharing application for APU using the Flutter framework.
 
