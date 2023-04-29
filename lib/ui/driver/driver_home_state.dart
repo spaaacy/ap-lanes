@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
@@ -7,10 +7,14 @@ import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../data/model/remote/driver.dart';
 import '../../../data/model/remote/journey.dart';
@@ -19,6 +23,33 @@ import '../../../data/repo/driver_repo.dart';
 import '../../../data/repo/journey_repo.dart';
 import '../../../data/repo/user_repo.dart';
 import '../../../services/place_service.dart';
+
+// this will be used as notification channel id
+const notificationChannelId = 'driver_location_updater';
+
+// this will be used for notification id, So you can update your custom notification with this id.
+const notificationId = 888;
+
+@pragma('vm:entry-point')
+Future<void> onStart(ServiceInstance service) async {
+  DartPluginRegistrant.ensureInitialized();
+
+  service.on('stopService').listen((event) {
+    service.stopSelf();
+  });
+
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  await Firebase.initializeApp();
+  Timer.periodic(const Duration(seconds: 15), (Timer t) async {
+    final String? driverDocPath = preferences.getString("driverPath");
+    if (driverDocPath == null) return;
+
+    var driverDoc = FirebaseFirestore.instance.doc(driverDocPath);
+    debugPrint('in driverLocationUpdater.executeTask().Timer.periodic()');
+    var pos = await Geolocator.getCurrentPosition();
+    driverDoc.update({'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
+  });
+}
 
 class DriverHomeState extends ChangeNotifier {
   late final MapViewState mapViewState;
@@ -41,75 +72,14 @@ class DriverHomeState extends ChangeNotifier {
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
   final _placeService = PlaceService();
-  bool _isLocationUpdaterIsolateStarting = false;
-  Isolate? _locationUpdaterIsolate;
 
   @override
   void dispose() async {
     super.dispose();
     await _activeJourneyListener?.cancel();
-    await _driverLocationListener?.cancel();
-    stopLocationUpdaterIsolate();
+    _unregisterDriverLocationBackgroundService();
+    _unregisterDriverLocationListener();
   }
-
-  //region getters and setters
-  QueryDocumentSnapshot<User>? get user => _user;
-
-  set user(QueryDocumentSnapshot<User>? value) {
-    _user = value;
-    notifyListeners();
-  }
-
-  QueryDocumentSnapshot<User>? get activeJourneyPassenger => _activeJourneyPassenger;
-
-  set activeJourneyPassenger(QueryDocumentSnapshot<User>? value) {
-    _activeJourneyPassenger = value;
-    notifyListeners();
-  }
-
-  QueryDocumentSnapshot<Driver>? get driver => _driver;
-
-  set driver(QueryDocumentSnapshot<Driver>? value) {
-    _driver = value;
-    notifyListeners();
-  }
-
-  QueryDocumentSnapshot<Journey>? get activeJourney => _activeJourney;
-
-  set activeJourney(QueryDocumentSnapshot<Journey>? value) {
-    _activeJourney = value;
-    notifyListeners();
-  }
-
-  bool get isSearching => _isSearching;
-
-  set isSearching(bool value) {
-    _isSearching = value;
-    notifyListeners();
-  }
-
-  QueryDocumentSnapshot<Journey>? get availableJourneySnapshot => _availableJourneySnapshot;
-
-  set availableJourneySnapshot(QueryDocumentSnapshot<Journey>? value) {
-    _availableJourneySnapshot = value;
-    notifyListeners();
-  }
-
-  QueryDocumentSnapshot<User>? get availableJourneyPassenger => _availableJourneyPassenger;
-
-  set availableJourneyPassenger(QueryDocumentSnapshot<User>? value) {
-    _availableJourneyPassenger = value;
-    notifyListeners();
-  }
-
-  StreamSubscription<QuerySnapshot<Journey>>? get activeJourneyListener => _activeJourneyListener;
-
-  set activeJourneyListener(StreamSubscription<QuerySnapshot<Journey>>? value) {
-    _activeJourneyListener = value;
-    notifyListeners();
-  }
-
-  //endregion
 
   Future<void> initialize(BuildContext context) async {
     this.context = context;
@@ -117,8 +87,8 @@ class DriverHomeState extends ChangeNotifier {
     initializeFirestore();
   }
 
-  Future<void> locationListenerCallback() async {
-    _driverLocationListener = Geolocator.getPositionStream(
+  Future<void> _registerDriverLocationListener() async {
+    _driverLocationListener ??= Geolocator.getPositionStream(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
     ).listen((position) {
       final latLng = LatLng(position.latitude, position.longitude);
@@ -127,6 +97,11 @@ class DriverHomeState extends ChangeNotifier {
           _activeJourney!.data().isPickedUp ? _activeJourney!.data().endLatLng : _activeJourney!.data().startLatLng;
       updateCameraBoundsWithPopup(latLng, targetLatLng);
     });
+  }
+
+  void _unregisterDriverLocationListener() {
+    _driverLocationListener?.cancel();
+    _driverLocationListener = null;
   }
 
   void updateCameraBoundsWithPopup(LatLng start, LatLng end) {
@@ -143,7 +118,6 @@ class DriverHomeState extends ChangeNotifier {
   Future<void> initializeFirestore() async {
     firebaseUser = context.read<firebase_auth.User?>();
     if (firebaseUser == null) return;
-    startOngoingJourneyListener();
 
     var userData = await _userRepo.getUser(firebaseUser!.uid);
     user = userData;
@@ -187,35 +161,52 @@ class DriverHomeState extends ChangeNotifier {
         context.read<UserWrapperState>().userMode = UserMode.passengerMode;
       }
     }
-  }
-
-  void stopLocationUpdaterIsolate() {
-    if (_locationUpdaterIsolate != null) {
-      _locationUpdaterIsolate?.kill();
-      _locationUpdaterIsolate = null;
+    if (await _journeyRepo.hasOngoingJourney(firebaseUser!.uid)) {
+      startOngoingJourneyListener();
     }
   }
 
-  void startLocationUpdaterIsolate() async {
-    if (_isLocationUpdaterIsolateStarting) {
-      // An isolate is already being spawned; no need to do anything.
-      return;
+  void _unregisterDriverLocationBackgroundService() async {
+    final service = FlutterBackgroundService();
+    var isRunning = await service.isRunning();
+    if (isRunning) {
+      service.invoke("stopService");
     }
+  }
 
-    stopLocationUpdaterIsolate();
+  void _registerDriverLocationBackgroundService() async {
+    final service = FlutterBackgroundService();
 
-    _isLocationUpdaterIsolateStarting = true;
-    try {
-      _locationUpdaterIsolate = await Isolate.spawn((message) {
-        Timer.periodic(const Duration(seconds: 15), (Timer t) async {
-          if (driver == null) return;
-          var pos = await Geolocator.getCurrentPosition();
-          _driverRepo.updateDriver(driver!, {'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
-        });
-      }, null);
-    } finally {
-      _isLocationUpdaterIsolateStarting = false;
-    }
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setString("driverPath", driver!.reference.path);
+
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      notificationChannelId, // id
+      'APLanes', // title
+      description: 'Driver location is being updated periodically.', // description
+      importance: Importance.low, // importance must be at low or higher level
+    );
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+    await service.configure(
+      androidConfiguration: AndroidConfiguration(
+        onStart: onStart,
+        autoStart: true,
+        isForegroundMode: true,
+        notificationChannelId: notificationChannelId,
+        initialNotificationTitle: 'APLanes',
+        initialNotificationContent: 'Driver location is periodically being updated.',
+        foregroundServiceNotificationId: notificationId,
+      ),
+      iosConfiguration: IosConfiguration(
+        onForeground: onStart,
+      ),
+    );
   }
 
   void startOngoingJourneyListener() async {
@@ -223,9 +214,9 @@ class DriverHomeState extends ChangeNotifier {
 
     activeJourneyListener = _journeyRepo.getOngoingJourney(firebaseUser!.uid).listen((ss) async {
       if (ss.size > 0) {
-        if (_locationUpdaterIsolate == null) {
-          startLocationUpdaterIsolate();
-        }
+        _registerDriverLocationBackgroundService();
+
+        _registerDriverLocationListener();
         activeJourney = ss.docs.first;
 
         activeJourneyPassenger = await _userRepo.getUser(_activeJourney!.data().userId);
@@ -246,9 +237,7 @@ class DriverHomeState extends ChangeNotifier {
           updateCameraBoundsWithPopup(mapViewState.currentPosition!, _activeJourney!.data().startLatLng);
         }
       } else {
-        if (_locationUpdaterIsolate != null) {
-          stopLocationUpdaterIsolate();
-        }
+        _unregisterDriverLocationBackgroundService();
         if (_activeJourney != null) {
           var previousJourney = await _activeJourney!.reference.get();
           if (previousJourney.exists && previousJourney.data()!.isCancelled) {
@@ -276,6 +265,7 @@ class DriverHomeState extends ChangeNotifier {
         mapViewState.markers.remove(const MarkerId("drop-off"));
         mapViewState.markers.remove(const MarkerId("pick-up"));
         activeJourney = null;
+        _unregisterDriverLocationListener();
         MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
       }
     });
@@ -314,6 +304,9 @@ class DriverHomeState extends ChangeNotifier {
       activeJourney = null;
 
       MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
+      notifyListeners();
+      _unregisterDriverLocationBackgroundService();
+      _unregisterDriverLocationListener();
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -455,4 +448,63 @@ class DriverHomeState extends ChangeNotifier {
     isSearching = !isSearching;
     mapViewState.shouldCenter = !isSearching;
   }
+
+  //region getters and setters
+  QueryDocumentSnapshot<User>? get user => _user;
+
+  set user(QueryDocumentSnapshot<User>? value) {
+    _user = value;
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<User>? get activeJourneyPassenger => _activeJourneyPassenger;
+
+  set activeJourneyPassenger(QueryDocumentSnapshot<User>? value) {
+    _activeJourneyPassenger = value;
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<Driver>? get driver => _driver;
+
+  set driver(QueryDocumentSnapshot<Driver>? value) {
+    _driver = value;
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<Journey>? get activeJourney => _activeJourney;
+
+  set activeJourney(QueryDocumentSnapshot<Journey>? value) {
+    _activeJourney = value;
+    notifyListeners();
+  }
+
+  bool get isSearching => _isSearching;
+
+  set isSearching(bool value) {
+    _isSearching = value;
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<Journey>? get availableJourneySnapshot => _availableJourneySnapshot;
+
+  set availableJourneySnapshot(QueryDocumentSnapshot<Journey>? value) {
+    _availableJourneySnapshot = value;
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<User>? get availableJourneyPassenger => _availableJourneyPassenger;
+
+  set availableJourneyPassenger(QueryDocumentSnapshot<User>? value) {
+    _availableJourneyPassenger = value;
+    notifyListeners();
+  }
+
+  StreamSubscription<QuerySnapshot<Journey>>? get activeJourneyListener => _activeJourneyListener;
+
+  set activeJourneyListener(StreamSubscription<QuerySnapshot<Journey>>? value) {
+    _activeJourneyListener = value;
+    notifyListeners();
+  }
+
+//endregion
 }

@@ -43,6 +43,10 @@ class JourneyRepo {
         .snapshots();
   }
 
+  Future<bool> hasOngoingJourney(String driverId) async {
+    return (await getOngoingJourney(driverId).length) > 0;
+  }
+
   Query<Journey> getDefaultJourneyQuery(String driverId) {
     return _journeyRef
         .where("driverId", isEqualTo: "")

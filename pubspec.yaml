@@ -52,6 +52,9 @@ dependencies:
   url_launcher: ^6.1.10
   flutter_polyline_points: ^1.0.0
   flutter_launcher_icons: ^0.13.1
+  flutter_background_service: ^2.4.6
+  shared_preferences: ^2.1.0
+  flutter_local_notifications: ^14.0.0+1
 
 flutter_launcher_icons:
   android: false
