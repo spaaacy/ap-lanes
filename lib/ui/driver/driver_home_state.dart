@@ -161,7 +161,9 @@ class DriverHomeState extends ChangeNotifier {
         context.read<UserWrapperState>().userMode = UserMode.passengerMode;
       }
     }
-    if (await _journeyRepo.hasOngoingJourney(firebaseUser!.uid)) {
+
+    bool hasOngoingJourney = await _journeyRepo.hasOngoingJourney(firebaseUser!.uid);
+    if (hasOngoingJourney) {
       startOngoingJourneyListener();
     }
   }
@@ -212,7 +214,7 @@ class DriverHomeState extends ChangeNotifier {
   void startOngoingJourneyListener() async {
     await activeJourneyListener?.cancel();
 
-    activeJourneyListener = _journeyRepo.getOngoingJourney(firebaseUser!.uid).listen((ss) async {
+    activeJourneyListener = _journeyRepo.getOngoingJourneyStream(firebaseUser!.uid).listen((ss) async {
       if (ss.size > 0) {
         _registerDriverLocationBackgroundService();
 
@@ -267,6 +269,7 @@ class DriverHomeState extends ChangeNotifier {
         activeJourney = null;
         _unregisterDriverLocationListener();
         MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
+        notifyListeners();
       }
     });
   }
