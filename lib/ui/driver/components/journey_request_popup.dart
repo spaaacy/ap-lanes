@@ -1,5 +1,6 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +70,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              state.availableJourneySnapshot!.data().startDescription,
+                              trimDescription(state.availableJourneySnapshot!.data().startDescription),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
@@ -78,7 +79,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              state.availableJourneySnapshot!.data().endDescription,
+                              trimDescription(state.availableJourneySnapshot!.data().endDescription),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
