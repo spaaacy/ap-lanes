@@ -90,7 +90,6 @@ flutter:
 
   assets:
     - assets/icons/user.png
-    - assets/icons/driver.png
     - assets/icons/location.png
     - assets/map_style.json
     - assets/icons/waze.svg
