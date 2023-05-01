@@ -40,7 +40,7 @@ class MapHelper {
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
           southwest: LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
-          northeast: LatLng(maxLat + topOffsetValue , maxLng + rightOffsetValue),
+          northeast: LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
         ),
         50,
       ),
@@ -82,7 +82,7 @@ class MapHelper {
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
           southwest: LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
-          northeast: LatLng(maxLat + topOffsetValue , maxLng + rightOffsetValue),
+          northeast: LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
         ),
         50,
       ),
@@ -99,7 +99,7 @@ class MapHelper {
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
 
-  static double calculateRouteDistance(Polyline? polylines){
+  static double calculateRouteDistance(Polyline? polylines) {
     if (polylines == null) return 0;
 
     var p = 0.017453292519943295;
@@ -120,5 +120,4 @@ class MapHelper {
 
     return totalDistance;
   }
-
 }

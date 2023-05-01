@@ -22,9 +22,4 @@ class PassengerRepo {
     return null;
   }
 
-  Future<void> updateIsSearching(QueryDocumentSnapshot<Passenger> passenger,
-      bool isSearching) async {
-    passenger.reference.update({"isSearching": isSearching});
-  }
-
 }

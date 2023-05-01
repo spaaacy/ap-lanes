@@ -17,10 +17,10 @@ class GoButton extends StatelessWidget {
           onPressed: () {
             if (firebaseUser != null) {
               if (!state.isSearching) {
-                state.updateIsSearching(true);
+                state.isSearching = true;
                 state.createJourney(context);
               } else {
-                state.updateIsSearching(false);
+                state.isSearching = false;
                 state.deleteJourney();
               }
             }
