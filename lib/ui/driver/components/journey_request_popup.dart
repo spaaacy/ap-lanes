@@ -1,28 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/util/map_helper.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-
-import '../../../data/model/remote/journey.dart';
-import '../../../data/repo/user_repo.dart';
+import 'package:provider/provider.dart';
 
 class JourneyRequestPopup extends StatelessWidget {
-  JourneyRequestPopup({
-    super.key,
-    required this.isSearching,
-    required this.journey,
-    required this.onNavigate,
-    required this.onAccept,
-    required this.routeDistance,
-  });
-
-  final bool isSearching;
-  final QueryDocumentSnapshot<Journey>? journey;
-  final void Function(int direction) onNavigate;
-  final void Function(QueryDocumentSnapshot<Journey>) onAccept;
-  final double routeDistance;
-  final UserRepo _userRepo = UserRepo();
+  const JourneyRequestPopup({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final MapViewState mapViewState = context.watch<MapViewState>();
+    final state = Provider.of<DriverHomeState>(context);
+
     final matchmakingButtonTheme = FilledButtonTheme.of(context).style?.copyWith(
           elevation: const MaterialStatePropertyAll(2),
           padding: const MaterialStatePropertyAll(
@@ -31,9 +21,9 @@ class JourneyRequestPopup extends StatelessWidget {
         );
 
     return TweenAnimationBuilder(
-      curve: Curves.bounceInOut,
+      curve: Curves.easeIn,
       duration: const Duration(milliseconds: 250),
-      tween: Tween<double>(begin: isSearching ? 1 : 0, end: isSearching ? 0 : 1),
+      tween: Tween<double>(begin: state.isSearching ? 1 : 0, end: state.isSearching ? 0 : 1),
       builder: (_, topOffset, child) {
         return Positioned.fill(
           left: 12,
@@ -52,7 +42,7 @@ class JourneyRequestPopup extends StatelessWidget {
                       Radius.circular(8),
                     ),
                   ),
-                  child: journey == null
+                  child: state.availableJourneySnapshot == null
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -69,20 +59,9 @@ class JourneyRequestPopup extends StatelessWidget {
                               'PASSENGER',
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
-                            FutureBuilder(
-                              future: _userRepo.getUser(journey!.data().userId),
-                              builder: (context, snapshot) {
-                                var passengerName = "Loading...";
-
-                                if (snapshot.hasData) {
-                                  passengerName = snapshot.data!.data().getFullName();
-                                }
-
-                                return Text(
-                                  passengerName,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                );
-                              },
+                            Text(
+                              state.availableJourneyPassenger?.data().getFullName() ?? 'Loading...',
+                              style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -90,7 +69,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              journey!.data().startDescription,
+                              state.availableJourneySnapshot!.data().startDescription,
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
@@ -99,7 +78,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              journey!.data().endDescription,
+                              state.availableJourneySnapshot!.data().endDescription,
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
@@ -108,7 +87,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              "${routeDistance.toStringAsFixed(2)} km",
+                              "${MapHelper.calculateRouteDistance(mapViewState.polylines.firstOrNull).toStringAsFixed(2)} km",
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                           ],
@@ -116,7 +95,7 @@ class JourneyRequestPopup extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 ...?(() {
-                  if (journey != null) {
+                  if (state.availableJourneySnapshot != null) {
                     return [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -127,7 +106,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: matchmakingButtonTheme?.copyWith(
                                 backgroundColor: const MaterialStatePropertyAll(Colors.blue),
                               ),
-                              onPressed: () => onNavigate(-1),
+                              onPressed: () => state.onRequestPopupNavigate(-1),
                               child: const Icon(Icons.arrow_back, color: Colors.white),
                             ),
                           ),
@@ -137,7 +116,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: matchmakingButtonTheme?.copyWith(
                                 backgroundColor: const MaterialStatePropertyAll(Colors.green),
                               ),
-                              onPressed: () => onAccept(journey!),
+                              onPressed: () => state.onJourneyAccept(),
                               child: Text(
                                 'ACCEPT',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -154,7 +133,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: matchmakingButtonTheme?.copyWith(
                                 backgroundColor: const MaterialStatePropertyAll(Colors.blue),
                               ),
-                              onPressed: () => onNavigate(1),
+                              onPressed: () => state.onRequestPopupNavigate(1),
                               child: const Icon(Icons.arrow_forward, color: Colors.white),
                             ),
                           ),

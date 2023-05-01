@@ -34,13 +34,23 @@ class JourneyRepo {
         .snapshots();
   }
 
-  Stream<QuerySnapshot<Journey>> getOngoingJourney(String driverId) {
+  Stream<QuerySnapshot<Journey>> getOngoingJourneyStream(String driverId) {
     return _journeyRef
         .where("driverId", isEqualTo: driverId)
         .where("isCompleted", isEqualTo: false)
         .where("isCancelled", isEqualTo: false)
         .limit(1)
         .snapshots();
+  }
+
+  Future<bool> hasOngoingJourney(String driverId) async {
+    final ongoingJourneySnapshots = await _journeyRef
+        .where("driverId", isEqualTo: driverId)
+        .where("isCompleted", isEqualTo: false)
+        .where("isCancelled", isEqualTo: false)
+        .limit(1)
+        .get();
+    return ongoingJourneySnapshots.size > 0;
   }
 
   Query<Journey> getDefaultJourneyQuery(String driverId) {
