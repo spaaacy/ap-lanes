@@ -77,10 +77,7 @@ class PassengerHomeState extends ChangeNotifier {
       // Set user and last name
       _user = (await _userRepo.getUser(firebaseUser.uid))!;
       _lastName = _user!.data().lastName;
-
-      // Set passenger and isSearching
       _passenger = (await _passengerRepo.getPassenger(firebaseUser.uid))!;
-      _isSearching = _passenger!.data().isSearching;
       notifyListeners();
 
       _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
@@ -92,10 +89,6 @@ class PassengerHomeState extends ChangeNotifier {
           if (_journey!.data().driverId.isNotEmpty) {
             _isPickedUp = _journey!.data().isPickedUp;
             notifyListeners();
-
-            if (_isSearching) {
-              _passengerRepo.updateIsSearching(_passenger!, false);
-            }
 
             // Get driver name
             final driverId = _journey!.data().driverId;
@@ -139,6 +132,9 @@ class PassengerHomeState extends ChangeNotifier {
                 });
               }
             });
+          } else {
+            _isSearching = true;
+            notifyListeners();
           }
         } else if (_journey != null) {
           // Runs after journey completion/deletion/cancellation
@@ -220,14 +216,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   Future<void> cancelJourneyAsPassenger() async {
     await _journeyRepo.cancelJourneyAsPassenger(_journey!);
-  }
-
-  void updateIsSearching(isSearching) {
-    if (_passenger != null) {
-      _passengerRepo.updateIsSearching(_passenger!, isSearching);
-      _isSearching = isSearching;
-      notifyListeners();
-    }
   }
 
   void createJourney(BuildContext context) {
