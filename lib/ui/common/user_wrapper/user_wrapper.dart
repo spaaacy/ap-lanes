@@ -1,8 +1,8 @@
-import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/ui/driver/new_driver_home.dart';
+import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../driver/driver_home.dart';
 import '../../passenger/passenger_home.dart';
 import '../../passenger/passenger_home_state.dart';
 import 'user_wrapper_state.dart';
@@ -21,8 +21,8 @@ class UserWrapper extends StatelessWidget {
       );
     } else {
       return ChangeNotifierProvider(
-        create: (context) => DriverHomeState()..initialize(context),
-        child: const DriverHome(),
+        create: (context) => NewDriverHomeState(context),
+        child: const NewDriverHome(),
       );
     }
   }

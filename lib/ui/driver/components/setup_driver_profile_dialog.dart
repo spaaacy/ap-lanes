@@ -3,16 +3,42 @@ import 'package:flutter/services.dart';
 
 import '../../../data/model/remote/driver.dart';
 import '../../../data/repo/driver_repo.dart';
-import '../../../util/ui_helpers.dart' as ui_helper;
 
-class SetupDriverProfileDialog extends StatelessWidget {
+class SetupDriverProfileDialog extends StatefulWidget {
   final String userId;
 
-  SetupDriverProfileDialog({super.key, required this.userId});
+  const SetupDriverProfileDialog({Key? key, required this.userId}) : super(key: key);
 
+  @override
+  State<SetupDriverProfileDialog> createState() => _SetupDriverProfileDialogState();
+}
+
+class _SetupDriverProfileDialogState extends State<SetupDriverProfileDialog> {
   final _driverSetupFormKey = GlobalKey<FormState>();
   final _licensePlateController = TextEditingController();
   final DriverRepo _driverRepo = DriverRepo();
+  bool isLoading = false;
+
+  Future<void> registerDriver(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    if (_driverSetupFormKey.currentState!.validate()) {
+      String licensePlate = _licensePlateController.text.trim().toUpperCase();
+      await _driverRepo.createDriver(
+        Driver(id: widget.userId, licensePlate: licensePlate, isAvailable: false),
+      );
+
+      if (context.mounted) {
+        Navigator.of(context).pop('Save');
+      }
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,26 +71,11 @@ class SetupDriverProfileDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop('Cancel');
-          },
+          onPressed: isLoading ? null : () => Navigator.of(context).pop('Cancel'),
           child: const Text('Cancel'),
         ),
         TextButton(
-          onPressed: () async {
-            if (_driverSetupFormKey.currentState!.validate()) {
-              ui_helper.showLoaderDialog(context, 'Loading...');
-              String licensePlate = _licensePlateController.text.trim().toUpperCase();
-              await _driverRepo.createDriver(
-                Driver(id: userId, licensePlate: licensePlate, isAvailable: false),
-              );
-
-              if (context.mounted) {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop('Save');
-              }
-            }
-          },
+          onPressed: isLoading ? null : () => registerDriver(context),
           child: const Text('Save'),
         ),
       ],

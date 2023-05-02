@@ -1,5 +1,4 @@
 import 'package:ap_lanes/ui/common/map_view/map_view.dart';
-import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
