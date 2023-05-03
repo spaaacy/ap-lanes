@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -20,11 +21,12 @@ class MapViewState extends ChangeNotifier {
   BitmapDescriptor? _driverIcon;
   BitmapDescriptor? _locationIcon;
   bool _shouldCenter = true;
-  LatLng? _currentPosition;
+  LatLng? _currentPosition = LatLng(100, 100); // TODO: Remove
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
   late String _mapStyle;
   StreamSubscription<Position>? _locationListener;
+  final mapController = MapController();
 
   /*
   * Functions
@@ -52,7 +54,7 @@ class MapViewState extends ChangeNotifier {
     _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
     _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
     if (context.mounted) {
-      initializeLocation(context);
+      // initializeLocation(context);
     }
   }
 
