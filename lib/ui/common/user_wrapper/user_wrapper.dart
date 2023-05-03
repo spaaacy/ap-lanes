@@ -1,3 +1,4 @@
+import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
 import 'package:ap_lanes/ui/driver/new_driver_home.dart';
 import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +21,15 @@ class UserWrapper extends StatelessWidget {
         child: const PassengerHome(),
       );
     } else {
-      return ChangeNotifierProvider(
-        create: (context) => NewDriverHomeState(context),
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<JourneyRequestPopupState>(
+            create: (context) => JourneyRequestPopupState(context),
+          ),
+          ChangeNotifierProvider<NewDriverHomeState>(
+            create: (context) => NewDriverHomeState(context),
+          ),
+        ],
         child: const NewDriverHome(),
       );
     }
