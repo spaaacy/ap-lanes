@@ -4,7 +4,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
-import '../../../util/map_helper.dart';
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -66,7 +65,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                       width: 60,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await MapHelper.resetCamera(mapViewState.mapController, newCurrentPosition, mapViewState.ticker!);
+                          await mapViewState.resetCamera();
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
                               shape: MaterialStatePropertyAll(

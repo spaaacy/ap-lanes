@@ -34,7 +34,7 @@ class Driver {
       id: data?['id'],
       licensePlate: data?['licensePlate'],
       isAvailable: data?['isAvailable'],
-      currentLatLng: newGetLatLngFromString(data?['currentLatLng']),
+      currentLatLng: getLatLngFromString(data?['currentLatLng']),
     );
   }
 }

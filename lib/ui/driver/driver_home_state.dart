@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
-import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -107,8 +106,7 @@ class DriverHomeState extends ChangeNotifier {
 
   void updateCameraBoundsWithPopup(LatLng start, LatLng end) {
     mapViewState.shouldCenter = false;
-    MapHelper.setCameraBetweenMarkers(
-      mapController: mapViewState.mapController,
+    mapViewState.setCameraBetweenMarkers(
       firstLatLng: start,
       secondLatLng: end,
       topOffsetPercentage: 1,
@@ -267,7 +265,7 @@ class DriverHomeState extends ChangeNotifier {
         mapViewState.markers.remove("pick-up");
         activeJourney = null;
         _unregisterDriverLocationListener();
-        MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition, mapViewState.ticker!);
+        mapViewState.resetCamera();
         notifyListeners();
       }
     });
@@ -305,7 +303,7 @@ class DriverHomeState extends ChangeNotifier {
       mapViewState.markers.remove("pick-up");
       activeJourney = null;
 
-      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!, mapViewState.ticker!);
+      mapViewState.resetCamera();
       notifyListeners();
       _unregisterDriverLocationBackgroundService();
       _unregisterDriverLocationListener();
@@ -399,9 +397,7 @@ class DriverHomeState extends ChangeNotifier {
     _placeService.fetchRoute(start, end).then((polylines) {
       mapViewState.polylines.clear();
       mapViewState.polylines.add(polylines);
-      MapHelper.setCameraToRoute(
-        mapController: mapViewState.mapController,
-        polylines: mapViewState.polylines,
+      mapViewState.setCameraToRoute(
         topOffsetPercentage: 1,
         bottomOffsetPercentage: 0.2,
       );
@@ -437,7 +433,7 @@ class DriverHomeState extends ChangeNotifier {
     } else {
       availableJourneySnapshot = null;
       availableJourneyPassenger = null;
-      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition, mapViewState.ticker!);
+      mapViewState.resetCamera();
     }
   }
 
