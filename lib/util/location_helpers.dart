@@ -41,8 +41,7 @@ LatLng getLatLngFromString(String? latLngString) {
 }
 
 String trimDescription(String description) {
-  final trimmed = description.split(", ").toList();
-  return "${trimmed[0]}, ${trimmed[1]}, ${trimmed[2]}";
+  return description.split(", ").take(3).join(', ');
 }
 
 Future<bool> handleLocationPermission(context) async {
