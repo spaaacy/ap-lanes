@@ -1,6 +1,6 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
-import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:collection/collection.dart';

@@ -8,7 +8,7 @@ import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/services/background/driver_location_background_service.dart';
 import 'package:ap_lanes/services/place_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
-import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;

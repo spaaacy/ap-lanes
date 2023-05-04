@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
-import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
