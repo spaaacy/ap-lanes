@@ -6,7 +6,6 @@ import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
 import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup.dart';
 import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
-import 'package:ap_lanes/util/greeting.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../util/ui_helpers.dart';

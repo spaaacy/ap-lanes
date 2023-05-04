@@ -163,7 +163,7 @@ class DriverHomeState extends ChangeNotifier {
     _mapViewState.shouldCenter = true;
     _mapViewState.notifyListeners();
 
-    MapHelper.resetCamera(_mapViewState.mapController, _mapViewState.currentPosition);
+    _mapViewState.resetCamera();
   }
 
   void didAcceptJourneyRequest(QueryDocumentSnapshot<Journey>? acceptedJourneyRequest) {

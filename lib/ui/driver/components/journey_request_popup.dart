@@ -80,7 +80,7 @@ class JourneyRequestPopup extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                       ),
                       Text(
-                        "${MapHelper.calculateRouteDistance(mapViewState.polylines.firstOrNull).toStringAsFixed(2)} km",
+                        "${calculateRouteDistance(mapViewState.polylines.firstOrNull).toStringAsFixed(2)} km",
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                     ],

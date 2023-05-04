@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:ap_lanes/data/model/remote/journey.dart';
 import 'package:ap_lanes/data/model/remote/user.dart';
-import 'package:ap_lanes/data/repo/driver_repo.dart';
 import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/services/place_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
-import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -39,7 +37,6 @@ class JourneyRequestPopupState extends ChangeNotifier {
   }
 
   final _userRepo = UserRepo();
-  final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
   final _placeService = PlaceService();
 
@@ -106,9 +103,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
     _mapViewState.polylines.clear();
     _mapViewState.polylines.add(polylines);
     _mapViewState.shouldCenter = false;
-    MapHelper.setCameraToRoute(
-      mapController: _mapViewState.mapController,
-      polylines: _mapViewState.polylines,
+    _mapViewState.setCameraToRoute(
       topOffsetPercentage: 1,
       bottomOffsetPercentage: 0.2,
     );
