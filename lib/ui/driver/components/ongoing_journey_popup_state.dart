@@ -187,7 +187,6 @@ class OngoingJourneyPopupState extends ChangeNotifier {
     } catch (e) {
       debugPrint(e.toString());
     }
-
   }
 
   Future<void> _unregisterActiveJourneyListener() async {

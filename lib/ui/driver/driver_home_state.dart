@@ -6,7 +6,6 @@ import 'package:ap_lanes/data/model/remote/user.dart';
 import 'package:ap_lanes/data/repo/driver_repo.dart';
 import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
-import 'package:ap_lanes/services/place_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
