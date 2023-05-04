@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../util/url_helpers.dart';
 import '../driver_home_state.dart';
@@ -123,7 +125,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                       ),
                       Text(
-                        getTargetLocation(),
+                        trimDescription(getTargetLocation()),
                         style: Theme.of(context).textTheme.titleSmall,
                       )
                     ],
@@ -183,6 +185,21 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                           )
                         ],
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      style: buttonBarTheme?.copyWith(
+                        elevation: const MaterialStatePropertyAll(0),
+                        padding: const MaterialStatePropertyAll(
+                          EdgeInsets.all(10),
+                        ),
+                        side: const MaterialStatePropertyAll(
+                          BorderSide(color: Colors.black, width: 2.0),
+                        ),
+                        foregroundColor: const MaterialStatePropertyAll(Colors.black),
+                      ),
+                      onPressed: () => launchUrl(Uri.parse("tel://${state.activeJourneyPassenger?.data().phoneNumber.trim()}")),
+                      child: const Icon(Icons.phone),
                     ),
                     const SizedBox(width: 8),
                     (() {
