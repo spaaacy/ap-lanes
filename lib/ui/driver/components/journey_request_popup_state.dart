@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ap_lanes/data/model/remote/journey.dart';
 import 'package:ap_lanes/data/model/remote/user.dart';
 import 'package:ap_lanes/data/repo/driver_repo.dart';
@@ -20,10 +22,20 @@ class JourneyRequestPopupState extends ChangeNotifier {
   late final MapViewState _mapViewState;
   late final NewDriverHomeState _driverHomeState;
 
+  StreamSubscription<MapEntry<DriverState, dynamic>>? _onDriverStateChangedListener;
+
   JourneyRequestPopupState(this._context) {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
     _driverHomeState = Provider.of<NewDriverHomeState>(_context, listen: false);
+    _onDriverStateChangedListener = _driverHomeState.onDriverStateChanged.listen(onDriverStateChangedCallback);
+  }
+
+  @override
+  void dispose() {
+    _onDriverStateChangedListener?.cancel();
+    // TODO: implement dispose
+    super.dispose();
   }
 
   final _userRepo = UserRepo();
@@ -102,11 +114,11 @@ class JourneyRequestPopupState extends ChangeNotifier {
     );
     _mapViewState.markers["start"] = Marker(
       point: start,
-      builder: (_) => const Icon(Icons.location_pin, size:35),
+      builder: (_) => const Icon(Icons.location_pin, size: 35),
     );
     _mapViewState.markers["destination"] = Marker(
       point: end,
-      builder: (_) => const Icon(Icons.location_pin, size:35),
+      builder: (_) => const Icon(Icons.location_pin, size: 35),
     );
     _mapViewState.notifyListeners();
   }
@@ -184,7 +196,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
 
       _driverHomeState.stopSearching();
 
-      // startOngoingJourneyListener();
+      _driverHomeState.didAcceptJourneyRequest(availableJourney!);
     } catch (e) {
       if (_context.mounted) {
         ScaffoldMessenger.of(_context).showSnackBar(
@@ -193,6 +205,20 @@ class JourneyRequestPopupState extends ChangeNotifier {
           ),
         );
       }
+    }
+  }
+
+  void onDriverStateChangedCallback(MapEntry<DriverState, dynamic> state) {
+    switch (state.key) {
+      case DriverState.idle:
+        resetAvailableJourneys();
+        break;
+      case DriverState.searching:
+        fetchInitialJourneys();
+        break;
+      case DriverState.ongoing:
+        // nothing
+        break;
     }
   }
 }

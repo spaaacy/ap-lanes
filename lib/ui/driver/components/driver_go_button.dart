@@ -9,20 +9,20 @@ class DriverGoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = Provider.of<NewDriverHomeState>(context);
 
-    if (state.activeJourney != null) return const SizedBox.shrink();
+    if (state.driverState == DriverState.ongoing) return const SizedBox.shrink();
 
     return Positioned.fill(
       bottom: 100.0,
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ElevatedButton(
-          onPressed: state.isSearching ? state.stopSearching : state.startSearching,
+          onPressed: state.driverState == DriverState.searching ? state.stopSearching : state.startSearching,
           style: ElevatedButtonTheme.of(context).style?.copyWith(
                 shape: const MaterialStatePropertyAll(CircleBorder()),
                 padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
                 elevation: const MaterialStatePropertyAll(6.0),
               ),
-          child: state.isSearching
+          child: state.driverState == DriverState.searching
               ? const Icon(
                   Icons.close,
                   size: 20,

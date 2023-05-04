@@ -13,8 +13,8 @@ class JourneyRequestPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<NewDriverHomeState>(context);
+    if (state.driverState != DriverState.searching) return const SizedBox.shrink();
     final requestState = Provider.of<JourneyRequestPopupState>(context);
-    if (!state.isSearching) return const SizedBox.shrink();
 
     final MapViewState mapViewState = context.watch<MapViewState>();
 

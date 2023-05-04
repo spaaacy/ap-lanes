@@ -9,7 +9,6 @@ import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/services/place_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
-import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,13 +16,20 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+enum DriverState {
+  idle,
+  searching,
+  ongoing,
+}
+
 class NewDriverHomeState extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
-  late final JourneyRequestPopupState _journeyRequestPopupState;
 
   QueryDocumentSnapshot<User>? _user;
+  QueryDocumentSnapshot<Driver>? _driver;
+  DriverState _driverState = DriverState.idle;
 
   QueryDocumentSnapshot<User>? get user => _user;
 
@@ -32,8 +38,6 @@ class NewDriverHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  QueryDocumentSnapshot<Driver>? _driver;
-
   QueryDocumentSnapshot<Driver>? get driver => _driver;
 
   set driver(QueryDocumentSnapshot<Driver>? value) {
@@ -41,40 +45,39 @@ class NewDriverHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _isSearching = false;
+  DriverState get driverState => _driverState;
 
-  bool get isSearching => _isSearching;
-
-  set isSearching(bool value) {
-    _isSearching = value;
+  set driverState(DriverState value) {
+    _driverState = value;
     notifyListeners();
   }
 
-  QueryDocumentSnapshot<Journey>? _activeJourney;
+  late final Stream<MapEntry<DriverState, dynamic>> onDriverStateChanged;
+  late final StreamController<MapEntry<DriverState, dynamic>> _onDriverStateStreamController;
 
-  QueryDocumentSnapshot<Journey>? get activeJourney => _activeJourney;
-
-  set activeJourney(QueryDocumentSnapshot<Journey>? value) {
-    _activeJourney = value;
-    notifyListeners();
-  }
-
-  late final Stream onSearchingStatusChanged;
-  late final StreamController<bool> _onSearchingStatusStreamController;
+  late final StreamController<QueryDocumentSnapshot<Journey>?> _onJourneyRequestAcceptedStreamController =
+      StreamController();
+  late final Stream<QueryDocumentSnapshot<Journey>?> onJourneyRequestAccepted =
+      _onJourneyRequestAcceptedStreamController.stream;
 
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
-  final _placeService = PlaceService();
 
   NewDriverHomeState(this._context) {
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
-    _journeyRequestPopupState = Provider.of<JourneyRequestPopupState>(_context, listen: false);
 
-    _onSearchingStatusStreamController = StreamController();
-    onSearchingStatusChanged = _onSearchingStatusStreamController.stream;
+    _onDriverStateStreamController = StreamController();
+    onDriverStateChanged = _onDriverStateStreamController.stream;
 
     initializeFirebase();
+  }
+
+  @override
+  void dispose() {
+    _onDriverStateStreamController.close();
+
+    super.dispose();
   }
 
   Future<void> initializeFirebase() async {
@@ -89,7 +92,12 @@ class NewDriverHomeState extends ChangeNotifier {
     if (existingDriver != null) {
       driver = existingDriver;
     } else {
-      showDriverSetupDialog();
+      await showDriverSetupDialog();
+    }
+
+    final hasPreviousOngoingJourney = await _journeyRepo.hasOngoingJourney(_firebaseUser!.uid);
+    if (hasPreviousOngoingJourney) {
+      didAcceptJourneyRequest(null);
     }
   }
 
@@ -97,7 +105,7 @@ class NewDriverHomeState extends ChangeNotifier {
     return user == null || driver == null;
   }
 
-  void showDriverSetupDialog() async {
+  Future<void> showDriverSetupDialog() async {
     var result = await showDialog<String?>(
       context: _context,
       builder: (ctx) => SetupDriverProfileDialog(userId: _firebaseUser!.uid),
@@ -132,25 +140,24 @@ class NewDriverHomeState extends ChangeNotifier {
   }
 
   void startSearching() async {
-    isSearching = true;
+    _driverState = DriverState.searching;
 
     await _driverRepo.updateDriver(driver!, {'isAvailable': true});
 
-    _onSearchingStatusStreamController.add(true);
-    // todo: move to journey req state
-    _journeyRequestPopupState.fetchInitialJourneys();
+    _onDriverStateStreamController.add(const MapEntry(DriverState.searching, null));
+    notifyListeners();
   }
 
   void stopSearching() async {
-    isSearching = false;
+    _driverState = DriverState.idle;
 
     await _driverRepo.updateDriver(driver!, {'isAvailable': false});
 
-    _onSearchingStatusStreamController.add(false);
-    // todo: move to journey req state
-    _journeyRequestPopupState.resetAvailableJourneys();
+    _onDriverStateStreamController.add(const MapEntry(DriverState.idle, null));
 
     clearMapRoute();
+
+    notifyListeners();
   }
 
   void clearMapRoute() {
@@ -161,5 +168,11 @@ class NewDriverHomeState extends ChangeNotifier {
     _mapViewState.notifyListeners();
 
     MapHelper.resetCamera(_mapViewState.mapController, _mapViewState.currentPosition);
+  }
+
+  void didAcceptJourneyRequest(QueryDocumentSnapshot<Journey>? acceptedJourneyRequest) {
+    _driverState = DriverState.ongoing;
+    _onJourneyRequestAcceptedStreamController.add(acceptedJourneyRequest);
+    notifyListeners();
   }
 }

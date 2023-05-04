@@ -4,6 +4,7 @@ import 'package:ap_lanes/ui/driver/components/driver_go_button.dart';
 import 'package:ap_lanes/ui/driver/components/journey_request_popup.dart';
 import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
 import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup.dart';
+import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
 import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
 import 'package:ap_lanes/util/greeting.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ class NewDriverHome extends StatelessWidget {
       drawer: AppDrawer(
         user: state.user,
         isDriver: true,
-        isNavigationLocked: state.isSearching || state.activeJourney != null,
+        isNavigationLocked: state.driverState != DriverState.idle,
         onNavigateWhenLocked: () {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -44,10 +45,13 @@ class NewDriverHome extends StatelessWidget {
               children: [
                 MapView(),
                 const DriverGoButton(),
-                const OngoingJourneyPopup(),
                 ChangeNotifierProvider<JourneyRequestPopupState>(
                   create: (context) => JourneyRequestPopupState(context),
                   child: const JourneyRequestPopup(),
+                ),
+                ChangeNotifierProvider<OngoingJourneyPopupState>(
+                  create: (context) => OngoingJourneyPopupState(context),
+                  child: const OngoingJourneyPopup(),
                 ),
               ],
             ),

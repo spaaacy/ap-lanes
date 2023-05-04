@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
 import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
 import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../util/url_helpers.dart';
 
@@ -20,7 +22,7 @@ class OngoingJourneyPopup extends StatefulWidget {
 
 class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   void _handleNavigationAppLaunch(String value) {
-    final state = Provider.of<NewDriverHomeState>(context, listen: false);
+    final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
 
     Future<void> Function(LatLng latLng) launchFunction;
     switch (value) {
@@ -41,7 +43,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   }
 
   DriverAction _getCurrentDriverAction() {
-    final state = Provider.of<NewDriverHomeState>(context, listen: false);
+    final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
 
     if (state.activeJourney == null) return DriverAction.idle;
 
@@ -65,7 +67,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   }
 
   String _getTargetLocation() {
-    final state = Provider.of<NewDriverHomeState>(context, listen: false);
+    final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
 
     switch (_getCurrentDriverAction()) {
       case DriverAction.droppingOff:
@@ -82,7 +84,9 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   Widget build(BuildContext context) {
     final state = Provider.of<NewDriverHomeState>(context);
 
-    if (state.activeJourney == null) return const SizedBox.shrink();
+    if (state.driverState != DriverState.ongoing) return const SizedBox.shrink();
+
+    final ongoingState = Provider.of<OngoingJourneyPopupState>(context);
 
     final buttonBarTheme = FilledButtonTheme.of(context).style?.copyWith(
           elevation: const MaterialStatePropertyAll(2),
@@ -106,29 +110,32 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                 Radius.circular(8),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getStatusMessage(),
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                ),
-                Text(
-                  'Loading...',
-                  // todo: state.activeJourneyPassenger?.data().getFullName() ?? 'Loading...',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'AT',
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                ),
-                Text(
-                  trimDescription(_getTargetLocation()),
-                  style: Theme.of(context).textTheme.titleSmall,
-                )
-              ],
-            ),
+            child: ongoingState.isLoadingJourneyRequest
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getStatusMessage(),
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                      ),
+                      Text(
+                        ongoingState.activeJourneyPassenger?.data().getFullName() ?? 'Loading...',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'AT',
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                      ),
+                      Text(
+                        trimDescription(_getTargetLocation()),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      )
+                    ],
+                  ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -137,8 +144,8 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 2),
-                height: 44,
+                margin: const EdgeInsets.only(top: 4),
+                height: 40,
                 width: 62,
                 decoration: ShapeDecoration(
                   shape: RoundedRectangleBorder(
@@ -187,46 +194,34 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
               ),
               const SizedBox(width: 8),
               OutlinedButton(
-                style: buttonBarTheme?.copyWith(
-                  elevation: const MaterialStatePropertyAll(0),
-                  padding: const MaterialStatePropertyAll(
-                    EdgeInsets.all(10),
-                  ),
-                  side: const MaterialStatePropertyAll(
-                    BorderSide(color: Colors.black, width: 2.0),
-                  ),
-                  foregroundColor: const MaterialStatePropertyAll(Colors.black),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.black, width: 2.0),
+                  foregroundColor: Colors.black,
                 ),
-                onPressed: () => {},
-                // todo: onPressed: () => launchUrl(Uri.parse("tel://${state.activeJourneyPassenger?.data().phoneNumber.trim()}")),
+                onPressed: ongoingState.isLoadingJourneyRequest
+                    ? null
+                    : () =>
+                        launchUrl(Uri.parse("tel://${ongoingState.activeJourneyPassenger?.data().phoneNumber.trim()}")),
                 child: const Icon(Icons.phone),
               ),
               const SizedBox(width: 8),
               (() {
-                if (state.activeJourney?.get('isPickedUp') == true) {
+                if (ongoingState.activeJourney?.get('isPickedUp') == true) {
                   return OutlinedButton(
-                    style: buttonBarTheme?.copyWith(
-                      elevation: const MaterialStatePropertyAll(0),
-                      padding: const MaterialStatePropertyAll(
-                        EdgeInsets.all(10),
-                      ),
-                      side: const MaterialStatePropertyAll(
-                        BorderSide(color: Colors.blue, width: 2.0),
-                      ),
-                      foregroundColor: const MaterialStatePropertyAll(Colors.blue),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.blue, width: 2.0),
+                      foregroundColor: Colors.blue,
                     ),
-                    // todo: onPressed: () => state.onJourneyPickUp(),
-                    onPressed: () => {},
+                    onPressed: ongoingState.isLoadingJourneyRequest ? null : () => ongoingState.onJourneyPickUp(),
                     child: const Icon(Icons.undo),
                   );
                 } else {
                   return Expanded(
                     child: FilledButton(
-                      style: buttonBarTheme?.copyWith(
-                        backgroundColor: const MaterialStatePropertyAll(Colors.blue),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.blue,
                       ),
-                      // todo: onPressed: () => state.onJourneyPickUp(),
-                      onPressed: () => {},
+                      onPressed: ongoingState.isLoadingJourneyRequest ? null : () => ongoingState.onJourneyPickUp(),
                       child: Text(
                         'PICK-UP',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -239,16 +234,13 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                 }
               }()),
               ...?(() {
-                if (state.activeJourney?.get('isPickedUp') == true) {
+                if (ongoingState.activeJourney?.get('isPickedUp') == true) {
                   return [
                     const SizedBox(width: 8),
                     Expanded(
                       child: FilledButton(
-                        style: buttonBarTheme?.copyWith(
-                          backgroundColor: const MaterialStatePropertyAll(Colors.green),
-                        ),
-                        // todo: onPressed: () => state.onJourneyDropOff(),
-                        onPressed: () => {},
+                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                        onPressed: ongoingState.isLoadingJourneyRequest ? null : () => ongoingState.onJourneyDropOff(),
                         child: Text(
                           'DROP-OFF',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
