@@ -38,7 +38,7 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: 210,
+            height: isDriver ? 250 : 200,
             child: DrawerHeader(
               decoration: const BoxDecoration(
                 color: Colors.black,

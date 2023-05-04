@@ -70,7 +70,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              state.availableJourneySnapshot!.data().startDescription,
+                              trimDescription(state.availableJourneySnapshot!.data().startDescription),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
@@ -79,7 +79,7 @@ class JourneyRequestPopup extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                             ),
                             Text(
-                              state.availableJourneySnapshot!.data().endDescription,
+                              trimDescription(state.availableJourneySnapshot!.data().endDescription),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),

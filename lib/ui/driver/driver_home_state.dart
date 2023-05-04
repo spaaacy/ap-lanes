@@ -94,7 +94,7 @@ class DriverHomeState extends ChangeNotifier {
       final latLng = LatLng(position.latitude, position.longitude);
 
       LatLng targetLatLng =
-          _activeJourney!.data().isPickedUp ? _activeJourney!.data().endLatLng : _activeJourney!.data().startLatLng;
+      _activeJourney!.data().isPickedUp ? _activeJourney!.data().endLatLng : _activeJourney!.data().startLatLng;
       updateCameraBoundsWithPopup(latLng, targetLatLng);
     });
   }
@@ -125,7 +125,9 @@ class DriverHomeState extends ChangeNotifier {
     if (driverData != null) {
       driver = driverData;
       // todo: maybe make this check for ongoing journeys instead
-      isSearching = _driver?.data().isAvailable == true;
+      isSearching = _driver
+          ?.data()
+          .isAvailable == true;
     } else {
       if (!context.mounted) return;
 
@@ -142,22 +144,25 @@ class DriverHomeState extends ChangeNotifier {
 
         await showDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            content: const Text('You need to set up a driver profile before you can start driving.'),
-            title: const Text('Driver profile not set up'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop('Ok');
-                },
-                child: const Text('Ok'),
+          builder: (ctx) =>
+              AlertDialog(
+                content: const Text('You need to set up a driver profile before you can start driving.'),
+                title: const Text('Driver profile not set up'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop('Ok');
+                    },
+                    child: const Text('Ok'),
+                  ),
+                ],
               ),
-            ],
-          ),
         );
 
         if (!context.mounted) return;
-        context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+        context
+            .read<UserWrapperState>()
+            .userMode = UserMode.passengerMode;
       }
     }
 
@@ -244,26 +249,33 @@ class DriverHomeState extends ChangeNotifier {
             if (context.mounted) {
               await showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Journey Cancelled"),
-                  content: const Text("The journey has been cancelled by the passenger."),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        textStyle: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      child: const Text("Ok"),
-                    )
-                  ],
-                ),
+                builder: (context) =>
+                    AlertDialog(
+                      title: const Text("Journey Cancelled"),
+                      content: const Text("The journey has been cancelled by the passenger."),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: TextButton.styleFrom(
+                            textStyle: Theme
+                                .of(context)
+                                .textTheme
+                                .labelLarge,
+                          ),
+                          child: const Text("Ok"),
+                        )
+                      ],
+                    ),
               );
             }
           }
         }
         mapViewState.markers.remove("drop-off");
         mapViewState.markers.remove("pick-up");
+        mapViewState.shouldCenter = true;
         activeJourney = null;
+        availableJourneySnapshot = null;
+        availableJourneyPassenger = null;
         _unregisterDriverLocationListener();
         mapViewState.resetCamera();
         notifyListeners();
@@ -301,9 +313,12 @@ class DriverHomeState extends ChangeNotifier {
 
       mapViewState.markers.remove("drop-off");
       mapViewState.markers.remove("pick-up");
+      mapViewState.shouldCenter = true;
       activeJourney = null;
 
       mapViewState.resetCamera();
+      availableJourneySnapshot = null;
+      availableJourneyPassenger = null;
       notifyListeners();
       _unregisterDriverLocationBackgroundService();
       _unregisterDriverLocationListener();
