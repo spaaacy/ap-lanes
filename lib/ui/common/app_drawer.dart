@@ -1,8 +1,8 @@
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/model/remote/driver.dart';
 import '../../data/model/remote/feedback.dart' as remote;
 import '../../data/model/remote/user.dart';
 import '../../data/repo/driver_repo.dart';
@@ -19,7 +19,6 @@ class AppDrawer extends StatelessWidget {
   final _feedbackFormKey = GlobalKey<FormState>();
   final _feedbackController = TextEditingController();
 
-
   AppDrawer({
     super.key,
     required this.user,
@@ -28,10 +27,29 @@ class AppDrawer extends StatelessWidget {
     required this.onNavigateWhenLocked,
   });
 
+  Widget getDriverHeaderContent(BuildContext context) {
+    final state = Provider.of<DriverHomeState>(context, listen: false);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+      ),
+      child: Text(
+        state.driver?.data().licensePlate ?? 'XXX 0000',
+        style: const TextStyle(
+          color: Colors.white,
+          fontFamily: "monospace",
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final MapViewState mapViewState = context.watch<MapViewState>();
-    final DriverRepo driverRepo = DriverRepo();
     final FeedbackRepo feedbackRepo = FeedbackRepo();
 
     return Drawer(
@@ -70,21 +88,7 @@ class AppDrawer extends StatelessWidget {
                   ...?(() {
                     if (isDriver) {
                       return [
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                          decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 2)),
-                          child: FutureBuilder<QueryDocumentSnapshot<Driver>?>(
-                              future: driverRepo.getDriver(user!.data().id),
-                              builder: (context, driverSnapshot) {
-                                return Text(
-                                  driverSnapshot.data?.get('licensePlate') ?? '??? ????',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: "monospace",
-                                  ),
-                                );
-                              }),
-                        )
+                        getDriverHeaderContent(context)
                       ];
                     }
                   }())
@@ -95,15 +99,14 @@ class AppDrawer extends StatelessWidget {
           (() {
             if (isDriver) {
               return ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('Passenger Mode'),
-                onTap: isNavigationLocked
-                    ? () => onNavigateWhenLocked()
-                    : () {
-                  mapViewState.resetMap();
-                  context.read<UserWrapperState>().userMode = UserMode.passengerMode;
-                }
-              );
+                  leading: const Icon(Icons.person),
+                  title: const Text('Passenger Mode'),
+                  onTap: isNavigationLocked
+                      ? () => onNavigateWhenLocked()
+                      : () {
+                          mapViewState.resetMap();
+                          context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+                        });
             }
             return ListTile(
               leading: const Icon(Icons.drive_eta),
