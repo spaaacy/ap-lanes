@@ -18,7 +18,7 @@ class MapViewState extends ChangeNotifier {
   StreamSubscription<Position>? _locationListener;
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<String, Marker> _markers = <String, Marker>{};
-
+  TickerProviderStateMixin? ticker;
 
   /*
   * Functions
@@ -49,7 +49,7 @@ class MapViewState extends ChangeNotifier {
             point: newLatLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
 
         if (_shouldCenter) {
-          MapHelper.resetCamera(_newMapController, _currentPosition);
+          MapHelper.resetCamera(_newMapController, _currentPosition, ticker!);
         }
         notifyListeners();
       });
@@ -72,7 +72,6 @@ class MapViewState extends ChangeNotifier {
   /*
   * Setters
   * */
-
   set shouldCenter(bool value) {
     _shouldCenter = value;
     notifyListeners();

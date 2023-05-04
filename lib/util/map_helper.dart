@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 class MapHelper {
-  static Future<void> resetCamera(MapController mapController, LatLng? currentPosition) async {
+  static Future<void> resetCamera(
+      MapController mapController, LatLng? currentPosition, TickerProviderStateMixin ticker) async {
     if (currentPosition == null) return;
-    mapController.move(currentPosition, 17.0);
+    _animatedMapMove(mapController, currentPosition, 17.0, ticker);
   }
 
   static void setCameraToRoute({
@@ -107,4 +109,54 @@ class MapHelper {
 
     return totalDistance;
   }
+
+  static void _animatedMapMove(MapController mapController, LatLng destLocation, double destZoom, TickerProviderStateMixin ticker) {
+    const startedId = 'AnimatedMapController#MoveStarted';
+    const inProgressId = 'AnimatedMapController#MoveInProgress';
+    const finishedId = 'AnimatedMapController#MoveFinished';
+
+    final latTween = Tween<double>(
+        begin: mapController.center.latitude, end: destLocation.latitude);
+    final lngTween = Tween<double>(
+        begin: mapController.center.longitude, end: destLocation.longitude);
+    final zoomTween = Tween<double>(begin: mapController.zoom, end: destZoom);
+
+    final controller = AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: ticker);
+
+    final Animation<double> animation =
+    CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
+
+    final startIdWithTarget =
+        '$startedId#${destLocation.latitude},${destLocation.longitude},$destZoom';
+    bool hasTriggeredMove = false;
+
+    controller.addListener(() {
+      final String id;
+      if (animation.value == 1.0) {
+        id = finishedId;
+      } else if (!hasTriggeredMove) {
+        id = startIdWithTarget;
+      } else {
+        id = inProgressId;
+      }
+
+      hasTriggeredMove |= mapController.move(
+        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+        zoomTween.evaluate(animation),
+        id: id,
+      );
+    });
+
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        controller.dispose();
+      } else if (status == AnimationStatus.dismissed) {
+        controller.dispose();
+      }
+    });
+
+    controller.forward();
+  }
+
 }

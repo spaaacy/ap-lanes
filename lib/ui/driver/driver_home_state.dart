@@ -267,7 +267,7 @@ class DriverHomeState extends ChangeNotifier {
         mapViewState.markers.remove("pick-up");
         activeJourney = null;
         _unregisterDriverLocationListener();
-        MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
+        MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition, mapViewState.ticker!);
         notifyListeners();
       }
     });
@@ -305,7 +305,7 @@ class DriverHomeState extends ChangeNotifier {
       mapViewState.markers.remove("pick-up");
       activeJourney = null;
 
-      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!, mapViewState.ticker!);
       notifyListeners();
       _unregisterDriverLocationBackgroundService();
       _unregisterDriverLocationListener();
@@ -437,7 +437,7 @@ class DriverHomeState extends ChangeNotifier {
     } else {
       availableJourneySnapshot = null;
       availableJourneyPassenger = null;
-      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition, mapViewState.ticker!);
     }
   }
 

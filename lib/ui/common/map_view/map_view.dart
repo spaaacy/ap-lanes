@@ -1,12 +1,25 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
 import '../../../util/map_helper.dart';
 
-class MapView extends StatelessWidget {
-  MapView({super.key});
+class MapView extends StatefulWidget {
+  const MapView({Key? key}) : super(key: key);
+
+  @override
+  State<MapView> createState() => _State();
+}
+
+class _State extends State<MapView> with TickerProviderStateMixin {
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<MapViewState>().ticker = this;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,23 +46,15 @@ class MapView extends StatelessWidget {
                       minZoom: 1,
                       maxZoom: 18,
                       backgroundColor: Colors.black,
-                      urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
+                      urlTemplate:
+                          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
                       subdomains: const ['a', 'b', 'c', 'd'],
                     ),
                     MarkerLayer(markers: mapViewState.markers.values.toList()),
-                    PolylineLayer(polylines: mapViewState.polylines.toList(),)
+                    PolylineLayer(
+                      polylines: mapViewState.polylines.toList(),
+                    )
                   ]),
-              // GoogleMap(
-              //   markers: mapViewState.markers.values.toSet(),
-              //   polylines: mapViewState.polylines,
-              //   onMapCreated: (controller) => mapViewState.onMapCreated(controller),
-              //   initialCameraPosition: CameraPosition(target: currentPosition, zoom: 17.0),
-              //   rotateGesturesEnabled: false,
-              //   compassEnabled: false,
-              //   mapToolbarEnabled: false,
-              //   zoomControlsEnabled: false,
-              //   buildingsEnabled: false,
-              // ),
               if (mapViewState.shouldCenter)
                 Positioned.fill(
                   bottom: 24.0,
@@ -61,7 +66,7 @@ class MapView extends StatelessWidget {
                       width: 60,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await MapHelper.resetCamera(mapViewState.mapController, newCurrentPosition);
+                          await MapHelper.resetCamera(mapViewState.mapController, newCurrentPosition, mapViewState.ticker!);
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
                               shape: MaterialStatePropertyAll(

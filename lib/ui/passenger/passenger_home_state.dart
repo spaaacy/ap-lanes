@@ -182,7 +182,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.markers.remove("start");
     mapViewState.markers.remove("destination");
     if (mapViewState.currentPosition != null) {
-      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!, mapViewState.ticker!);
     }
     _routeDistance = null;
     notifyListeners();
@@ -255,7 +255,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.markers.remove("driver");
     mapViewState.markers.remove("start");
     mapViewState.markers.remove("destination");
-    MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
+    MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition, mapViewState.ticker!);
     await _driverListener?.cancel();
     _driverListener = null;
     notifyListeners();
