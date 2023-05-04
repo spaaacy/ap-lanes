@@ -54,8 +54,7 @@ class PlaceService {
       final result = json.decode(response.body);
 
       if (result["status"] == "OK") {
-        return LatLng(
-            result["result"]["geometry"]["location"]["lat"], result["result"]["geometry"]["location"]["lng"]);
+        return LatLng(result["result"]["geometry"]["location"]["lat"], result["result"]["geometry"]["location"]["lng"]);
       }
 
       if (result["status"] == "ZERO_RESULTS") {
@@ -69,6 +68,35 @@ class PlaceService {
   }
 
   Future<Polyline> fetchRoute(LatLng start, LatLng end) async {
+    final request =
+        "http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson";
+
+    final response = await client.get(Uri.parse(request));
+
+    if (response.statusCode == 200) {
+      final result = json.decode(response.body);
+
+      if (result["code"] == "Ok") {
+        final points = result["routes"][0]["geometry"]["coordinates"].map<LatLng>((coordinate) {
+          return LatLng(coordinate[1], coordinate[0]);
+        }).toList();
+
+        final polyline = Polyline(
+          points: points,
+          color: Colors.blue,
+          strokeWidth: 5.0,
+        );
+
+        return polyline;
+      } else {
+        throw Exception('Failed to fetch a route!');
+      }
+    } else {
+      throw Exception('Failed to fetch a route!');
+    }
+  }
+
+  Future<Polyline> _fetchRoute(LatLng start, LatLng end) async {
     final polylinePoints = PolylinePoints();
     final points = <LatLng>[];
 

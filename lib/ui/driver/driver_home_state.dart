@@ -9,7 +9,6 @@ import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
-import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -38,7 +37,7 @@ class DriverHomeState extends ChangeNotifier {
   }
 
   QueryDocumentSnapshot<Driver>? get driver => _driver;
-
+  
   set driver(QueryDocumentSnapshot<Driver>? value) {
     _driver = value;
     notifyListeners();
@@ -68,7 +67,6 @@ class DriverHomeState extends ChangeNotifier {
 
     _onDriverStateStreamController = StreamController();
     onDriverStateChanged = _onDriverStateStreamController.stream;
-
     initializeFirebase();
   }
 
@@ -93,7 +91,6 @@ class DriverHomeState extends ChangeNotifier {
     } else {
       await showDriverSetupDialog();
     }
-
     final hasPreviousOngoingJourney = await _journeyRepo.hasOngoingJourney(_firebaseUser!.uid);
     if (hasPreviousOngoingJourney) {
       didAcceptJourneyRequest(null);

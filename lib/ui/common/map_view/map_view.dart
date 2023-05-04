@@ -3,17 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
-import '../../../util/map_helper.dart';
+class MapView extends StatefulWidget {
+  const MapView({Key? key}) : super(key: key);
 
-class MapView extends StatelessWidget {
-  MapView({super.key});
+  @override
+  State<MapView> createState() => _State();
+}
+
+class _State extends State<MapView> with TickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+    context.read<MapViewState>().ticker = this;
+  }
 
   @override
   Widget build(BuildContext context) {
     final MapViewState mapViewState = context.watch<MapViewState>();
-    final newCurrentPosition = mapViewState.currentPosition;
 
-    return newCurrentPosition == null
+    return mapViewState.currentPosition == null
         ? const Center(
             child: CircularProgressIndicator(),
           )
@@ -23,7 +31,7 @@ class MapView extends StatelessWidget {
                   mapController: mapViewState.mapController,
                   options: MapOptions(
                     interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                    center: newCurrentPosition,
+                    center: mapViewState.currentPosition,
                     zoom: 11,
                     minZoom: 7,
                     maxZoom: 18,
@@ -33,23 +41,18 @@ class MapView extends StatelessWidget {
                       minZoom: 1,
                       maxZoom: 18,
                       backgroundColor: Colors.black,
-                      urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
+                      urlTemplate:
+                          // 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
+                          // 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
                       subdomains: const ['a', 'b', 'c', 'd'],
+                      // subdomains: const ['a', 'b', 'c'],
                     ),
                     MarkerLayer(markers: mapViewState.markers.values.toList()),
-                    PolylineLayer(polylines: mapViewState.polylines.toList(),)
+                    PolylineLayer(
+                      polylines: mapViewState.polylines.toList(),
+                    )
                   ]),
-              // GoogleMap(
-              //   markers: mapViewState.markers.values.toSet(),
-              //   polylines: mapViewState.polylines,
-              //   onMapCreated: (controller) => mapViewState.onMapCreated(controller),
-              //   initialCameraPosition: CameraPosition(target: currentPosition, zoom: 17.0),
-              //   rotateGesturesEnabled: false,
-              //   compassEnabled: false,
-              //   mapToolbarEnabled: false,
-              //   zoomControlsEnabled: false,
-              //   buildingsEnabled: false,
-              // ),
               if (mapViewState.shouldCenter)
                 Positioned.fill(
                   bottom: 24.0,
@@ -61,11 +64,10 @@ class MapView extends StatelessWidget {
                       width: 60,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await MapHelper.resetCamera(mapViewState.mapController, newCurrentPosition);
+                          await mapViewState.resetCamera();
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
-                              shape: MaterialStatePropertyAll(
-                                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                              shape: const MaterialStatePropertyAll(CircleBorder()),
                               padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
                               elevation: const MaterialStatePropertyAll(4.0),
                             ),

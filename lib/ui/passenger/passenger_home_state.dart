@@ -19,7 +19,7 @@ import '../../data/repo/passenger_repo.dart';
 import '../../data/repo/user_repo.dart';
 import '../../services/place_service.dart';
 import '../../util/constants.dart';
-import '../../util/map_helper.dart';
+import '../../util/location_helpers.dart';
 
 class PassengerHomeState extends ChangeNotifier {
   /*
@@ -122,8 +122,7 @@ class PassengerHomeState extends ChangeNotifier {
                         builder: (_) => const Icon(Icons.drive_eta),
                       );
                       mapViewState.shouldCenter = false;
-                      MapHelper.setCameraBetweenMarkers(
-                        mapController: mapViewState.mapController,
+                      mapViewState.setCameraBetweenMarkers(
                         firstLatLng: latLng,
                         secondLatLng: mapViewState.currentPosition!,
                         topOffsetPercentage: 3,
@@ -162,13 +161,11 @@ class PassengerHomeState extends ChangeNotifier {
         mapViewState.polylines.clear();
         mapViewState.polylines.add(polylines);
         mapViewState.shouldCenter = false;
-        MapHelper.setCameraToRoute(
-          mapController: mapViewState.mapController,
-          polylines: mapViewState.polylines,
+        mapViewState.setCameraToRoute(
           topOffsetPercentage: 0.5,
           bottomOffsetPercentage: 0.5,
         );
-        _routeDistance = MapHelper.calculateRouteDistance(polylines);
+        _routeDistance = calculateRouteDistance(polylines);
         notifyListeners(); // Notifies when route is received
       });
     }
@@ -182,7 +179,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.markers.remove("start");
     mapViewState.markers.remove("destination");
     if (mapViewState.currentPosition != null) {
-      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
+      mapViewState.resetCamera();
     }
     _routeDistance = null;
     notifyListeners();
@@ -196,9 +193,7 @@ class PassengerHomeState extends ChangeNotifier {
     _placeService.fetchRoute(start, end).then((polylines) {
       mapViewState.polylines.add(polylines);
       mapViewState.shouldCenter = false;
-      MapHelper.setCameraToRoute(
-        mapController: mapViewState.mapController,
-        polylines: mapViewState.polylines,
+      mapViewState.setCameraToRoute(
         topOffsetPercentage: 0.5,
         bottomOffsetPercentage: 0.5,
       );
@@ -210,7 +205,7 @@ class PassengerHomeState extends ChangeNotifier {
         point: end,
         builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
-      _routeDistance = MapHelper.calculateRouteDistance(polylines);
+      _routeDistance = calculateRouteDistance(polylines);
       notifyListeners(); // Notifies when route is received
     });
   }
@@ -255,7 +250,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.markers.remove("driver");
     mapViewState.markers.remove("start");
     mapViewState.markers.remove("destination");
-    MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
+    mapViewState.resetCamera();
     await _driverListener?.cancel();
     _driverListener = null;
     notifyListeners();

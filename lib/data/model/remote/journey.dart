@@ -50,8 +50,8 @@ class Journey {
     final data = snapshot.data();
     return Journey(
       userId: data?['userId'],
-      startLatLng: newGetLatLngFromString(data?['startLatLng']),
-      endLatLng: newGetLatLngFromString(data?['endLatLng']),
+      startLatLng: getLatLngFromString(data?['startLatLng']),
+      endLatLng: getLatLngFromString(data?['endLatLng']),
       startDescription: data?['startDescription'],
       endDescription: data?['endDescription'],
       isCompleted: data?['isCompleted'],
