@@ -4,8 +4,9 @@ import 'package:ap_lanes/data/repo/driver_repo.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:flutter/cupertino.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart' as flutter_map;
+import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -41,7 +42,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   String? _lastName;
   double? _routeDistance;
-  LatLng? _destinationLatLng;
+  latlong2.LatLng? _destinationLatLng;
   String? _destinationDescription;
   bool _isSearching = false;
   bool _isPickedUp = false;
@@ -69,7 +70,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState = context.read<MapViewState>();
     initializeFirestore(context);
   }
-  
+
   Future<void> initializeFirestore(BuildContext context) async {
     final firebaseUser = context.read<firebase_auth.User?>();
 
@@ -107,8 +108,8 @@ class PassengerHomeState extends ChangeNotifier {
                 _routeDistance = null;
                 mapViewState.polylines.clear();
                 mapViewState.shouldCenter = true;
-                mapViewState.markers.remove(const MarkerId("start"));
-                mapViewState.markers.remove(const MarkerId("destination"));
+                mapViewState.newMarkers.remove("start");
+                mapViewState.newMarkers.remove("destination");
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
@@ -116,13 +117,15 @@ class PassengerHomeState extends ChangeNotifier {
                   if (driver.docs.isNotEmpty) {
                     final latLng = driver.docs.first.data().currentLatLng;
                     if (latLng != null && mapViewState.currentPosition != null) {
-                      mapViewState.markers[const MarkerId("driver")] =
-                          Marker(markerId: const MarkerId("driver"), position: latLng, icon: mapViewState.driverIcon!); // TODO: Recheck assertion
+                      mapViewState.newMarkers["driver"] = flutter_map.Marker(
+                        point: latLng,
+                        builder: (_) => const Icon(Icons.location_pin),
+                      ); // TODO: Recheck assertion
                       mapViewState.shouldCenter = false;
-                      MapHelper.setCameraBetweenMarkers(
-                        mapController: mapViewState.mapController!,
+                      MapHelper.newSetCameraBetweenMarkers(
+                        mapController: mapViewState.newMapController,
                         firstLatLng: latLng,
-                        secondLatLng: mapViewState.currentPosition!,
+                        secondLatLng: mapViewState.newCurrentPosition!,
                         topOffsetPercentage: 3,
                         bottomOffsetPercentage: 1,
                       );
@@ -159,12 +162,13 @@ class PassengerHomeState extends ChangeNotifier {
         mapViewState.polylines.clear();
         mapViewState.polylines.add(polylines);
         mapViewState.shouldCenter = false;
-        MapHelper.setCameraToRoute(
-          mapController: mapViewState.mapController!,
-          polylines: mapViewState.polylines,
-          topOffsetPercentage: 0.5,
-          bottomOffsetPercentage: 0.5,
-        );
+        // TODO: Implement newSetCameraToRoute
+        // MapHelper.setCameraToRoute(
+        //   mapController: mapViewState.mapController!,
+        //   polylines: mapViewState.polylines,
+        //   topOffsetPercentage: 0.5,
+        //   bottomOffsetPercentage: 0.5,
+        // );
         _routeDistance = MapHelper.calculateRouteDistance(polylines);
         notifyListeners(); // Notifies when route is received
       });
@@ -176,8 +180,8 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
     _routeDistance = null;
-    mapViewState.markers.remove(const MarkerId("start"));
-    mapViewState.markers.remove(const MarkerId("destination"));
+    mapViewState.newMarkers.remove("start");
+    mapViewState.newMarkers.remove("destination");
     if (mapViewState.currentPosition != null) {
       MapHelper.resetCamera(mapViewState.newMapController, mapViewState.newCurrentPosition!);
     }
@@ -185,7 +189,7 @@ class PassengerHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void onLatLng(BuildContext context, latLng) {
+  void onLatLng(BuildContext context, latlong2.LatLng latLng) {
     _destinationLatLng = latLng;
     final start = _toApu ? _destinationLatLng! : apuLatLng;
     final end = _toApu ? apuLatLng : _destinationLatLng!;
@@ -193,21 +197,20 @@ class PassengerHomeState extends ChangeNotifier {
     _placeService.fetchRoute(start, end).then((polylines) {
       mapViewState.polylines.add(polylines);
       mapViewState.shouldCenter = false;
-      MapHelper.setCameraToRoute(
-        mapController: mapViewState.mapController!,
-        polylines: mapViewState.polylines,
-        topOffsetPercentage: 0.5,
-        bottomOffsetPercentage: 0.5,
+      // TODO: Implement newSetCameraToRoute
+      // MapHelper.setCameraToRoute(
+      //   mapController: mapViewState.mapController!,
+      //   polylines: mapViewState.polylines,
+      //   topOffsetPercentage: 0.5,
+      //   bottomOffsetPercentage: 0.5,
+      // );
+      mapViewState.newMarkers["start"] = flutter_map.Marker(
+        point: start,
+        builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
-      mapViewState.markers[const MarkerId("start")] = Marker(
-        markerId: const MarkerId("start"),
-        position: start,
-        icon: mapViewState.locationIcon!,
-      );
-      mapViewState.markers[const MarkerId("destination")] = Marker(
-        markerId: const MarkerId("destination"),
-        position: end,
-        icon: mapViewState.locationIcon!,
+      mapViewState.newMarkers["destination"] = flutter_map.Marker(
+        point: end,
+        builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
       _routeDistance = MapHelper.calculateRouteDistance(polylines);
       notifyListeners(); // Notifies when route is received
@@ -220,7 +223,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   void createJourney(BuildContext context) {
     final firebaseUser = context.read<firebase_auth.User?>();
-    if (firebaseUser != null){
+    if (firebaseUser != null) {
       _journeyRepo.createJourney(
         Journey(
             userId: firebaseUser.uid,
@@ -251,9 +254,9 @@ class PassengerHomeState extends ChangeNotifier {
     destinationLatLng = null;
     mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
-    mapViewState.markers.remove(const MarkerId("driver"));
-    mapViewState.markers.remove(const MarkerId("start"));
-    mapViewState.markers.remove(const MarkerId("destination"));
+    mapViewState.newMarkers.remove("driver");
+    mapViewState.newMarkers.remove("start");
+    mapViewState.newMarkers.remove("destination");
     MapHelper.resetCamera(mapViewState.newMapController, mapViewState.newCurrentPosition);
     await _driverListener?.cancel();
     _driverListener = null;
@@ -286,7 +289,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   double? get routeDistance => _routeDistance;
 
-  LatLng? get destinationLatLng => _destinationLatLng;
+  latlong2.LatLng? get destinationLatLng => _destinationLatLng;
 
   String? get destinationDescription => _destinationDescription;
 
@@ -384,7 +387,7 @@ class PassengerHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  set destinationLatLng(LatLng? value) {
+  set destinationLatLng(latlong2.LatLng? value) {
     _destinationLatLng = value;
     notifyListeners();
   }

@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/animation.dart';
 import 'package:flutter/services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
 
 import 'resize_asset.dart';
@@ -12,7 +11,6 @@ import 'resize_asset.dart';
 class MapHelper {
   static Future<void> resetCamera(flutter_map.MapController mapController, latlong2.LatLng? currentPosition) async {
     if (currentPosition == null) return;
-    _animatedMapMove(mapController, currentPosition!, 17.0);
     mapController.move(currentPosition, 17.0);
   }
 
@@ -96,6 +94,45 @@ class MapHelper {
         50,
       ),
     );
+  }
+
+  static void newSetCameraBetweenMarkers({
+    required flutter_map.MapController mapController,
+    required latlong2.LatLng firstLatLng,
+    required latlong2.LatLng secondLatLng,
+    double topOffsetPercentage = 0,
+    double bottomOffsetPercentage = 0,
+    double leftOffsetPercentage = 0,
+    double rightOffsetPercentage = 0,
+  }) {
+    double minLat = firstLatLng.latitude;
+    double minLng = firstLatLng.longitude;
+    double maxLat = secondLatLng.latitude;
+    double maxLng = secondLatLng.longitude;
+
+    if (secondLatLng.latitude < minLat) {
+      maxLat = minLat;
+      minLat = secondLatLng.latitude;
+    }
+    if (secondLatLng.longitude < minLng) {
+      maxLng = minLng;
+      minLng = secondLatLng.longitude;
+    }
+
+    final latDifference = maxLat - minLat;
+    final topOffsetValue = latDifference * topOffsetPercentage;
+    final bottomOffsetValue = latDifference * bottomOffsetPercentage;
+
+    final lngDifference = maxLat - minLat;
+    final leftOffsetValue = lngDifference * leftOffsetPercentage;
+    final rightOffsetValue = lngDifference * rightOffsetPercentage;
+
+    final bounds = flutter_map.LatLngBounds(
+      latlong2.LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
+      latlong2.LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
+    );
+
+    mapController.fitBounds(bounds);
   }
 
   static Future<BitmapDescriptor> getCustomIcon(String path, int size) async {

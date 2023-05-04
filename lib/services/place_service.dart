@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
-
+import 'package:latlong2/latlong.dart' as latlong2;
 import '../data/model/local/suggestion.dart';
 import '../util/constants.dart';
 
@@ -39,9 +39,9 @@ class PlaceService {
     }
   }
 
-  Future<LatLng> fetchLatLng(String placeId, String lang, String sessionToken) async {
+  Future<latlong2.LatLng> fetchLatLng(String placeId, String lang, String sessionToken) async {
     if (placeId.isEmpty) {
-      return const LatLng(0.0, 0.0);
+      return latlong2.LatLng(0.0, 0.0);
     }
 
     final request =
@@ -53,11 +53,11 @@ class PlaceService {
       final result = json.decode(response.body);
 
       if (result["status"] == "OK") {
-        return LatLng(result["result"]["geometry"]["location"]["lat"], result["result"]["geometry"]["location"]["lng"]);
+        return latlong2.LatLng(result["result"]["geometry"]["location"]["lat"], result["result"]["geometry"]["location"]["lng"]);
       }
 
       if (result["status"] == "ZERO_RESULTS") {
-        return const LatLng(0.0, 0.0);
+        return latlong2.LatLng(0.0, 0.0);
       }
 
       throw Exception(result['error_message']);
@@ -66,7 +66,7 @@ class PlaceService {
     }
   }
 
-  Future<Polyline> fetchRoute(LatLng start, LatLng end) async {
+  Future<Polyline> fetchRoute(latlong2.LatLng start, latlong2.LatLng end) async {
     final polylinePoints = PolylinePoints();
     final points = <LatLng>[];
 

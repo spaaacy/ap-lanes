@@ -2,11 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../util/location_helpers.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 
 class Journey {
   final String userId;
-  final LatLng startLatLng;
-  final LatLng endLatLng;
+  final latlong2.LatLng startLatLng;
+  final latlong2.LatLng endLatLng;
   final String startDescription;
   final String endDescription;
   bool isCompleted;
@@ -50,8 +51,8 @@ class Journey {
     final data = snapshot.data();
     return Journey(
       userId: data?['userId'],
-      startLatLng: getLatLngFromString(data?['startLatLng']),
-      endLatLng: getLatLngFromString(data?['endLatLng']),
+      startLatLng: newGetLatLngFromString(data?['startLatLng']),
+      endLatLng: newGetLatLngFromString(data?['endLatLng']),
       startDescription: data?['startDescription'],
       endDescription: data?['endDescription'],
       isCompleted: data?['isCompleted'],

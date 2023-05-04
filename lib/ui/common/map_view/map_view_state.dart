@@ -23,7 +23,6 @@ class MapViewState extends ChangeNotifier {
   LatLng? _currentPosition;
   latlong2.LatLng? _newCurrentPosition;
   final Set<Polyline> _polylines = <Polyline>{};
-  final Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
   late String _mapStyle;
   StreamSubscription<Position>? _locationListener;
 
@@ -39,27 +38,13 @@ class MapViewState extends ChangeNotifier {
     _mapController = null;
     _shouldCenter = true;
     _polylines.clear();
-    _markers.clear();
-  }
-
-  void onMapCreated(GoogleMapController controller) async {
-    _mapController = controller;
-    controller.setMapStyle(_mapStyle);
+    _newMarkers.clear();
   }
 
   @override
   void dispose() {
     _locationListener?.cancel();
     super.dispose();
-  }
-
-  Future<void> initialize(BuildContext context) async {
-    _mapStyle = await rootBundle.loadString('assets/map_style.json');
-    _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
-    _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
-    if (context.mounted) {
-      initializeLocation(context);
-    }
   }
 
   void initializeLocation(BuildContext context) async {
@@ -73,8 +58,6 @@ class MapViewState extends ChangeNotifier {
         final newLatLng = latlong2.LatLng(latLng.latitude, latLng.longitude);
         _currentPosition = latLng;
         _newCurrentPosition = newLatLng;
-        _markers[const MarkerId("user")] =
-            Marker(markerId: const MarkerId("user"), position: _currentPosition!, icon: _userIcon!); // TODO: Deprecate
         _newMarkers["user"] = flutter_map.Marker(
             point: newLatLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
 
@@ -104,8 +87,6 @@ class MapViewState extends ChangeNotifier {
   BitmapDescriptor? get locationIcon => _locationIcon;
 
   String get mapStyle => _mapStyle;
-
-  Map<MarkerId, Marker> get markers => _markers;
 
   Set<Polyline> get polylines => _polylines;
 

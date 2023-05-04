@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:provider/provider.dart';
 
 import '../../../util/url_helpers.dart';
@@ -21,7 +21,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   void _handleNavigationAppLaunch(String value) {
     final state = Provider.of<DriverHomeState>(context, listen: false);
 
-    Future<void> Function(LatLng latLng) launchFunction;
+    Future<void> Function(latlong2.LatLng latLng) launchFunction;
     switch (value) {
       case 'google-maps':
         launchFunction = launchGoogleMaps;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 
 LatLng getLatLngFromString(String? latLngString) {
   LatLng latLng;
@@ -9,6 +10,17 @@ LatLng getLatLngFromString(String? latLngString) {
     latLng = LatLng(latLngList[0], latLngList[1]);
   } else {
     latLng = const LatLng(0.0, 0.0);
+  }
+  return latLng;
+}
+
+latlong2.LatLng newGetLatLngFromString(String? latLngString) {
+  latlong2.LatLng latLng;
+  if (latLngString != null) {
+    List<double>? latLngList = latLngString.split(',').map((e) => double.tryParse(e.trim()) ?? 0).toList();
+    latLng = latlong2.LatLng(latLngList[0], latLngList[1]);
+  } else {
+    latLng = latlong2.LatLng(0.0, 0.0);
   }
   return latLng;
 }
