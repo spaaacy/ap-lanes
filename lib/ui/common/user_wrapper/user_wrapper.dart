@@ -21,15 +21,8 @@ class UserWrapper extends StatelessWidget {
         child: const PassengerHome(),
       );
     } else {
-      return MultiProvider(
-        providers: [
-          ChangeNotifierProvider<JourneyRequestPopupState>(
-            create: (context) => JourneyRequestPopupState(context),
-          ),
-          ChangeNotifierProvider<NewDriverHomeState>(
-            create: (context) => NewDriverHomeState(context),
-          ),
-        ],
+      return ChangeNotifierProvider<NewDriverHomeState>(
+        create: (context) => NewDriverHomeState(context),
         child: const NewDriverHome(),
       );
     }

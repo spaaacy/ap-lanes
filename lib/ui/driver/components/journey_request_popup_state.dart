@@ -5,22 +5,25 @@ import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/services/place_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
 import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
 class JourneyRequestPopupState extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
+  late final NewDriverHomeState _driverHomeState;
 
   JourneyRequestPopupState(this._context) {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
+    _driverHomeState = Provider.of<NewDriverHomeState>(_context, listen: false);
   }
 
   final _userRepo = UserRepo();
@@ -97,20 +100,17 @@ class JourneyRequestPopupState extends ChangeNotifier {
       topOffsetPercentage: 1,
       bottomOffsetPercentage: 0.2,
     );
-    _mapViewState.markers[const MarkerId("start")] = Marker(
-      markerId: const MarkerId("start"),
-      position: start,
-      icon: _mapViewState.locationIcon!,
+    _mapViewState.markers["start"] = Marker(
+      point: start,
+      builder: (_) => const Icon(Icons.location_pin, size:35),
     );
-    _mapViewState.markers[const MarkerId("destination")] = Marker(
-      markerId: const MarkerId("destination"),
-      position: end,
-      icon: _mapViewState.locationIcon!,
+    _mapViewState.markers["destination"] = Marker(
+      point: end,
+      builder: (_) => const Icon(Icons.location_pin, size:35),
     );
     _mapViewState.notifyListeners();
   }
 
-  // TODO: Test this once Aakif enables MapsAPI
   void onRequestPopupNavigate(RequestNavigationDirection direction) async {
     isLoadingJourneyRequests = true;
     QueryDocumentSnapshot<Journey>? journeyToShow;
@@ -166,6 +166,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
   }
 
   Future<void> fetchInitialJourneys() async {
+    _isLoadingJourneyRequests = true;
     _availableJourneys = await _journeyRepo.getFirstThreeJourneyRequest(_firebaseUser!.uid);
     await updateAvailableJourney(availableJourneys!.docs.firstOrNull);
     _isLoadingJourneyRequests = false;
@@ -175,6 +176,24 @@ class JourneyRequestPopupState extends ChangeNotifier {
     _availableJourney = null;
     _availableJourneyPassenger = null;
     notifyListeners();
+  }
+
+  void onJourneyAccept() async {
+    try {
+      await _journeyRepo.acceptJourneyRequest(_availableJourney!, _firebaseUser!.uid);
+
+      _driverHomeState.stopSearching();
+
+      // startOngoingJourneyListener();
+    } catch (e) {
+      if (_context.mounted) {
+        ScaffoldMessenger.of(_context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+          ),
+        );
+      }
+    }
   }
 }
 

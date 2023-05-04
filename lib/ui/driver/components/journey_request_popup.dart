@@ -106,9 +106,7 @@ class JourneyRequestPopup extends StatelessWidget {
                   Expanded(
                     child: FilledButton(
                       style: FilledButton.styleFrom(backgroundColor: Colors.green),
-
-                      // todo: onPressed: () => state.onJourneyAccept(),
-                      onPressed: isBusy ? null : () => {},
+                      onPressed: isBusy ? null : () => requestState.onJourneyAccept(),
                       child: Text(
                         'ACCEPT',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(

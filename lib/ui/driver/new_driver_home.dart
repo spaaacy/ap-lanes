@@ -2,6 +2,7 @@ import 'package:ap_lanes/ui/common/app_drawer.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view.dart';
 import 'package:ap_lanes/ui/driver/components/driver_go_button.dart';
 import 'package:ap_lanes/ui/driver/components/journey_request_popup.dart';
+import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
 import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup.dart';
 import 'package:ap_lanes/ui/driver/new_driver_home_state.dart';
 import 'package:ap_lanes/util/greeting.dart';
@@ -40,11 +41,14 @@ class NewDriverHome extends StatelessWidget {
               child: CircularProgressIndicator(),
             )
           : Stack(
-              children: const [
+              children: [
                 MapView(),
-                DriverGoButton(),
-                OngoingJourneyPopup(),
-                JourneyRequestPopup(),
+                const DriverGoButton(),
+                const OngoingJourneyPopup(),
+                ChangeNotifierProvider<JourneyRequestPopupState>(
+                  create: (context) => JourneyRequestPopupState(context),
+                  child: const JourneyRequestPopup(),
+                ),
               ],
             ),
     );

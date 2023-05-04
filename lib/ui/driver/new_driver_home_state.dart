@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ap_lanes/data/model/remote/driver.dart';
 import 'package:ap_lanes/data/model/remote/journey.dart';
 import 'package:ap_lanes/data/model/remote/user.dart';
@@ -13,7 +15,6 @@ import 'package:ap_lanes/util/map_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 class NewDriverHomeState extends ChangeNotifier {
@@ -58,6 +59,9 @@ class NewDriverHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
+  late final Stream onSearchingStatusChanged;
+  late final StreamController<bool> _onSearchingStatusStreamController;
+
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
@@ -66,6 +70,10 @@ class NewDriverHomeState extends ChangeNotifier {
   NewDriverHomeState(this._context) {
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
     _journeyRequestPopupState = Provider.of<JourneyRequestPopupState>(_context, listen: false);
+
+    _onSearchingStatusStreamController = StreamController();
+    onSearchingStatusChanged = _onSearchingStatusStreamController.stream;
+
     initializeFirebase();
   }
 
@@ -128,8 +136,9 @@ class NewDriverHomeState extends ChangeNotifier {
 
     await _driverRepo.updateDriver(driver!, {'isAvailable': true});
 
+    _onSearchingStatusStreamController.add(true);
+    // todo: move to journey req state
     _journeyRequestPopupState.fetchInitialJourneys();
-
   }
 
   void stopSearching() async {
@@ -137,6 +146,8 @@ class NewDriverHomeState extends ChangeNotifier {
 
     await _driverRepo.updateDriver(driver!, {'isAvailable': false});
 
+    _onSearchingStatusStreamController.add(false);
+    // todo: move to journey req state
     _journeyRequestPopupState.resetAvailableJourneys();
 
     clearMapRoute();
@@ -144,8 +155,8 @@ class NewDriverHomeState extends ChangeNotifier {
 
   void clearMapRoute() {
     _mapViewState.polylines.clear();
-    _mapViewState.markers.remove(const MarkerId("start"));
-    _mapViewState.markers.remove(const MarkerId("destination"));
+    _mapViewState.markers.remove("start");
+    _mapViewState.markers.remove("destination");
     _mapViewState.shouldCenter = true;
     _mapViewState.notifyListeners();
 
