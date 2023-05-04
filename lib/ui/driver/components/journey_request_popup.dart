@@ -12,7 +12,7 @@ class JourneyRequestPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<NewDriverHomeState>(context);
+    final state = Provider.of<DriverHomeState>(context);
     if (state.driverState != DriverState.searching) return const SizedBox.shrink();
     final requestState = Provider.of<JourneyRequestPopupState>(context);
 

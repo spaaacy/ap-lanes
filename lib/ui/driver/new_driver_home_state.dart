@@ -22,7 +22,7 @@ enum DriverState {
   ongoing,
 }
 
-class NewDriverHomeState extends ChangeNotifier {
+class DriverHomeState extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
@@ -64,7 +64,7 @@ class NewDriverHomeState extends ChangeNotifier {
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
 
-  NewDriverHomeState(this._context) {
+  DriverHomeState(this._context) {
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
 
     _onDriverStateStreamController = StreamController();

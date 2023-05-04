@@ -22,7 +22,7 @@ class OngoingJourneyPopupState extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
-  late final NewDriverHomeState _driverHomeState;
+  late final DriverHomeState _driverHomeState;
   late StreamSubscription<QueryDocumentSnapshot<Journey>?> _onJourneyRequestAcceptedListener;
 
   QueryDocumentSnapshot<Journey>? _ongoingJourneyRequest;
@@ -75,7 +75,7 @@ class OngoingJourneyPopupState extends ChangeNotifier {
   OngoingJourneyPopupState(this._context) {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
-    _driverHomeState = Provider.of<NewDriverHomeState>(_context, listen: false);
+    _driverHomeState = Provider.of<DriverHomeState>(_context, listen: false);
     _onJourneyRequestAcceptedListener =
         _driverHomeState.onJourneyRequestAccepted.listen(onJourneyRequestAcceptedCallback);
   }

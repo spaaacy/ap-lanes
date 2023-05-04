@@ -7,7 +7,7 @@ class DriverGoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<NewDriverHomeState>(context);
+    final state = Provider.of<DriverHomeState>(context);
 
     if (state.driverState == DriverState.ongoing) return const SizedBox.shrink();
 

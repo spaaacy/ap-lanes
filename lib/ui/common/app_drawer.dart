@@ -28,7 +28,7 @@ class AppDrawer extends StatelessWidget {
   });
 
   Widget getDriverHeaderContent(BuildContext context) {
-    final state = Provider.of<NewDriverHomeState>(context, listen: false);
+    final state = Provider.of<DriverHomeState>(context, listen: false);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(

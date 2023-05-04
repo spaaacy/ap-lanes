@@ -20,14 +20,14 @@ class JourneyRequestPopupState extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
-  late final NewDriverHomeState _driverHomeState;
+  late final DriverHomeState _driverHomeState;
 
   StreamSubscription<MapEntry<DriverState, dynamic>>? _onDriverStateChangedListener;
 
   JourneyRequestPopupState(this._context) {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
-    _driverHomeState = Provider.of<NewDriverHomeState>(_context, listen: false);
+    _driverHomeState = Provider.of<DriverHomeState>(_context, listen: false);
     _onDriverStateChangedListener = _driverHomeState.onDriverStateChanged.listen(onDriverStateChangedCallback);
   }
 
@@ -179,7 +179,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
 
   Future<void> fetchInitialJourneys() async {
     _isLoadingJourneyRequests = true;
-    _availableJourneys = await _journeyRepo.getFirstThreeJourneyRequest(_firebaseUser!.uid);
+    _availableJourneys = await _journeyRepo.getFirstJourneyRequest(_firebaseUser!.uid);
     await updateAvailableJourney(availableJourneys!.docs.firstOrNull);
     _isLoadingJourneyRequests = false;
   }

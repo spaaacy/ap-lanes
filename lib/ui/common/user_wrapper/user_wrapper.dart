@@ -21,9 +21,9 @@ class UserWrapper extends StatelessWidget {
         child: const PassengerHome(),
       );
     } else {
-      return ChangeNotifierProvider<NewDriverHomeState>(
-        create: (context) => NewDriverHomeState(context),
-        child: const NewDriverHome(),
+      return ChangeNotifierProvider<DriverHomeState>(
+        create: (context) => DriverHomeState(context),
+        child: const DriverHome(),
       );
     }
   }

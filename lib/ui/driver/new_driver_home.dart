@@ -10,12 +10,12 @@ import 'package:ap_lanes/util/greeting.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class NewDriverHome extends StatelessWidget {
-  const NewDriverHome({Key? key}) : super(key: key);
+class DriverHome extends StatelessWidget {
+  const DriverHome({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<NewDriverHomeState>(context);
+    final state = Provider.of<DriverHomeState>(context);
 
     return Scaffold(
       drawer: AppDrawer(
