@@ -1,20 +1,20 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:provider/provider.dart';
 
+import '../../../util/constants.dart';
 import '../../../util/map_helper.dart';
 
 class MapView extends StatelessWidget {
   MapView({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     final MapViewState mapViewState = context.watch<MapViewState>();
     final currentPosition = mapViewState.currentPosition;
-
+    final newCurrentPosition = mapViewState.newCurrentPosition;
 
     return currentPosition == null
         ? const Center(
@@ -23,23 +23,24 @@ class MapView extends StatelessWidget {
         : Stack(
             children: [
               FlutterMap(
-                mapController: mapController,
-                options: MapOptions(
-                  center: LatLng(3.055883135072144, 101.69488625920853),
-                  minZoom: 11,
-                  maxZoom: 50,
-                ),
-                children: [
-                  TileLayer(
-                    minZoom: 1,
+                  mapController: mapViewState.newMapController,
+                  options: MapOptions(
+                    interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    center: newCurrentPosition,
+                    zoom: 11,
+                    minZoom: 11,
                     maxZoom: 18,
-                    backgroundColor: Colors.black,
-                    urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    subdomains: ['a', 'b', 'c'],
                   ),
-                ]
-              ),
-              mapController.move(center, zoom);
+                  children: [
+                    TileLayer(
+                      minZoom: 1,
+                      maxZoom: 18,
+                      backgroundColor: Colors.black,
+                      urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
+                      subdomains: const ['a', 'b', 'c', 'd'],
+                    ),
+                    MarkerLayer(markers: mapViewState.newMarkers.values.toList()),
+                  ]),
               // GoogleMap(
               //   markers: mapViewState.markers.values.toSet(),
               //   polylines: mapViewState.polylines,
@@ -62,7 +63,7 @@ class MapView extends StatelessWidget {
                       width: 60,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await MapHelper.resetCamera(mapViewState.mapController, currentPosition);
+                          await MapHelper.resetCamera(mapViewState.newMapController, newCurrentPosition);
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
                               shape: MaterialStatePropertyAll(

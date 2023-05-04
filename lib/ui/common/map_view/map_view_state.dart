@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 
 import '../../../util/constants.dart';
 import '../../../util/location_helpers.dart';
@@ -21,12 +20,17 @@ class MapViewState extends ChangeNotifier {
   BitmapDescriptor? _driverIcon;
   BitmapDescriptor? _locationIcon;
   bool _shouldCenter = true;
-  LatLng? _currentPosition = LatLng(100, 100); // TODO: Remove
+  LatLng? _currentPosition;
+  latlong2.LatLng? _newCurrentPosition;
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
   late String _mapStyle;
   StreamSubscription<Position>? _locationListener;
-  final mapController = MapController();
+
+  // Flutter map variables
+  final _newMapController = flutter_map.MapController();
+  final Map<String, flutter_map.Marker> _newMarkers = <String, flutter_map.Marker>{};
+
 
   /*
   * Functions
@@ -54,7 +58,7 @@ class MapViewState extends ChangeNotifier {
     _userIcon = await MapHelper.getCustomIcon('assets/icons/user.png', userIconSize);
     _locationIcon = await MapHelper.getCustomIcon('assets/icons/location.png', locationIconSize);
     if (context.mounted) {
-      // initializeLocation(context);
+      initializeLocation(context);
     }
   }
 
@@ -66,15 +70,16 @@ class MapViewState extends ChangeNotifier {
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
       ).listen((position) async {
         final latLng = LatLng(position.latitude, position.longitude);
+        final newLatLng = latlong2.LatLng(latLng.latitude, latLng.longitude);
         _currentPosition = latLng;
-        _markers[const MarkerId("user")] = Marker(
-          markerId: const MarkerId("user"),
-          position: _currentPosition!,
-          icon: _userIcon!,
-        );
+        _newCurrentPosition = newLatLng;
+        _markers[const MarkerId("user")] =
+            Marker(markerId: const MarkerId("user"), position: _currentPosition!, icon: _userIcon!); // TODO: Deprecate
+        _newMarkers["user"] = flutter_map.Marker(
+            point: newLatLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
 
         if (_shouldCenter) {
-          MapHelper.resetCamera(_mapController, _currentPosition);
+          MapHelper.resetCamera(_newMapController, _newCurrentPosition);
         }
         notifyListeners();
       });
@@ -84,6 +89,12 @@ class MapViewState extends ChangeNotifier {
   /*
   * Getters
   * */
+  latlong2.LatLng? get newCurrentPosition => _newCurrentPosition;
+
+  Map<String, flutter_map.Marker> get newMarkers => _newMarkers;
+
+  flutter_map.MapController get newMapController => _newMapController;
+
   GoogleMapController? get mapController => _mapController;
 
   BitmapDescriptor? get userIcon => _userIcon;
@@ -105,6 +116,12 @@ class MapViewState extends ChangeNotifier {
   /*
   * Setters
   * */
+
+  set newCurrentPosition(latlong2.LatLng? value) {
+    _newCurrentPosition = value;
+    notifyListeners();
+  }
+
   set mapController(GoogleMapController? value) {
     _mapController = value;
     notifyListeners();

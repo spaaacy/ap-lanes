@@ -1,12 +1,21 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/animation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart' as flutter_map;
+import 'package:latlong2/latlong.dart' as latlong2;
 
 import 'resize_asset.dart';
 
 class MapHelper {
+  static Future<void> resetCamera(flutter_map.MapController mapController, latlong2.LatLng? currentPosition) async {
+    if (currentPosition == null) return;
+    _animatedMapMove(mapController, currentPosition!, 17.0);
+    mapController.move(currentPosition, 17.0);
+  }
+
   static void setCameraToRoute({
     required GoogleMapController? mapController,
     required Set<Polyline> polylines,
@@ -92,11 +101,6 @@ class MapHelper {
   static Future<BitmapDescriptor> getCustomIcon(String path, int size) async {
     final Uint8List? resizedIcon = await getBytesFromAsset(path, size);
     return resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
-  }
-
-  static Future<void> resetCamera(GoogleMapController? mapController, LatLng? currentPosition) async {
-    if (currentPosition == null) return;
-    mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
   }
 
   static double calculateRouteDistance(Polyline? polylines) {
