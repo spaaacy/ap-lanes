@@ -22,6 +22,11 @@ class MapViewState extends ChangeNotifier {
   /*
   * Functions
   * */
+  Future<void> resetCamera() async {
+    if (currentPosition == null || ticker == null) return;
+    _animateCamera(_currentPosition!, 17.0);
+  }
+
   void setCameraBetweenMarkers({
     required LatLng firstLatLng,
     required LatLng secondLatLng,
@@ -57,12 +62,9 @@ class MapViewState extends ChangeNotifier {
       LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
     );
 
-    _mapController.fitBounds(bounds);
-  }
+    final centerZoom = _mapController.centerZoomFitBounds(bounds);
 
-  Future<void> resetCamera() async {
-    if (currentPosition == null || ticker == null) return;
-    _animatedMapMove(_mapController, _currentPosition!, 17.0, ticker!);
+    _animateCamera(centerZoom.center, centerZoom.zoom);
   }
 
   void setCameraToRoute({
@@ -97,20 +99,24 @@ class MapViewState extends ChangeNotifier {
       LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
     );
 
-    _mapController.fitBounds(bounds);
+    final centerZoom = _mapController.centerZoomFitBounds(bounds);
+
+    _animateCamera(centerZoom.center, centerZoom.zoom);
+
   }
 
-  void _animatedMapMove(
-      MapController mapController, LatLng destLocation, double destZoom, TickerProviderStateMixin ticker) {
+  void _animateCamera(LatLng destLocation, double destZoom) {
+    if (ticker == null) return;
+
     const startedId = 'AnimatedMapController#MoveStarted';
     const inProgressId = 'AnimatedMapController#MoveInProgress';
     const finishedId = 'AnimatedMapController#MoveFinished';
 
-    final latTween = Tween<double>(begin: mapController.center.latitude, end: destLocation.latitude);
-    final lngTween = Tween<double>(begin: mapController.center.longitude, end: destLocation.longitude);
-    final zoomTween = Tween<double>(begin: mapController.zoom, end: destZoom);
+    final latTween = Tween<double>(begin: _mapController.center.latitude, end: destLocation.latitude);
+    final lngTween = Tween<double>(begin: _mapController.center.longitude, end: destLocation.longitude);
+    final zoomTween = Tween<double>(begin: _mapController.zoom, end: destZoom);
 
-    final controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: ticker);
+    final controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: ticker!);
 
     final Animation<double> animation = CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
 
@@ -127,7 +133,7 @@ class MapViewState extends ChangeNotifier {
         id = inProgressId;
       }
 
-      hasTriggeredMove |= mapController.move(
+      hasTriggeredMove |= _mapController.move(
         LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
         zoomTween.evaluate(animation),
         id: id,
@@ -149,6 +155,7 @@ class MapViewState extends ChangeNotifier {
     _shouldCenter = true;
     _polylines.clear();
     _markers.clear();
+    ticker = null;
   }
 
   @override
