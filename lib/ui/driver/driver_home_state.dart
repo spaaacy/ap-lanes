@@ -11,9 +11,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_map/flutter_map.dart' as flutter_map;
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -92,9 +92,9 @@ class DriverHomeState extends ChangeNotifier {
     _driverLocationListener ??= Geolocator.getPositionStream(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
     ).listen((position) {
-      final latLng = latlong2.LatLng(position.latitude, position.longitude);
+      final latLng = LatLng(position.latitude, position.longitude);
 
-      latlong2.LatLng targetLatLng =
+      LatLng targetLatLng =
           _activeJourney!.data().isPickedUp ? _activeJourney!.data().endLatLng : _activeJourney!.data().startLatLng;
       updateCameraBoundsWithPopup(latLng, targetLatLng);
     });
@@ -105,10 +105,10 @@ class DriverHomeState extends ChangeNotifier {
     _driverLocationListener = null;
   }
 
-  void updateCameraBoundsWithPopup(latlong2.LatLng start, latlong2.LatLng end) {
+  void updateCameraBoundsWithPopup(LatLng start, LatLng end) {
     mapViewState.shouldCenter = false;
-    MapHelper.newSetCameraBetweenMarkers(
-      mapController: mapViewState.newMapController,
+    MapHelper.setCameraBetweenMarkers(
+      mapController: mapViewState.mapController,
       firstLatLng: start,
       secondLatLng: end,
       topOffsetPercentage: 1,
@@ -225,17 +225,17 @@ class DriverHomeState extends ChangeNotifier {
         activeJourneyPassenger = await _userRepo.getUser(_activeJourney!.data().userId);
 
         if (_activeJourney!.data().isPickedUp) {
-          mapViewState.newMarkers["drop-off"] = flutter_map.Marker(
+          mapViewState.markers["drop-off"] = Marker(
             point: _activeJourney!.data().endLatLng,
             builder: (_) => const Icon(Icons.location_pin, size:35),
           );
-          updateCameraBoundsWithPopup(mapViewState.newCurrentPosition!, _activeJourney!.data().endLatLng);
+          updateCameraBoundsWithPopup(mapViewState.currentPosition!, _activeJourney!.data().endLatLng);
         } else {
-          mapViewState.newMarkers["pick-up"] = flutter_map.Marker(
+          mapViewState.markers["pick-up"] = Marker(
             point: _activeJourney!.data().startLatLng,
             builder: (_) => const Icon(Icons.location_pin, size:35),
           );
-          updateCameraBoundsWithPopup(mapViewState.newCurrentPosition!, _activeJourney!.data().startLatLng);
+          updateCameraBoundsWithPopup(mapViewState.currentPosition!, _activeJourney!.data().startLatLng);
         }
       } else {
         _unregisterDriverLocationBackgroundService();
@@ -263,11 +263,11 @@ class DriverHomeState extends ChangeNotifier {
             }
           }
         }
-        mapViewState.newMarkers.remove("drop-off");
-        mapViewState.newMarkers.remove("pick-up");
+        mapViewState.markers.remove("drop-off");
+        mapViewState.markers.remove("pick-up");
         activeJourney = null;
         _unregisterDriverLocationListener();
-        MapHelper.resetCamera(mapViewState.newMapController, mapViewState.newCurrentPosition);
+        MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
         notifyListeners();
       }
     });
@@ -301,11 +301,11 @@ class DriverHomeState extends ChangeNotifier {
       await _journeyRepo.completeJourney(activeJourney);
       await _activeJourneyListener?.cancel();
 
-      mapViewState.newMarkers.remove("drop-off");
-      mapViewState.newMarkers.remove("pick-up");
+      mapViewState.markers.remove("drop-off");
+      mapViewState.markers.remove("pick-up");
       activeJourney = null;
 
-      MapHelper.resetCamera(mapViewState.newMapController, mapViewState.newCurrentPosition!);
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
       notifyListeners();
       _unregisterDriverLocationBackgroundService();
       _unregisterDriverLocationListener();
@@ -326,19 +326,19 @@ class DriverHomeState extends ChangeNotifier {
     try {
       bool isPickedUp = await _journeyRepo.updateJourneyPickUpStatus(activeJourney);
       if (isPickedUp) {
-        mapViewState.newMarkers.remove("pick-up");
-        mapViewState.newMarkers["pick-up"] = flutter_map.Marker(
+        mapViewState.markers.remove("pick-up");
+        mapViewState.markers["pick-up"] = Marker(
           point: activeJourney!.data().endLatLng,
           builder: (_) => const Icon(Icons.location_pin, size:35),
         );
-        updateCameraBoundsWithPopup(mapViewState.newCurrentPosition!, activeJourney!.data().endLatLng);
+        updateCameraBoundsWithPopup(mapViewState.currentPosition!, activeJourney!.data().endLatLng);
       } else {
-        mapViewState.newMarkers.remove("drop-off");
-        mapViewState.newMarkers["pick-up"] = flutter_map.Marker(
+        mapViewState.markers.remove("drop-off");
+        mapViewState.markers["pick-up"] = Marker(
           point: activeJourney!.data().startLatLng,
           builder: (_) => const Icon(Icons.location_pin, size:35),
         );
-        updateCameraBoundsWithPopup(mapViewState.newCurrentPosition!, activeJourney!.data().startLatLng);
+        updateCameraBoundsWithPopup(mapViewState.currentPosition!, activeJourney!.data().startLatLng);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -358,8 +358,8 @@ class DriverHomeState extends ChangeNotifier {
       toggleIsSearching();
 
       mapViewState.polylines.clear();
-      mapViewState.newMarkers.remove("start");
-      mapViewState.newMarkers.remove("destination");
+      mapViewState.markers.remove("start");
+      mapViewState.markers.remove("destination");
 
       startOngoingJourneyListener();
     } catch (e) {
@@ -405,11 +405,11 @@ class DriverHomeState extends ChangeNotifier {
         topOffsetPercentage: 1,
         bottomOffsetPercentage: 0.2,
       );
-      mapViewState.newMarkers["start"] = flutter_map.Marker(
+      mapViewState.markers["start"] = Marker(
         point: start,
         builder: (_) => const Icon(Icons.location_pin, size:35),
       );
-      mapViewState.newMarkers["destination"] = flutter_map.Marker(
+      mapViewState.markers["destination"] = Marker(
         point: end,
         builder: (_) => const Icon(Icons.location_pin, size:35),
       );
@@ -421,8 +421,8 @@ class DriverHomeState extends ChangeNotifier {
   Future<void> updateJourneyRequestListener() async {
     toggleIsSearching();
     mapViewState.polylines.clear();
-    mapViewState.newMarkers.remove("start");
-    mapViewState.newMarkers.remove("destination");
+    mapViewState.markers.remove("start");
+    mapViewState.markers.remove("destination");
 
     if (_isSearching) {
       StreamSubscription<QuerySnapshot<Journey>>? journeyListener;
@@ -437,7 +437,7 @@ class DriverHomeState extends ChangeNotifier {
     } else {
       availableJourneySnapshot = null;
       availableJourneyPassenger = null;
-      MapHelper.resetCamera(mapViewState.newMapController, mapViewState.newCurrentPosition);
+      MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
     }
   }
 

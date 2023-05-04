@@ -1,10 +1,8 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:provider/provider.dart';
 
-import '../../../util/constants.dart';
 import '../../../util/map_helper.dart';
 
 class MapView extends StatelessWidget {
@@ -13,22 +11,21 @@ class MapView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MapViewState mapViewState = context.watch<MapViewState>();
-    final currentPosition = mapViewState.currentPosition;
-    final newCurrentPosition = mapViewState.newCurrentPosition;
+    final newCurrentPosition = mapViewState.currentPosition;
 
-    return currentPosition == null
+    return newCurrentPosition == null
         ? const Center(
             child: CircularProgressIndicator(),
           )
         : Stack(
             children: [
               FlutterMap(
-                  mapController: mapViewState.newMapController,
+                  mapController: mapViewState.mapController,
                   options: MapOptions(
                     interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                     center: newCurrentPosition,
                     zoom: 11,
-                    minZoom: 11,
+                    minZoom: 7,
                     maxZoom: 18,
                   ),
                   children: [
@@ -39,7 +36,8 @@ class MapView extends StatelessWidget {
                       urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
                       subdomains: const ['a', 'b', 'c', 'd'],
                     ),
-                    MarkerLayer(markers: mapViewState.newMarkers.values.toList()),
+                    MarkerLayer(markers: mapViewState.markers.values.toList()),
+                    PolylineLayer(polylines: mapViewState.polylines.toList(),)
                   ]),
               // GoogleMap(
               //   markers: mapViewState.markers.values.toSet(),
@@ -63,7 +61,7 @@ class MapView extends StatelessWidget {
                       width: 60,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await MapHelper.resetCamera(mapViewState.newMapController, newCurrentPosition);
+                          await MapHelper.resetCamera(mapViewState.mapController, newCurrentPosition);
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
                               shape: MaterialStatePropertyAll(

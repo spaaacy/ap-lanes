@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../util/location_helpers.dart';
-import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:latlong2/latlong.dart';
 
 class Journey {
   final String userId;
-  final latlong2.LatLng startLatLng;
-  final latlong2.LatLng endLatLng;
+  final LatLng startLatLng;
+  final LatLng endLatLng;
   final String startDescription;
   final String endDescription;
   bool isCompleted;
