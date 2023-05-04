@@ -11,8 +11,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -229,17 +230,15 @@ class DriverHomeState extends ChangeNotifier {
         activeJourneyPassenger = await _userRepo.getUser(_activeJourney!.data().userId);
 
         if (_activeJourney!.data().isPickedUp) {
-          mapViewState.markers[const MarkerId("drop-off")] = Marker(
-            markerId: const MarkerId("drop-off"),
-            position: _activeJourney!.data().endLatLng,
-            icon: mapViewState.locationIcon!,
+          mapViewState.markers["drop-off"] = Marker(
+            point: _activeJourney!.data().endLatLng,
+            builder: (_) => const Icon(Icons.location_pin, size:35),
           );
           updateCameraBoundsWithPopup(mapViewState.currentPosition!, _activeJourney!.data().endLatLng);
         } else {
-          mapViewState.markers[const MarkerId("pick-up")] = Marker(
-            markerId: const MarkerId("pick-up"),
-            position: _activeJourney!.data().startLatLng,
-            icon: mapViewState.locationIcon!,
+          mapViewState.markers["pick-up"] = Marker(
+            point: _activeJourney!.data().startLatLng,
+            builder: (_) => const Icon(Icons.location_pin, size:35),
           );
           updateCameraBoundsWithPopup(mapViewState.currentPosition!, _activeJourney!.data().startLatLng);
         }
@@ -273,8 +272,8 @@ class DriverHomeState extends ChangeNotifier {
             }
           }
         }
-        mapViewState.markers.remove(const MarkerId("drop-off"));
-        mapViewState.markers.remove(const MarkerId("pick-up"));
+        mapViewState.markers.remove("drop-off");
+        mapViewState.markers.remove("pick-up");
         mapViewState.shouldCenter = true;
         activeJourney = null;
         availableJourneySnapshot = null;
@@ -314,8 +313,8 @@ class DriverHomeState extends ChangeNotifier {
       await _journeyRepo.completeJourney(activeJourney);
       await _activeJourneyListener?.cancel();
 
-      mapViewState.markers.remove(const MarkerId("drop-off"));
-      mapViewState.markers.remove(const MarkerId("pick-up"));
+      mapViewState.markers.remove("drop-off");
+      mapViewState.markers.remove("pick-up");
       mapViewState.shouldCenter = true;
       activeJourney = null;
 
@@ -342,19 +341,17 @@ class DriverHomeState extends ChangeNotifier {
     try {
       bool isPickedUp = await _journeyRepo.updateJourneyPickUpStatus(activeJourney);
       if (isPickedUp) {
-        mapViewState.markers.remove(const MarkerId("pick-up"));
-        mapViewState.markers[const MarkerId("pick-up")] = Marker(
-          markerId: const MarkerId("pick-up"),
-          position: activeJourney!.data().endLatLng,
-          icon: mapViewState.locationIcon!,
+        mapViewState.markers.remove("pick-up");
+        mapViewState.markers["pick-up"] = Marker(
+          point: activeJourney!.data().endLatLng,
+          builder: (_) => const Icon(Icons.location_pin, size:35),
         );
         updateCameraBoundsWithPopup(mapViewState.currentPosition!, activeJourney!.data().endLatLng);
       } else {
-        mapViewState.markers.remove(const MarkerId("drop-off"));
-        mapViewState.markers[const MarkerId("pick-up")] = Marker(
-          markerId: const MarkerId("pick-up"),
-          position: activeJourney!.data().startLatLng,
-          icon: mapViewState.locationIcon!,
+        mapViewState.markers.remove("drop-off");
+        mapViewState.markers["pick-up"] = Marker(
+          point: activeJourney!.data().startLatLng,
+          builder: (_) => const Icon(Icons.location_pin, size:35),
         );
         updateCameraBoundsWithPopup(mapViewState.currentPosition!, activeJourney!.data().startLatLng);
       }
@@ -376,8 +373,8 @@ class DriverHomeState extends ChangeNotifier {
       toggleIsSearching();
 
       mapViewState.polylines.clear();
-      mapViewState.markers.remove(const MarkerId("start"));
-      mapViewState.markers.remove(const MarkerId("destination"));
+      mapViewState.markers.remove("start");
+      mapViewState.markers.remove("destination");
 
       startOngoingJourneyListener();
     } catch (e) {
@@ -423,15 +420,13 @@ class DriverHomeState extends ChangeNotifier {
         topOffsetPercentage: 1,
         bottomOffsetPercentage: 0.2,
       );
-      mapViewState.markers[const MarkerId("start")] = Marker(
-        markerId: const MarkerId("start"),
-        position: start,
-        icon: mapViewState.locationIcon!,
+      mapViewState.markers["start"] = Marker(
+        point: start,
+        builder: (_) => const Icon(Icons.location_pin, size:35),
       );
-      mapViewState.markers[const MarkerId("destination")] = Marker(
-        markerId: const MarkerId("destination"),
-        position: end,
-        icon: mapViewState.locationIcon!,
+      mapViewState.markers["destination"] = Marker(
+        point: end,
+        builder: (_) => const Icon(Icons.location_pin, size:35),
       );
       mapViewState.notifyListeners();
       notifyListeners();
@@ -441,8 +436,8 @@ class DriverHomeState extends ChangeNotifier {
   Future<void> updateJourneyRequestListener() async {
     toggleIsSearching();
     mapViewState.polylines.clear();
-    mapViewState.markers.remove(const MarkerId("start"));
-    mapViewState.markers.remove(const MarkerId("destination"));
+    mapViewState.markers.remove("start");
+    mapViewState.markers.remove("destination");
 
     if (_isSearching) {
       StreamSubscription<QuerySnapshot<Journey>>? journeyListener;

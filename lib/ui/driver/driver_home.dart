@@ -43,7 +43,7 @@ class DriverHome extends StatelessWidget {
                 }),
             body: Stack(
               children: [
-                const MapView(),
+                MapView(),
                 Positioned.fill(
                   bottom: 100.0,
                   child: Align(

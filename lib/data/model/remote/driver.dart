@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:latlong2/latlong.dart';
 import '../../../util/location_helpers.dart';
 
 class Driver {
@@ -35,7 +34,7 @@ class Driver {
       id: data?['id'],
       licensePlate: data?['licensePlate'],
       isAvailable: data?['isAvailable'],
-      currentLatLng: getLatLngFromString(data?['currentLatLng']),
+      currentLatLng: newGetLatLngFromString(data?['currentLatLng']),
     );
   }
 }

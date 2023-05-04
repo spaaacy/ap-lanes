@@ -21,7 +21,7 @@ class AuthWrapper extends StatelessWidget {
       return MultiProvider(
         providers: [
           ChangeNotifierProvider<UserWrapperState>(create: (context) => UserWrapperState()),
-          ChangeNotifierProvider<MapViewState>(create: (context) => MapViewState()..initialize(context))
+          ChangeNotifierProvider<MapViewState>(create: (context) => MapViewState()..initializeLocation(context))
         ],
         child: const UserWrapper(),
       );

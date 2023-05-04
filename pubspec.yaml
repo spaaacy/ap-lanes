@@ -39,7 +39,6 @@ dependencies:
   cloud_firestore: ^4.5.0
   firebase_auth: ^4.4.0
   provider: ^6.0.5
-  google_maps_flutter: ^2.2.5
   google_maps_flutter_web: ^0.4.0+7
   geocoding: ^2.1.0
   geolocator: ^9.0.2
@@ -55,6 +54,8 @@ dependencies:
   flutter_background_service: ^2.4.6
   shared_preferences: ^2.1.0
   flutter_local_notifications: ^14.0.0+1
+  flutter_map: ^3.1.0
+  latlong2: ^0.8.1
 
 flutter_launcher_icons:
   android: false
@@ -89,9 +90,6 @@ flutter:
   #   - images/a_dot_ham.jpeg
 
   assets:
-    - assets/icons/user.png
-    - assets/icons/location.png
-    - assets/map_style.json
     - assets/icons/waze.svg
     - assets/icons/google_maps.svg
 
