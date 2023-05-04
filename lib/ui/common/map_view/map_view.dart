@@ -1,35 +1,55 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
 import '../../../util/map_helper.dart';
 
 class MapView extends StatelessWidget {
-  const MapView({super.key});
+  MapView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final MapViewState mapViewState = context.watch<MapViewState>();
-    final currentPosition = mapViewState.currentPosition;
+    final newCurrentPosition = mapViewState.currentPosition;
 
-    return currentPosition == null
+    return newCurrentPosition == null
         ? const Center(
             child: CircularProgressIndicator(),
           )
         : Stack(
             children: [
-              GoogleMap(
-                markers: mapViewState.markers.values.toSet(),
-                polylines: mapViewState.polylines,
-                onMapCreated: (controller) => mapViewState.onMapCreated(controller),
-                initialCameraPosition: CameraPosition(target: currentPosition, zoom: 17.0),
-                rotateGesturesEnabled: false,
-                compassEnabled: false,
-                mapToolbarEnabled: false,
-                zoomControlsEnabled: false,
-                buildingsEnabled: false,
-              ),
+              FlutterMap(
+                  mapController: mapViewState.mapController,
+                  options: MapOptions(
+                    interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    center: newCurrentPosition,
+                    zoom: 11,
+                    minZoom: 7,
+                    maxZoom: 18,
+                  ),
+                  children: [
+                    TileLayer(
+                      minZoom: 1,
+                      maxZoom: 18,
+                      backgroundColor: Colors.black,
+                      urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
+                      subdomains: const ['a', 'b', 'c', 'd'],
+                    ),
+                    MarkerLayer(markers: mapViewState.markers.values.toList()),
+                    PolylineLayer(polylines: mapViewState.polylines.toList(),)
+                  ]),
+              // GoogleMap(
+              //   markers: mapViewState.markers.values.toSet(),
+              //   polylines: mapViewState.polylines,
+              //   onMapCreated: (controller) => mapViewState.onMapCreated(controller),
+              //   initialCameraPosition: CameraPosition(target: currentPosition, zoom: 17.0),
+              //   rotateGesturesEnabled: false,
+              //   compassEnabled: false,
+              //   mapToolbarEnabled: false,
+              //   zoomControlsEnabled: false,
+              //   buildingsEnabled: false,
+              // ),
               if (mapViewState.shouldCenter)
                 Positioned.fill(
                   bottom: 24.0,
@@ -41,7 +61,7 @@ class MapView extends StatelessWidget {
                       width: 60,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await MapHelper.resetCamera(mapViewState.mapController, currentPosition);
+                          await MapHelper.resetCamera(mapViewState.mapController, newCurrentPosition);
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
                               shape: MaterialStatePropertyAll(

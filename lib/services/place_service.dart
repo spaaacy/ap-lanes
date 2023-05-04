@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../data/model/local/suggestion.dart';
 import '../util/constants.dart';
@@ -41,7 +42,7 @@ class PlaceService {
 
   Future<LatLng> fetchLatLng(String placeId, String lang, String sessionToken) async {
     if (placeId.isEmpty) {
-      return const LatLng(0.0, 0.0);
+      return LatLng(0.0, 0.0);
     }
 
     final request =
@@ -53,11 +54,12 @@ class PlaceService {
       final result = json.decode(response.body);
 
       if (result["status"] == "OK") {
-        return LatLng(result["result"]["geometry"]["location"]["lat"], result["result"]["geometry"]["location"]["lng"]);
+        return LatLng(
+            result["result"]["geometry"]["location"]["lat"], result["result"]["geometry"]["location"]["lng"]);
       }
 
       if (result["status"] == "ZERO_RESULTS") {
-        return const LatLng(0.0, 0.0);
+        return LatLng(0.0, 0.0);
       }
 
       throw Exception(result['error_message']);
@@ -78,18 +80,15 @@ class PlaceService {
     );
 
     if (result.status == "OK") {
-      result.points.forEach((PointLatLng point) {
+      for (var point in result.points) {
         points.add(LatLng(point.latitude, point.longitude));
-      });
+      }
     }
 
     final polyline = Polyline(
-      polylineId: PolylineId("polyline"),
       points: points,
-      width: 5,
       color: Colors.blue,
-      startCap: Cap.roundCap,
-      endCap: Cap.roundCap,
+      strokeWidth: 3.0,
     );
 
     return polyline;

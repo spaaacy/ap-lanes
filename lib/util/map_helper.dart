@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import 'resize_asset.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class MapHelper {
+  static Future<void> resetCamera(MapController mapController, LatLng? currentPosition) async {
+    if (currentPosition == null) return;
+    mapController.move(currentPosition, 17.0);
+  }
+
   static void setCameraToRoute({
-    required GoogleMapController? mapController,
+    required MapController mapController,
     required Set<Polyline> polylines,
     double topOffsetPercentage = 0,
     double bottomOffsetPercentage = 0,
@@ -36,19 +39,16 @@ class MapHelper {
     final leftOffsetValue = lngDifference * leftOffsetPercentage;
     final rightOffsetValue = lngDifference * rightOffsetPercentage;
 
-    mapController?.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
-          northeast: LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
-        ),
-        50,
-      ),
+    final bounds = LatLngBounds(
+      LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
+      LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
     );
+
+    mapController.fitBounds(bounds);
   }
 
   static void setCameraBetweenMarkers({
-    required GoogleMapController? mapController,
+    required MapController mapController,
     required LatLng firstLatLng,
     required LatLng secondLatLng,
     double topOffsetPercentage = 0,
@@ -78,25 +78,12 @@ class MapHelper {
     final leftOffsetValue = lngDifference * leftOffsetPercentage;
     final rightOffsetValue = lngDifference * rightOffsetPercentage;
 
-    mapController?.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
-          northeast: LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
-        ),
-        50,
-      ),
+    final bounds = LatLngBounds(
+      LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
+      LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
     );
-  }
 
-  static Future<BitmapDescriptor> getCustomIcon(String path, int size) async {
-    final Uint8List? resizedIcon = await getBytesFromAsset(path, size);
-    return resizedIcon == null ? BitmapDescriptor.defaultMarker : BitmapDescriptor.fromBytes(resizedIcon);
-  }
-
-  static Future<void> resetCamera(GoogleMapController? mapController, LatLng? currentPosition) async {
-    if (currentPosition == null) return;
-    mapController?.animateCamera(CameraUpdate.newLatLngZoom(currentPosition, 17.0));
+    mapController.fitBounds(bounds);
   }
 
   static double calculateRouteDistance(Polyline? polylines) {
@@ -107,7 +94,7 @@ class MapHelper {
 
     polylines.points.asMap().forEach((index, currentLatLng) {
       if (index < polylines.points.length - 1) {
-        final nextLatLng = polylines.points[index + 1];
+        final LatLng nextLatLng = polylines.points[index + 1];
         var a = 0.5 -
             cos((nextLatLng.latitude - currentLatLng.latitude) * p) / 2 +
             cos(currentLatLng.latitude * p) *

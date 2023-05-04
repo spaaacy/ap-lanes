@@ -4,8 +4,9 @@ import 'package:ap_lanes/data/repo/driver_repo.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:flutter/cupertino.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -69,7 +70,7 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState = context.read<MapViewState>();
     initializeFirestore(context);
   }
-  
+
   Future<void> initializeFirestore(BuildContext context) async {
     final firebaseUser = context.read<firebase_auth.User?>();
 
@@ -107,8 +108,8 @@ class PassengerHomeState extends ChangeNotifier {
                 _routeDistance = null;
                 mapViewState.polylines.clear();
                 mapViewState.shouldCenter = true;
-                mapViewState.markers.remove(const MarkerId("start"));
-                mapViewState.markers.remove(const MarkerId("destination"));
+                mapViewState.markers.remove("start");
+                mapViewState.markers.remove("destination");
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
@@ -116,11 +117,13 @@ class PassengerHomeState extends ChangeNotifier {
                   if (driver.docs.isNotEmpty) {
                     final latLng = driver.docs.first.data().currentLatLng;
                     if (latLng != null && mapViewState.currentPosition != null) {
-                      mapViewState.markers[const MarkerId("driver")] =
-                          Marker(markerId: const MarkerId("driver"), position: latLng, icon: mapViewState.driverIcon!); // TODO: Recheck assertion
+                      mapViewState.markers["driver"] = Marker(
+                        point: latLng,
+                        builder: (_) => const Icon(Icons.drive_eta),
+                      );
                       mapViewState.shouldCenter = false;
                       MapHelper.setCameraBetweenMarkers(
-                        mapController: mapViewState.mapController!,
+                        mapController: mapViewState.mapController,
                         firstLatLng: latLng,
                         secondLatLng: mapViewState.currentPosition!,
                         topOffsetPercentage: 3,
@@ -160,7 +163,7 @@ class PassengerHomeState extends ChangeNotifier {
         mapViewState.polylines.add(polylines);
         mapViewState.shouldCenter = false;
         MapHelper.setCameraToRoute(
-          mapController: mapViewState.mapController!,
+          mapController: mapViewState.mapController,
           polylines: mapViewState.polylines,
           topOffsetPercentage: 0.5,
           bottomOffsetPercentage: 0.5,
@@ -176,8 +179,8 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
     _routeDistance = null;
-    mapViewState.markers.remove(const MarkerId("start"));
-    mapViewState.markers.remove(const MarkerId("destination"));
+    mapViewState.markers.remove("start");
+    mapViewState.markers.remove("destination");
     if (mapViewState.currentPosition != null) {
       MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition!);
     }
@@ -185,7 +188,7 @@ class PassengerHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void onLatLng(BuildContext context, latLng) {
+  void onLatLng(BuildContext context, LatLng latLng) {
     _destinationLatLng = latLng;
     final start = _toApu ? _destinationLatLng! : apuLatLng;
     final end = _toApu ? apuLatLng : _destinationLatLng!;
@@ -194,20 +197,18 @@ class PassengerHomeState extends ChangeNotifier {
       mapViewState.polylines.add(polylines);
       mapViewState.shouldCenter = false;
       MapHelper.setCameraToRoute(
-        mapController: mapViewState.mapController!,
+        mapController: mapViewState.mapController,
         polylines: mapViewState.polylines,
         topOffsetPercentage: 0.5,
         bottomOffsetPercentage: 0.5,
       );
-      mapViewState.markers[const MarkerId("start")] = Marker(
-        markerId: const MarkerId("start"),
-        position: start,
-        icon: mapViewState.locationIcon!,
+      mapViewState.markers["start"] = Marker(
+        point: start,
+        builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
-      mapViewState.markers[const MarkerId("destination")] = Marker(
-        markerId: const MarkerId("destination"),
-        position: end,
-        icon: mapViewState.locationIcon!,
+      mapViewState.markers["destination"] = Marker(
+        point: end,
+        builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
       _routeDistance = MapHelper.calculateRouteDistance(polylines);
       notifyListeners(); // Notifies when route is received
@@ -220,7 +221,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   void createJourney(BuildContext context) {
     final firebaseUser = context.read<firebase_auth.User?>();
-    if (firebaseUser != null){
+    if (firebaseUser != null) {
       _journeyRepo.createJourney(
         Journey(
             userId: firebaseUser.uid,
@@ -251,10 +252,10 @@ class PassengerHomeState extends ChangeNotifier {
     destinationLatLng = null;
     mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
-    mapViewState.markers.remove(const MarkerId("driver"));
-    mapViewState.markers.remove(const MarkerId("start"));
-    mapViewState.markers.remove(const MarkerId("destination"));
-    MapHelper.resetCamera(mapViewState.mapController!, mapViewState.currentPosition);
+    mapViewState.markers.remove("driver");
+    mapViewState.markers.remove("start");
+    mapViewState.markers.remove("destination");
+    MapHelper.resetCamera(mapViewState.mapController, mapViewState.currentPosition);
     await _driverListener?.cancel();
     _driverListener = null;
     notifyListeners();
