@@ -43,9 +43,10 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                       backgroundColor: Colors.black,
                       urlTemplate:
                           // 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      // subdomains: const ['a', 'b', 'c', 'd'],
-                      subdomains: const ['a', 'b', 'c'],
+                          // 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
+                      subdomains: const ['a', 'b', 'c', 'd'],
+                      // subdomains: const ['a', 'b', 'c'],
                     ),
                     MarkerLayer(markers: mapViewState.markers.values.toList()),
                     PolylineLayer(
