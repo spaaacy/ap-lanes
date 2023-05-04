@@ -165,10 +165,9 @@ class MapViewState extends ChangeNotifier {
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
       ).listen((position) async {
         final latLng = LatLng(position.latitude, position.longitude);
-        final newLatLng = LatLng(latLng.latitude, latLng.longitude);
-        _currentPosition = newLatLng;
+        _currentPosition = latLng;
         _markers["user"] =
-            Marker(point: newLatLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
+            Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
 
         if (_shouldCenter) {
           resetCamera();

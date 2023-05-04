@@ -1,9 +1,7 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
-
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -13,7 +11,6 @@ class MapView extends StatefulWidget {
 }
 
 class _State extends State<MapView> with TickerProviderStateMixin {
-
   @override
   void initState() {
     super.initState();
@@ -23,9 +20,8 @@ class _State extends State<MapView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final MapViewState mapViewState = context.watch<MapViewState>();
-    final newCurrentPosition = mapViewState.currentPosition;
 
-    return newCurrentPosition == null
+    return mapViewState.currentPosition == null
         ? const Center(
             child: CircularProgressIndicator(),
           )
@@ -35,7 +31,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                   mapController: mapViewState.mapController,
                   options: MapOptions(
                     interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                    center: newCurrentPosition,
+                    center: mapViewState.currentPosition,
                     zoom: 11,
                     minZoom: 7,
                     maxZoom: 18,
@@ -68,8 +64,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                           await mapViewState.resetCamera();
                         },
                         style: ElevatedButtonTheme.of(context).style?.copyWith(
-                              shape: MaterialStatePropertyAll(
-                                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                              shape: const MaterialStatePropertyAll(CircleBorder()),
                               padding: const MaterialStatePropertyAll(EdgeInsets.all(16.0)),
                               elevation: const MaterialStatePropertyAll(4.0),
                             ),
