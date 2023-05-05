@@ -32,7 +32,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                   options: MapOptions(
                     interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                     center: mapViewState.currentPosition,
-                    zoom: 11,
+                    zoom: 17,
                     minZoom: 7,
                     maxZoom: 18,
                   ),
