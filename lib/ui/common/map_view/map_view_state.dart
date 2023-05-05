@@ -12,7 +12,7 @@ class MapViewState extends ChangeNotifier {
   * Variables
   * */
   bool _shouldCenter = true;
-  late final MapController _mapController;
+  final MapController _mapController = MapController();
   LatLng? _currentPosition;
   StreamSubscription<Position>? _locationListener;
   final Set<Polyline> _polylines = <Polyline>{};
@@ -24,7 +24,6 @@ class MapViewState extends ChangeNotifier {
   * */
 
   void initializeLocation(BuildContext context) async {
-    _mapController = MapController();
     final hasPermissions = await handleLocationPermission(context);
 
     if (hasPermissions) {
