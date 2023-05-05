@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../util/location_helpers.dart';
+import '../../../util/url_helpers.dart';
 import '../passenger_home_state.dart';
 
 class JourneyDetail extends StatelessWidget {
@@ -38,7 +40,9 @@ class JourneyDetail extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ...(() {
-                          if (state.driverName != null && state.driverLicensePlate != null && state.driverPhone != null) {
+                          if (state.driverName != null &&
+                              state.driverLicensePlate != null &&
+                              state.driverPhone != null) {
                             return [
                               Text("Your Driver",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
@@ -131,11 +135,26 @@ class JourneyDetail extends StatelessWidget {
                             }
                           }()),
                           const Spacer(),
-                          IconButton(
-                              onPressed: () {
-                                launchUrl(Uri.parse("tel://${state.driverPhone?.trim()}"));
-                              },
-                              icon: const Icon(Icons.phone)),
+                          if (state.driverPhone != null)
+                            Row(
+                              children: [
+                                IconButton(
+                                    onPressed: () {
+                                      final phone = state.driverPhone!.trim(); // TODO: Clean phone string first
+                                      launchWhatApp(phone);
+                                    },
+                                    icon: SvgPicture.asset(
+                                      'assets/icons/whatsapp.svg',
+                                      height: 30,
+                                      width: 30,
+                                    )),
+                                IconButton(
+                                    onPressed: () {
+                                      launchUrl(Uri.parse("tel://${state.driverPhone!.trim()}"));
+                                    },
+                                    icon: const Icon(Icons.phone)),
+                              ],
+                            ),
                         ],
                       )
                     ];
