@@ -51,10 +51,6 @@ class JourneyDetail extends StatelessWidget {
                               Text("License Plate",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
                               Text(state.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
-                              const SizedBox(height: 8.0),
-                              Text("License Plate",
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(state.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
                             ];
                           } else {
                             return [
@@ -141,7 +137,7 @@ class JourneyDetail extends StatelessWidget {
                                 IconButton(
                                     onPressed: () {
                                       final phone = state.driverPhone!.trim(); // TODO: Clean phone string first
-                                      launchWhatApp(phone);
+                                      launchWhatsApp(phone);
                                     },
                                     icon: SvgPicture.asset(
                                       'assets/icons/whatsapp.svg',

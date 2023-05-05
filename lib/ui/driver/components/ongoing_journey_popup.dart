@@ -195,6 +195,22 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
               const SizedBox(width: 8),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.green, width: 2.0),
+                  foregroundColor: Colors.black,
+                ),
+                onPressed: ongoingState.isLoadingJourneyRequest
+                    ? null
+                    : () =>
+                        launchWhatsApp(ongoingState.activeJourneyPassenger!.data().phoneNumber.trim()),
+                child: SvgPicture.asset(
+                  'assets/icons/whatsapp.svg',
+                  height: 30,
+                  width: 30,
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.black, width: 2.0),
                   foregroundColor: Colors.black,
                 ),
