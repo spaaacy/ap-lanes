@@ -12,7 +12,7 @@ class MapViewState extends ChangeNotifier {
   * Variables
   * */
   bool _shouldCenter = true;
-  final _mapController = MapController();
+  late final MapController _mapController;
   LatLng? _currentPosition;
   StreamSubscription<Position>? _locationListener;
   final Set<Polyline> _polylines = <Polyline>{};
@@ -22,6 +22,28 @@ class MapViewState extends ChangeNotifier {
   /*
   * Functions
   * */
+
+  void initializeLocation(BuildContext context) async {
+    _mapController = MapController();
+    final hasPermissions = await handleLocationPermission(context);
+
+    if (hasPermissions) {
+      _locationListener = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
+      ).listen((position) async {
+        final latLng = LatLng(position.latitude, position.longitude);
+        _currentPosition = latLng;
+        _markers["user"] =
+            Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
+        notifyListeners();
+
+        if (_shouldCenter && ticker != null) {
+          resetCamera();
+        }
+      });
+    }
+  }
+
   Future<void> resetCamera() async {
     if (currentPosition == null || ticker == null) return;
     _animateCamera(_currentPosition!, 17.0);
@@ -152,36 +174,16 @@ class MapViewState extends ChangeNotifier {
   }
 
   void resetMap() {
+    ticker = null;
     _shouldCenter = true;
     _polylines.clear();
     _markers.clear();
-    ticker = null;
   }
 
   @override
   void dispose() {
     _locationListener?.cancel();
     super.dispose();
-  }
-
-  void initializeLocation(BuildContext context) async {
-    final hasPermissions = await handleLocationPermission(context);
-
-    if (hasPermissions) {
-      _locationListener = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
-      ).listen((position) async {
-        final latLng = LatLng(position.latitude, position.longitude);
-        _currentPosition = latLng;
-        _markers["user"] =
-            Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
-
-        if (_shouldCenter) {
-          resetCamera();
-        }
-        notifyListeners();
-      });
-    }
   }
 
   /*

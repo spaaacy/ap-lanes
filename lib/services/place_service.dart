@@ -46,7 +46,7 @@ class PlaceService {
     }
 
     final request =
-        "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&language=$lang&key=$androidApiKey&sessiontoken=$sessionToken";
+        "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry/location&language=$lang&key=$androidApiKey&sessiontoken=$sessionToken";
 
     final response = await client.get(Uri.parse(request));
 
