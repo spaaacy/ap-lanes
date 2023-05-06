@@ -1,17 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../services/notification_service.dart';
 import '../../util/ui_helpers.dart';
 import '../common/app_drawer.dart';
 import '../common/map_view/map_view.dart';
-import '../common/map_view/map_view_state.dart';
 import 'components/go_button.dart';
 import 'components/journey_detail.dart';
 import 'components/search_bar.dart';
 import 'passenger_home_state.dart';
 
-class PassengerHome extends StatelessWidget {
-  const PassengerHome({super.key});
+class PassengerHome extends StatefulWidget {
+  const PassengerHome({Key? key}) : super(key: key);
+
+  @override
+  State<PassengerHome> createState() => _PassengerHomeState();
+}
+
+class _PassengerHomeState extends State<PassengerHome> with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+  }
+
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      NotificationService().notifyPassenger("App paused!");
+    }
+    if (state == AppLifecycleState.resumed) {
+      NotificationService().notifyPassenger("App resumed!");
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,31 +48,30 @@ class PassengerHome extends StatelessWidget {
 
     return (state.user == null || state.passenger == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-    : Scaffold(
-      appBar: AppBar(
-        title: Text(
-          getGreeting(state.lastName),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-      drawer: AppDrawer(
-          user: state.user,
-          isDriver: false,
-          isNavigationLocked: state.isSearching,
-          onNavigateWhenLocked: () {
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content:
-                    Text("You cannot change to driver mode while you are searching for a driver or are in a journey."),
+        : Scaffold(
+            appBar: AppBar(
+              title: Text(
+                getGreeting(state.lastName),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            );
-          }),
-      body: Stack(
+            ),
+            drawer: AppDrawer(
+                user: state.user,
+                isDriver: false,
+                isNavigationLocked: state.isSearching,
+                onNavigateWhenLocked: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          "You cannot change to driver mode while you are searching for a driver or are in a journey."),
+                    ),
+                  );
+                }),
+            body: Stack(
               children: [
                 const MapView(),
-                if (state.isSearching || state.hasDriver)
-                  const JourneyDetail(),
+                if (state.isSearching || state.hasDriver) const JourneyDetail(),
                 ...?(() {
                   if (!state.isSearching && !state.hasDriver) {
                     return [
@@ -74,6 +102,6 @@ class PassengerHome extends StatelessWidget {
                 }()),
               ],
             ),
-    );
+          );
   }
 }

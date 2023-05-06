@@ -10,6 +10,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'notification_service.dart';
+
 class DriverLocationService {
   static const notificationChannelId = 'driver_location_updater';
   static const notificationId = 888;
@@ -45,8 +47,7 @@ class DriverLocationService {
   }
 
   static void registerDriverLocationBackgroundService(
-    FlutterLocalNotificationsPlugin notificationsPlugin,
-    QueryDocumentSnapshot<Driver>? driver,
+    QueryDocumentSnapshot<Driver>? driver
   ) async {
     isRegistered = true;
     final service = FlutterBackgroundService();
@@ -61,6 +62,8 @@ class DriverLocationService {
       importance: Importance.low, // importance must be at low or higher level
     );
 
+
+    final notificationsPlugin = NotificationService().notificationPlugin;
     await notificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);

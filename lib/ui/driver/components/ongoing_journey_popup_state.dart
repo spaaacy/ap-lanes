@@ -156,10 +156,7 @@ class OngoingJourneyPopupState extends ChangeNotifier {
         _mapViewState.shouldCenter = false;
         if (!DriverLocationService.isRegistered) {
           final notificationPlugin = NotificationService().notificationPlugin;
-          DriverLocationService.registerDriverLocationBackgroundService(
-            notificationPlugin,
-            _driverHomeState.driver,
-          );
+          DriverLocationService.registerDriverLocationBackgroundService(_driverHomeState.driver);
         }
         updateActiveJourney(snap.docs.first);
         isLoadingJourneyRequest = false;
