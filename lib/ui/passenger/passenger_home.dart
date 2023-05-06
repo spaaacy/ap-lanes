@@ -41,7 +41,7 @@ class PassengerHome extends StatelessWidget {
           }),
       body: Stack(
               children: [
-                MapView(),
+                const MapView(),
                 if (state.isSearching || state.hasDriver)
                   const JourneyDetail(),
                 ...?(() {

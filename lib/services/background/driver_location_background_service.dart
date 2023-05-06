@@ -44,7 +44,10 @@ class DriverLocationBackgroundService {
     }
   }
 
-  static void registerDriverLocationBackgroundService(QueryDocumentSnapshot<Driver>? driver) async {
+  static void registerDriverLocationBackgroundService(
+    FlutterLocalNotificationsPlugin notificationsPlugin,
+    QueryDocumentSnapshot<Driver>? driver,
+  ) async {
     isRegistered = true;
     final service = FlutterBackgroundService();
 
@@ -58,9 +61,7 @@ class DriverLocationBackgroundService {
       importance: Importance.low, // importance must be at low or higher level
     );
 
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-    await flutterLocalNotificationsPlugin
+    await notificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
@@ -79,5 +80,4 @@ class DriverLocationBackgroundService {
       ),
     );
   }
-
 }

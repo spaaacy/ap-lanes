@@ -5,6 +5,7 @@ import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,7 @@ import '../../data/model/remote/user.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/passenger_repo.dart';
 import '../../data/repo/user_repo.dart';
+import '../../services/notification_service.dart';
 import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
@@ -26,6 +28,7 @@ class PassengerHomeState extends ChangeNotifier {
   * Variables
   * */
   late final MapViewState mapViewState;
+  final NotificationService notificationService = NotificationService();
 
   final _passengerRepo = PassengerRepo();
   final _driverRepo = DriverRepo();
@@ -69,6 +72,21 @@ class PassengerHomeState extends ChangeNotifier {
   Future<void> initialize(BuildContext context) async {
     mapViewState = context.read<MapViewState>();
     initializeFirestore(context);
+
+    final FlutterLocalNotificationsPlugin notificationPlugin = FlutterLocalNotificationsPlugin();
+
+    const androidInitialization = AndroidInitializationSettings('mipmap/ic_launcher');
+    const iOSIInitialization = DarwinInitializationSettings();
+    const initializationSettings = InitializationSettings(android: androidInitialization, iOS: iOSIInitialization);
+    await notificationPlugin.initialize(initializationSettings);
+    const androidDetails = AndroidNotificationDetails(
+      '$passengerNotificationId',
+      passengerNotificationChannel,
+      priority: Priority.high,
+      importance: Importance.max,
+    );
+    const notificationDetails = NotificationDetails(android: androidDetails);
+    await notificationPlugin.show(passengerNotificationId, "test", "test", notificationDetails);
   }
 
   Future<void> initializeFirestore(BuildContext context) async {
@@ -103,6 +121,7 @@ class PassengerHomeState extends ChangeNotifier {
             _driverRepo.getDriver(driverId).then((driver) {
               // Sets journey details
               if (driver != null) {
+                // notificationService.notifyPassenger("Driver found!", "Your driver is $_driverName");
                 _hasDriver = true;
                 _driverLicensePlate = driver.data().licensePlate;
                 _routeDistance = null;
