@@ -119,7 +119,7 @@ class PassengerHomeState extends ChangeNotifier {
                     if (latLng != null && mapViewState.currentPosition != null) {
                       mapViewState.markers["driver"] = Marker(
                         point: latLng,
-                        builder: (_) => const Icon(Icons.drive_eta),
+                        builder: (_) => const Icon(Icons.drive_eta, size: 35),
                       );
                       mapViewState.shouldCenter = false;
                       mapViewState.setCameraBetweenMarkers(

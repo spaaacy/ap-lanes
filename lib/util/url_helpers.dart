@@ -15,6 +15,13 @@ Future<void> launchGoogleMaps(LatLng latLng) async {
   launchDeepLink(url, fallbackUrl: fallbackUrl);
 }
 
+Future<void> launchWhatsApp(String phone) async {
+  final cleanPhone = phone.replaceAll(RegExp(r'\+'), '').replaceAll(r' ', '');
+  var url = Uri.parse('whatsapp://send?phone=$cleanPhone');
+  var fallbackUrl = Uri.parse('https://wa.me/$cleanPhone');
+  await canLaunchUrl(url)? launchUrl(url) : launchUrl(fallbackUrl, mode: LaunchMode.externalApplication);
+}
+
 Future<void> launchDeepLink(String url, {required String fallbackUrl}) async {
   try {
     bool launched = false;
