@@ -201,7 +201,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                 onPressed: ongoingState.isLoadingJourneyRequest
                     ? null
                     : () =>
-                        launchWhatsApp(ongoingState.activeJourneyPassenger!.data().phoneNumber.trim()),
+                        launchWhatsApp(ongoingState.activeJourneyPassenger!.data().phoneNumber),
                 child: SvgPicture.asset(
                   'assets/icons/whatsapp.svg',
                   height: 30,

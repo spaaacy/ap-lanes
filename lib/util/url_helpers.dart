@@ -16,8 +16,9 @@ Future<void> launchGoogleMaps(LatLng latLng) async {
 }
 
 Future<void> launchWhatsApp(String phone) async {
-  var url = Uri.parse('whatsapp://send?phone=$phone');
-  var fallbackUrl = Uri.parse('https://wa.me/$phone');
+  final cleanPhone = phone.replaceAll(RegExp(r'\+'), '').replaceAll(r' ', '');
+  var url = Uri.parse('whatsapp://send?phone=$cleanPhone');
+  var fallbackUrl = Uri.parse('https://wa.me/$cleanPhone');
   await canLaunchUrl(url)? launchUrl(url) : launchUrl(fallbackUrl, mode: LaunchMode.externalApplication);
 }
 

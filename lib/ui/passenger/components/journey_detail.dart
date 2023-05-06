@@ -136,8 +136,7 @@ class JourneyDetail extends StatelessWidget {
                               children: [
                                 IconButton(
                                     onPressed: () {
-                                      final phone = state.driverPhone!.trim(); // TODO: Clean phone string first
-                                      launchWhatsApp(phone);
+                                      launchWhatsApp(state.driverPhone!);
                                     },
                                     icon: SvgPicture.asset(
                                       'assets/icons/whatsapp.svg',
