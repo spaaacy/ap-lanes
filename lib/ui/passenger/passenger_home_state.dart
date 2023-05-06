@@ -5,7 +5,6 @@ import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -72,21 +71,6 @@ class PassengerHomeState extends ChangeNotifier {
   Future<void> initialize(BuildContext context) async {
     mapViewState = context.read<MapViewState>();
     initializeFirestore(context);
-
-    final FlutterLocalNotificationsPlugin notificationPlugin = FlutterLocalNotificationsPlugin();
-
-    const androidInitialization = AndroidInitializationSettings('mipmap/ic_launcher');
-    const iOSIInitialization = DarwinInitializationSettings();
-    const initializationSettings = InitializationSettings(android: androidInitialization, iOS: iOSIInitialization);
-    await notificationPlugin.initialize(initializationSettings);
-    const androidDetails = AndroidNotificationDetails(
-      '$passengerNotificationId',
-      passengerNotificationChannel,
-      priority: Priority.high,
-      importance: Importance.max,
-    );
-    const notificationDetails = NotificationDetails(android: androidDetails);
-    await notificationPlugin.show(passengerNotificationId, "test", "test", notificationDetails);
   }
 
   Future<void> initializeFirestore(BuildContext context) async {
@@ -106,12 +90,16 @@ class PassengerHomeState extends ChangeNotifier {
           notifyListeners();
 
           if (_journey!.data().driverId.isNotEmpty) {
-            _isPickedUp = _journey!.data().isPickedUp;
+            if (!_isPickedUp && _journey!.data().isPickedUp) {
+              _isPickedUp = _journey!.data().isPickedUp;
+              notificationService.notifyPassenger("Your driver has picked you up!");
+            }
+
             notifyListeners();
 
             // Get driver name
             final driverId = _journey!.data().driverId;
-            _userRepo.getUser(driverId).then((driver) {
+            await _userRepo.getUser(driverId).then((driver) {
               if (driver != null) {
                 _driverName = driver.data().getFullName();
                 _driverPhone = driver.data().phoneNumber;
@@ -121,14 +109,17 @@ class PassengerHomeState extends ChangeNotifier {
             _driverRepo.getDriver(driverId).then((driver) {
               // Sets journey details
               if (driver != null) {
-                // notificationService.notifyPassenger("Driver found!", "Your driver is $_driverName");
-                _hasDriver = true;
                 _driverLicensePlate = driver.data().licensePlate;
                 _routeDistance = null;
                 mapViewState.polylines.clear();
                 mapViewState.shouldCenter = true;
                 mapViewState.markers.remove("start");
                 mapViewState.markers.remove("destination");
+                if (!_hasDriver) {
+                  notificationService.notifyPassenger("Driver has been found!",
+                      body: "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
+                }
+                _hasDriver = true;
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
@@ -159,6 +150,7 @@ class PassengerHomeState extends ChangeNotifier {
           }
         } else if (_journey != null) {
           // Runs after journey completion/deletion/cancellation
+          notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for using APLanes.");
           resetState();
         }
       });

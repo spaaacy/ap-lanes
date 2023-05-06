@@ -15,19 +15,19 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin notificationPlugin = FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    const androidInitialization = AndroidInitializationSettings('mipmap/ic_launcher');
+    const androidInitialization = AndroidInitializationSettings('ic_stat_feature_graphic');
     const iOSIInitialization = DarwinInitializationSettings();
     const initializationSettings = InitializationSettings(android: androidInitialization, iOS: iOSIInitialization);
     await notificationPlugin.initialize(initializationSettings);
-    notifyPassenger("test", "test");
   }
 
-  Future<void> notifyPassenger(String title, String body) async {
+  Future<void> notifyPassenger(String title, {String? body}) async {
     const androidDetails = AndroidNotificationDetails(
       '$passengerNotificationId',
       passengerNotificationChannel,
       priority: Priority.high,
       importance: Importance.max,
+      styleInformation: BigTextStyleInformation(''),
     );
     const notificationDetails = NotificationDetails(android: androidDetails);
     await notificationPlugin.show(passengerNotificationId, title, body, notificationDetails);
