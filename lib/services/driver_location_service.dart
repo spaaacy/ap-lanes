@@ -10,7 +10,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DriverLocationBackgroundService {
+class DriverLocationService {
   static const notificationChannelId = 'driver_location_updater';
   static const notificationId = 888;
   static bool isRegistered = false;

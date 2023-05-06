@@ -12,7 +12,8 @@ const String signedIn = "SIGNED_IN";
 const String signedUp = "SIGNED_UP";
 
 // Notifications
-const int passengerNotificationId = 0;
+const int passengerNotificationNumber = 0;
+const String passengerNotificationId = "passenger";
 const String passengerNotificationChannel = "Passenger Notifications";
 
 // Locations

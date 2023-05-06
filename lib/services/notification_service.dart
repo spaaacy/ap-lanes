@@ -23,13 +23,13 @@ class NotificationService {
 
   Future<void> notifyPassenger(String title, {String? body}) async {
     const androidDetails = AndroidNotificationDetails(
-      '$passengerNotificationId',
+      passengerNotificationId,
       passengerNotificationChannel,
       priority: Priority.high,
       importance: Importance.max,
       styleInformation: BigTextStyleInformation(''),
     );
     const notificationDetails = NotificationDetails(android: androidDetails);
-    await notificationPlugin.show(passengerNotificationId, title, body, notificationDetails);
+    await notificationPlugin.show(passengerNotificationNumber, title, body, notificationDetails);
   }
 }
