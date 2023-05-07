@@ -15,8 +15,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
-import '../../../services/notification_service.dart';
-
 class OngoingJourneyPopupState extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
@@ -155,7 +153,6 @@ class OngoingJourneyPopupState extends ChangeNotifier {
       if (hasOngoingJourney) {
         _mapViewState.shouldCenter = false;
         if (!DriverLocationService.isRegistered) {
-          final notificationPlugin = NotificationService().notificationPlugin;
           DriverLocationService.registerDriverLocationBackgroundService(_driverHomeState.driver);
         }
         updateActiveJourney(snap.docs.first);

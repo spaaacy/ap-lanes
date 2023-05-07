@@ -26,7 +26,7 @@ class JourneyRepo {
   }
 
   Stream<QuerySnapshot<Journey>> listenForJourney(String userId) {
-    return _journeyRef
+    return journeyRef
         .where("userId", isEqualTo: userId)
         .where("isCompleted", isEqualTo: false)
         .where("isCancelled", isEqualTo: false)

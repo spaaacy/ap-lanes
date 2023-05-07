@@ -4,13 +4,14 @@ import '../util/constants.dart';
 
 class NotificationService {
 
+  /*
+  * Used to create singleton instance
+  * */
+  NotificationService._internal();
   static final NotificationService _notificationService = NotificationService._internal();
-
   factory NotificationService() {
     return _notificationService;
   }
-
-  NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notificationPlugin = FlutterLocalNotificationsPlugin();
   FlutterLocalNotificationsPlugin get notificationPlugin => _notificationPlugin;
