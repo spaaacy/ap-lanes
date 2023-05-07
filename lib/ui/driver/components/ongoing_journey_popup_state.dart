@@ -105,13 +105,17 @@ class OngoingJourneyPopupState extends ChangeNotifier {
         point: journeySnapshot.data().endLatLng,
         builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
-      updateCameraBoundsWithPopup(_mapViewState.currentPosition!, journeySnapshot.data().endLatLng);
+      if (_mapViewState.currentPosition != null) {
+        updateCameraBoundsWithPopup(_mapViewState.currentPosition!, journeySnapshot.data().endLatLng);
+      }
     } else {
       _mapViewState.markers["pick-up"] = Marker(
         point: journeySnapshot.data().startLatLng,
         builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
-      updateCameraBoundsWithPopup(_mapViewState.currentPosition!, journeySnapshot.data().startLatLng);
+      if (_mapViewState.currentPosition != null) {
+        updateCameraBoundsWithPopup(_mapViewState.currentPosition!, journeySnapshot.data().endLatLng);
+      }
     }
     notifyListeners();
   }

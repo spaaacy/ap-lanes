@@ -12,17 +12,17 @@ class MapViewState extends ChangeNotifier {
   * Variables
   * */
   bool _shouldCenter = true;
+  bool isMapReady = false;
   final MapController _mapController = MapController();
   LatLng? _currentPosition;
   StreamSubscription<Position>? _locationListener;
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<String, Marker> _markers = <String, Marker>{};
-  TickerProviderStateMixin? ticker;
+  TickerProviderStateMixin? mapView;
 
   /*
   * Functions
   * */
-
   void initializeLocation(BuildContext context) async {
     final hasPermissions = await handleLocationPermission(context);
 
@@ -36,7 +36,7 @@ class MapViewState extends ChangeNotifier {
             Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
         notifyListeners();
 
-        if (_shouldCenter && ticker != null) {
+        if (_shouldCenter) {
           resetCamera();
         }
       });
@@ -44,7 +44,7 @@ class MapViewState extends ChangeNotifier {
   }
 
   Future<void> resetCamera() async {
-    if (currentPosition == null || ticker == null) return;
+    if (currentPosition == null) return;
     _animateCamera(_currentPosition!, 17.0);
   }
 
@@ -127,7 +127,7 @@ class MapViewState extends ChangeNotifier {
   }
 
   void _animateCamera(LatLng destLocation, double destZoom) {
-    if (ticker == null) return;
+    if (!isMapReady) return;
 
     const startedId = 'AnimatedMapController#MoveStarted';
     const inProgressId = 'AnimatedMapController#MoveInProgress';
@@ -137,7 +137,7 @@ class MapViewState extends ChangeNotifier {
     final lngTween = Tween<double>(begin: _mapController.center.longitude, end: destLocation.longitude);
     final zoomTween = Tween<double>(begin: _mapController.zoom, end: destZoom);
 
-    final controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: ticker!);
+    final controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: mapView!);
 
     final Animation<double> animation = CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
 
@@ -173,7 +173,8 @@ class MapViewState extends ChangeNotifier {
   }
 
   void resetMap() {
-    ticker = null;
+    isMapReady = false;
+    mapView = null;
     _shouldCenter = true;
     _polylines.clear();
     _markers.clear();
@@ -188,11 +189,11 @@ class MapViewState extends ChangeNotifier {
   /*
   * Getters
   * */
+  MapController get mapController => _mapController;
+  
   LatLng? get currentPosition => _currentPosition;
 
   Map<String, Marker> get markers => _markers;
-
-  MapController get mapController => _mapController;
 
   Set<Polyline> get polylines => _polylines;
 
@@ -201,6 +202,8 @@ class MapViewState extends ChangeNotifier {
   /*
   * Setters
   * */
+
+
   set shouldCenter(bool value) {
     _shouldCenter = value;
     notifyListeners();
