@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:ap_lanes/data/model/remote/driver.dart';
+import 'package:ap_lanes/util/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -10,9 +11,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DriverLocationBackgroundService {
-  static const notificationChannelId = 'driver_location_updater';
-  static const notificationId = 888;
+import 'notification_service.dart';
+
+class DriverLocationService {
   static bool isRegistered = false;
 
   @pragma('vm:entry-point')
@@ -44,7 +45,9 @@ class DriverLocationBackgroundService {
     }
   }
 
-  static void registerDriverLocationBackgroundService(QueryDocumentSnapshot<Driver>? driver) async {
+  static void registerDriverLocationBackgroundService(
+    QueryDocumentSnapshot<Driver>? driver
+  ) async {
     isRegistered = true;
     final service = FlutterBackgroundService();
 
@@ -52,15 +55,15 @@ class DriverLocationBackgroundService {
     await preferences.setString("driverPath", driver!.reference.path);
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      notificationChannelId, // id
-      'APLanes', // title
+      driverChannelId,
+      driverChannelName,
       description: 'Driver location is being updated periodically.', // description
       importance: Importance.low, // importance must be at low or higher level
     );
 
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-    await flutterLocalNotificationsPlugin
+    final notificationsPlugin = NotificationService().notificationPlugin;
+    await notificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
@@ -69,15 +72,14 @@ class DriverLocationBackgroundService {
         onStart: _onStart,
         autoStart: true,
         isForegroundMode: true,
-        notificationChannelId: notificationChannelId,
+        notificationChannelId: driverChannelId,
         initialNotificationTitle: 'APLanes',
         initialNotificationContent: 'Driver location is periodically being updated.',
-        foregroundServiceNotificationId: notificationId,
+        foregroundServiceNotificationId: locationNotificationId,
       ),
       iosConfiguration: IosConfiguration(
         onForeground: _onStart,
       ),
     );
   }
-
 }

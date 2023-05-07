@@ -45,7 +45,7 @@ class DriverHome extends StatelessWidget {
             )
           : Stack(
               children: [
-                MapView(),
+                const MapView(),
                 const DriverGoButton(),
                 ChangeNotifierProvider<JourneyRequestPopupState>(
                   create: (context) => JourneyRequestPopupState(context),

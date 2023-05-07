@@ -17,6 +17,7 @@ import '../../data/model/remote/user.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/passenger_repo.dart';
 import '../../data/repo/user_repo.dart';
+import '../../services/notification_service.dart';
 import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
@@ -26,6 +27,7 @@ class PassengerHomeState extends ChangeNotifier {
   * Variables
   * */
   late final MapViewState mapViewState;
+  final NotificationService notificationService = NotificationService();
 
   final _passengerRepo = PassengerRepo();
   final _driverRepo = DriverRepo();
@@ -88,12 +90,16 @@ class PassengerHomeState extends ChangeNotifier {
           notifyListeners();
 
           if (_journey!.data().driverId.isNotEmpty) {
-            _isPickedUp = _journey!.data().isPickedUp;
+            if (!_isPickedUp && _journey!.data().isPickedUp) {
+              _isPickedUp = _journey!.data().isPickedUp;
+              notificationService.notifyPassenger("Your driver has picked you up!");
+            }
+
             notifyListeners();
 
             // Get driver name
             final driverId = _journey!.data().driverId;
-            _userRepo.getUser(driverId).then((driver) {
+            await _userRepo.getUser(driverId).then((driver) {
               if (driver != null) {
                 _driverName = driver.data().getFullName();
                 _driverPhone = driver.data().phoneNumber;
@@ -103,13 +109,17 @@ class PassengerHomeState extends ChangeNotifier {
             _driverRepo.getDriver(driverId).then((driver) {
               // Sets journey details
               if (driver != null) {
-                _hasDriver = true;
                 _driverLicensePlate = driver.data().licensePlate;
                 _routeDistance = null;
                 mapViewState.polylines.clear();
                 mapViewState.shouldCenter = true;
                 mapViewState.markers.remove("start");
                 mapViewState.markers.remove("destination");
+                if (!_hasDriver) {
+                  notificationService.notifyPassenger("Driver has been found!",
+                      body: "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
+                }
+                _hasDriver = true;
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
@@ -140,6 +150,7 @@ class PassengerHomeState extends ChangeNotifier {
           }
         } else if (_journey != null) {
           // Runs after journey completion/deletion/cancellation
+          notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for using APLanes.");
           resetState();
         }
       });

@@ -4,7 +4,7 @@ import 'package:ap_lanes/data/model/remote/journey.dart';
 import 'package:ap_lanes/data/model/remote/user.dart';
 import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
-import 'package:ap_lanes/services/background/driver_location_background_service.dart';
+import 'package:ap_lanes/services/driver_location_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -152,8 +152,8 @@ class OngoingJourneyPopupState extends ChangeNotifier {
 
       if (hasOngoingJourney) {
         _mapViewState.shouldCenter = false;
-        if (!DriverLocationBackgroundService.isRegistered) {
-          DriverLocationBackgroundService.registerDriverLocationBackgroundService(_driverHomeState.driver);
+        if (!DriverLocationService.isRegistered) {
+          DriverLocationService.registerDriverLocationBackgroundService(_driverHomeState.driver);
         }
         updateActiveJourney(snap.docs.first);
         isLoadingJourneyRequest = false;
@@ -169,7 +169,7 @@ class OngoingJourneyPopupState extends ChangeNotifier {
     await _unregisterDriverLocationListener();
     _activeJourney = null;
     _activeJourneyPassenger = null;
-    DriverLocationBackgroundService.unregisterDriverLocationBackgroundService();
+    DriverLocationService.unregisterDriverLocationBackgroundService();
 
     try {
       _mapViewState.shouldCenter = true;
