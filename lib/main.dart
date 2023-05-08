@@ -4,6 +4,7 @@ import 'package:ap_lanes/services/notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -16,6 +17,8 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FlutterMapTileCaching.initialise();
+  FMTC.instance('mapStore').manage.create();
   runApp(const MyApp());
 }
 
