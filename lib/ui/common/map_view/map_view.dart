@@ -1,7 +1,9 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:provider/provider.dart';
+
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -28,7 +30,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
         : Stack(
             children: [
               FlutterMap(
-                mapController: mapViewState.mapController,
+                  mapController: mapViewState.mapController,
                   options: MapOptions(
                     onMapReady: () => mapViewState.isMapReady = true,
                     interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
@@ -43,11 +45,9 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                       maxZoom: 18,
                       backgroundColor: Colors.black,
                       urlTemplate:
-                          // 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',
-                          // 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                           'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
                       subdomains: const ['a', 'b', 'c', 'd'],
-                      // subdomains: const ['a', 'b', 'c'],
+                      tileProvider: FMTC.instance('mapStore').getTileProvider(),
                     ),
                     MarkerLayer(markers: mapViewState.markers.values.toList()),
                     PolylineLayer(
