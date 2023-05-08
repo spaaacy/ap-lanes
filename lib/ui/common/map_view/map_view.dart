@@ -14,7 +14,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    context.read<MapViewState>().ticker = this;
+    context.read<MapViewState>().mapView = this;
   }
 
   @override
@@ -28,8 +28,9 @@ class _State extends State<MapView> with TickerProviderStateMixin {
         : Stack(
             children: [
               FlutterMap(
-                  mapController: mapViewState.mapController,
+                mapController: mapViewState.mapController,
                   options: MapOptions(
+                    onMapReady: () => mapViewState.isMapReady = true,
                     interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                     center: mapViewState.currentPosition,
                     zoom: 17,
