@@ -127,7 +127,7 @@ class MapViewState extends ChangeNotifier {
   }
 
   void _animateCamera(LatLng destLocation, double destZoom) {
-    if (!isMapReady) return;
+    if (!isMapReady || mapView == null) return;
 
     const startedId = 'AnimatedMapController#MoveStarted';
     const inProgressId = 'AnimatedMapController#MoveInProgress';
