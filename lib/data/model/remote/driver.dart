@@ -6,12 +6,14 @@ class Driver {
   final String id;
   final String licensePlate;
   final bool isAvailable;
+  final bool isVerified;
   final LatLng? currentLatLng;
 
   const Driver({
     required this.id,
     required this.licensePlate,
     required this.isAvailable,
+    required this.isVerified,
     this.currentLatLng,
   });
 
@@ -20,6 +22,7 @@ class Driver {
       if (id != null) "id": id,
       if (licensePlate != null) "licensePlate": licensePlate,
       if (isAvailable != null) "isAvailable": isAvailable,
+      if (isVerified != null) "isVerified": isVerified,
       if (currentLatLng != null) "currentLatLng": '${currentLatLng!.latitude}, ${currentLatLng!.longitude}',
     };
   }
@@ -34,6 +37,7 @@ class Driver {
       id: data?['id'],
       licensePlate: data?['licensePlate'],
       isAvailable: data?['isAvailable'],
+      isVerified: data?['isVerified'],
       currentLatLng: getLatLngFromString(data?['currentLatLng']),
     );
   }

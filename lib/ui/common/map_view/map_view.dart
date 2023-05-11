@@ -1,7 +1,6 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:provider/provider.dart';
 
 class MapView extends StatefulWidget {
@@ -46,7 +45,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                       urlTemplate:
                           'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
                       subdomains: const ['a', 'b', 'c', 'd'],
-                      tileProvider: FMTC.instance('mapStore').getTileProvider(),
+                      // tileProvider: FMTC.instance('mapStore').getTileProvider(),
                     ),
                     MarkerLayer(markers: mapViewState.markers.values.toList()),
                     PolylineLayer(

@@ -37,7 +37,7 @@ class DriverHomeState extends ChangeNotifier {
   }
 
   QueryDocumentSnapshot<Driver>? get driver => _driver;
-  
+
   set driver(QueryDocumentSnapshot<Driver>? value) {
     _driver = value;
     notifyListeners();
@@ -91,6 +91,35 @@ class DriverHomeState extends ChangeNotifier {
     } else {
       await showDriverSetupDialog();
     }
+
+    if (driver == null) return;
+
+    if (!driver!.data().isVerified) {
+      if (_context.mounted) {
+        await showDialog(
+          context: _context,
+          builder: (context) => AlertDialog(
+            title: const Text("Awaiting Verification"),
+            content: const Text(
+              "You have already setup your driver profile. However, we still need to verify your identity. Until your account gets verified, you are unable to start driving.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge,
+                ),
+                child: const Text("Ok"),
+              )
+            ],
+          ),
+        );
+      }
+      if (!_context.mounted) return;
+      _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+      return;
+    }
+
     final hasPreviousOngoingJourney = await _journeyRepo.hasOngoingJourney(_firebaseUser!.uid);
     if (hasPreviousOngoingJourney) {
       didAcceptJourneyRequest(null);

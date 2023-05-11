@@ -27,7 +27,7 @@ class _SetupDriverProfileDialogState extends State<SetupDriverProfileDialog> {
     if (_driverSetupFormKey.currentState!.validate()) {
       String licensePlate = _licensePlateController.text.trim().toUpperCase();
       await _driverRepo.createDriver(
-        Driver(id: widget.userId, licensePlate: licensePlate, isAvailable: false),
+        Driver(id: widget.userId, licensePlate: licensePlate, isAvailable: false, isVerified: false),
       );
 
       if (context.mounted) {
