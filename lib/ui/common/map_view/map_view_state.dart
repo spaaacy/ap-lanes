@@ -56,6 +56,8 @@ class MapViewState extends ChangeNotifier {
     double leftOffsetPercentage = 0,
     double rightOffsetPercentage = 0,
   }) {
+    if (!isMapReady) return;
+    
     double minLat = firstLatLng.latitude;
     double minLng = firstLatLng.longitude;
     double maxLat = secondLatLng.latitude;
@@ -94,6 +96,8 @@ class MapViewState extends ChangeNotifier {
     double leftOffsetPercentage = 0,
     double rightOffsetPercentage = 0,
   }) {
+    if (!isMapReady) return;
+
     double minLat = _polylines.first.points.first.latitude;
     double minLng = _polylines.first.points.first.longitude;
     double maxLat = _polylines.first.points.first.latitude;
@@ -177,7 +181,7 @@ class MapViewState extends ChangeNotifier {
     mapView = null;
     _shouldCenter = true;
     _polylines.clear();
-    _markers.clear();
+    _markers.removeWhere((key, value) => key != "user");
   }
 
   @override
