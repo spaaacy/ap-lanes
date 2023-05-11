@@ -68,7 +68,7 @@ Future<bool> handleLocationPermission(context) async {
       showDialog(context: context, builder: (BuildContext context) {
         return AlertDialog(
             title: const Text("Location permissions"),
-            content: const Text("Location permission is required to use this application"),
+            content: const Text("Location permissions is required to use this application"),
             actions: [
               TextButton(onPressed: () {
                 SystemChannels.platform.invokeMethod('SystemNavigator.pop');
@@ -98,11 +98,17 @@ Future<bool> handleLocationPermission(context) async {
   }
 
   if (permission == LocationPermission.deniedForever) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Location permissions are permanently denied, we cannot request permissions.'),
-      ),
-    );
+    showDialog(context: context, builder: (BuildContext context) {
+      return AlertDialog(
+          title: const Text("Location permissions"),
+          content: const Text('Location permissions are permanently denied, we cannot request permissions.'),
+          actions: [
+            TextButton(onPressed: () {
+              SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+            }, child: const Text("Okay")),
+          ]
+      );
+    });
     return false;
   }
   return true;
