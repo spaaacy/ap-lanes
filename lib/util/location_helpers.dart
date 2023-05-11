@@ -81,6 +81,19 @@ Future<bool> handleLocationPermission(context) async {
   }
 
   if (permission != LocationPermission.always) {
+
+    await showDialog(context: context, builder: (BuildContext context) {
+      return AlertDialog(
+          title: const Text("Location permissions"),
+          content: const Text("APLanes uses your location in the background only when necessary and is required to use this application. "),
+          actions: [
+            TextButton(onPressed: () {
+              Navigator.pop(context, "Okay");
+            }, child: const Text("Okay")),
+          ]
+      );
+    });
+
     permission = await Geolocator.requestPermission();
     if (permission != LocationPermission.always) {
       showDialog(context: context, builder: (BuildContext context) {
