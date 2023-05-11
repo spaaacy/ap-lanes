@@ -1,3 +1,4 @@
+import 'package:ap_lanes/ui/passenger/components/search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,59 +19,59 @@ class PassengerHome extends StatelessWidget {
     return (state.user == null || state.passenger == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
         : Scaffold(
-      appBar: AppBar(
-        title: Text(
-          getGreeting(state.lastName),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-      drawer: AppDrawer(
-          user: state.user,
-          isDriver: false,
-          isNavigationLocked: state.isSearching,
-          onNavigateWhenLocked: () {
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                    "You cannot change to driver mode while you are searching for a driver or are in a journey."),
+            appBar: AppBar(
+              title: Text(
+                getGreeting(state.lastName),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            );
-          }),
-      body: Stack(
-        children: [
-          const MapView(),
-          if (state.isSearching || state.hasDriver) const JourneyDetail(),
-          ...?(() {
-            if (!state.isSearching && !state.hasDriver) {
-              return [
-                const Positioned.fill(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.0),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: SearchBar(),
+            ),
+            drawer: AppDrawer(
+                user: state.user,
+                isDriver: false,
+                isNavigationLocked: state.isSearching,
+                onNavigateWhenLocked: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          "You cannot change to driver mode while you are searching for a driver or are in a journey."),
                     ),
-                  ),
-                ),
-              ];
-            }
-          }()),
-          ...?(() {
-            if (state.destinationLatLng != null || state.isSearching) {
-              return [
-                const Positioned.fill(
-                  bottom: 100.0,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: GoButton(),
-                  ),
-                )
-              ];
-            }
-          }()),
-        ],
-      ),
-    );
+                  );
+                }),
+            body: Stack(
+              children: [
+                const MapView(),
+                if (state.isSearching || state.hasDriver) const JourneyDetail(),
+                ...?(() {
+                  if (!state.isSearching && !state.hasDriver) {
+                    return [
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: SearchBar(),
+                          ),
+                        ),
+                      ),
+                    ];
+                  }
+                }()),
+                ...?(() {
+                  if (state.destinationLatLng != null || state.isSearching) {
+                    return [
+                      const Positioned.fill(
+                        bottom: 100.0,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: GoButton(),
+                        ),
+                      )
+                    ];
+                  }
+                }()),
+              ],
+            ),
+          );
   }
 }
