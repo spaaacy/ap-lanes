@@ -6,7 +6,7 @@ import '../common/app_drawer.dart';
 import '../common/map_view/map_view.dart';
 import 'components/go_button.dart';
 import 'components/journey_detail.dart';
-import 'components/search_bar.dart';
+import 'components/search_bar.dart' as passenger_view;
 import 'passenger_home_state.dart';
 
 class PassengerHome extends StatelessWidget {
@@ -50,7 +50,7 @@ class PassengerHome extends StatelessWidget {
                     padding: const EdgeInsets.all(24.0),
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: SearchBar(),
+                      child: passenger_view.SearchBar(),
                     ),
                   ),
                 ),
