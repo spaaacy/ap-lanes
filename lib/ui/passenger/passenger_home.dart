@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../util/ui_helpers.dart';
+import 'components/search_bar.dart' as passenger_view;
 import '../common/app_drawer.dart';
 import '../common/map_view/map_view.dart';
 import 'components/go_button.dart';
@@ -44,12 +45,12 @@ class PassengerHome extends StatelessWidget {
           ...?(() {
             if (!state.isSearching && !state.hasDriver) {
               return [
-                const Positioned.fill(
+                Positioned.fill(
                   child: Padding(
-                    padding: EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: SearchBar(),
+                      child: passenger_view.SearchBar(),
                     ),
                   ),
                 ),
