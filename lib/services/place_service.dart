@@ -95,30 +95,4 @@ class PlaceService {
       throw Exception('Failed to fetch a route!');
     }
   }
-
-  Future<Polyline> _fetchRoute(LatLng start, LatLng end) async {
-    final polylinePoints = PolylinePoints();
-    final points = <LatLng>[];
-
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      androidApiKey,
-      PointLatLng(start.latitude, start.longitude),
-      PointLatLng(end.latitude, end.longitude),
-      travelMode: TravelMode.driving,
-    );
-
-    if (result.status == "OK") {
-      for (var point in result.points) {
-        points.add(LatLng(point.latitude, point.longitude));
-      }
-    }
-
-    final polyline = Polyline(
-      points: points,
-      color: Colors.blue,
-      strokeWidth: 3.0,
-    );
-
-    return polyline;
-  }
 }
