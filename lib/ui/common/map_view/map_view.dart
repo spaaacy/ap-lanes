@@ -32,6 +32,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
               FlutterMap(
                   mapController: mapViewState.mapController,
                   options: MapOptions(
+
                     onMapReady: () => mapViewState.isMapReady = true,
                     interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                     center: mapViewState.currentPosition,
@@ -43,7 +44,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                     TileLayer(
                       minZoom: 1,
                       maxZoom: 18,
-                      backgroundColor: Colors.black,
+                      backgroundColor: Colors.white,
                       urlTemplate:
                           'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
                       subdomains: const ['a', 'b', 'c', 'd'],
