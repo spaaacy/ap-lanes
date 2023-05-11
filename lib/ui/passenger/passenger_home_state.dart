@@ -117,7 +117,8 @@ class PassengerHomeState extends ChangeNotifier {
                 mapViewState.markers.remove("destination");
                 if (!_hasDriver) {
                   notificationService.notifyPassenger("Driver has been found!",
-                      body: "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
+                      body:
+                          "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
                 }
                 _hasDriver = true;
                 notifyListeners();
@@ -149,8 +150,6 @@ class PassengerHomeState extends ChangeNotifier {
             notifyListeners();
           }
         } else if (_journey != null) {
-          // Runs after journey completion/deletion/cancellation
-          notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for using APLanes.");
           resetState();
         }
       });
@@ -244,6 +243,10 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   Future<void> resetState() async {
+    if (hasDriver) {
+      notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for using APLanes.");
+      hasDriver = false;
+    }
     driverName = null;
     driverLicensePlate = null;
     driverPhone = null;
@@ -251,7 +254,6 @@ class PassengerHomeState extends ChangeNotifier {
     isSearching = false;
     inJourney = false;
     isPickedUp = false;
-    hasDriver = false;
     _searchController.clear();
     routeDistance = null;
     destinationDescription = null;

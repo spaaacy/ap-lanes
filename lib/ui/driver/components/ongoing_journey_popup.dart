@@ -42,6 +42,18 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
     }
   }
 
+  void _handleContactAppLaunch(String value, String phoneNumber) {
+    switch (value) {
+      case 'phone':
+        launchWhatsApp(phoneNumber);
+        break;
+      case 'whatsapp':
+      default:
+        launchUrl(Uri.parse("tel://${phoneNumber.trim()}"));
+        break;
+    }
+  }
+
   DriverAction _getCurrentDriverAction() {
     final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
 
@@ -193,32 +205,53 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                 ),
               ),
               const SizedBox(width: 8),
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.green, width: 2.0),
-                  foregroundColor: Colors.black,
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                height: 40,
+                width: 62,
+                decoration: ShapeDecoration(
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(
+                      color: Colors.black,
+                      strokeAlign: BorderSide.strokeAlignInside,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(150),
+                  ),
                 ),
-                onPressed: ongoingState.isLoadingJourneyRequest
-                    ? null
-                    : () =>
-                        launchWhatsApp(ongoingState.activeJourneyPassenger!.data().phoneNumber),
-                child: SvgPicture.asset(
-                  'assets/icons/whatsapp.svg',
-                  height: 30,
-                  width: 30,
+                child: PopupMenuButton<String>(
+                  onSelected: (value) => _handleContactAppLaunch(
+                    value,
+                    ongoingState.activeJourneyPassenger?.data().phoneNumber ?? "",
+                  ),
+                  icon: const Icon(Icons.phone, size: 22),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'phone',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.phone),
+                          SizedBox(width: 8),
+                          Text('Call'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'whatsapp',
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icons/whatsapp.svg',
+                            height: 24,
+                            width: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('WhatsApp'),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.black, width: 2.0),
-                  foregroundColor: Colors.black,
-                ),
-                onPressed: ongoingState.isLoadingJourneyRequest
-                    ? null
-                    : () =>
-                        launchUrl(Uri.parse("tel://${ongoingState.activeJourneyPassenger?.data().phoneNumber.trim()}")),
-                child: const Icon(Icons.phone),
               ),
               const SizedBox(width: 8),
               (() {

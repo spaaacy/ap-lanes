@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../util/ui_helpers.dart';
-import 'components/search_bar.dart' as passenger_view;
 import '../common/app_drawer.dart';
 import '../common/map_view/map_view.dart';
 import 'components/go_button.dart';
 import 'components/journey_detail.dart';
+import 'components/search_bar.dart' as passenger_view;
 import 'passenger_home_state.dart';
 
 class PassengerHome extends StatelessWidget {

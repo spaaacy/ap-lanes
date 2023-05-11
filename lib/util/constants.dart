@@ -15,9 +15,10 @@ const String signedUp = "SIGNED_UP";
 const int passengerNotificationId = 0;
 const String passengerChannelId = "passenger";
 const String passengerChannelName = "Passenger Notifications";
-const int locationNotificationId = 1;
+const int driverNotificationId = 1;
 const String driverChannelId = "driver";
 const String driverChannelName = "Driver Notifications";
+const int locationNotificationId = 2;
 
 // Locations
 final LatLng apuLatLng = LatLng(3.0554057, 101.7005614);

@@ -34,4 +34,16 @@ class NotificationService {
     const notificationDetails = NotificationDetails(android: androidDetails);
     await notificationPlugin.show(passengerNotificationId, title, body, notificationDetails);
   }
+
+  Future<void> notifyDriver(String title, {String? body}) async {
+    const androidDetails = AndroidNotificationDetails(
+      driverChannelId,
+      driverChannelName,
+      priority: Priority.high,
+      importance: Importance.max,
+      styleInformation: BigTextStyleInformation(''),
+    );
+    const notificationDetails = NotificationDetails(android: androidDetails);
+    await notificationPlugin.show(driverNotificationId, title, body, notificationDetails);
+  }
 }
