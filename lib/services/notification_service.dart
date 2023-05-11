@@ -3,17 +3,19 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../util/constants.dart';
 
 class NotificationService {
-
   /*
   * Used to create singleton instance
   * */
   NotificationService._internal();
+
   static final NotificationService _notificationService = NotificationService._internal();
+
   factory NotificationService() {
     return _notificationService;
   }
 
   final FlutterLocalNotificationsPlugin _notificationPlugin = FlutterLocalNotificationsPlugin();
+
   FlutterLocalNotificationsPlugin get notificationPlugin => _notificationPlugin;
 
   Future<void> initialize() async {
@@ -21,6 +23,9 @@ class NotificationService {
     const iOSIInitialization = DarwinInitializationSettings();
     const initializationSettings = InitializationSettings(android: androidInitialization, iOS: iOSIInitialization);
     await notificationPlugin.initialize(initializationSettings);
+    notificationPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestPermission();
   }
 
   Future<void> notifyPassenger(String title, {String? body}) async {
