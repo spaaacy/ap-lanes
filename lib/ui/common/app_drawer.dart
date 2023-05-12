@@ -72,14 +72,21 @@ class AppDrawer extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.center,
                         child: Text(
-                          user?.data().getFullName().characters.first.toUpperCase() ?? '?',
+                          user
+                                  ?.data()
+                                  .getFullName()
+                                  .characters
+                                  .first
+                                  .toUpperCase() ??
+                              '?',
                           style: const TextStyle(fontSize: 48),
                         ),
                       ),
                     ),
                   ),
                   Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
                     child: Text(
                       user?.data().getFullName() ?? 'Unknown User',
                       style: const TextStyle(color: Colors.white),
@@ -87,9 +94,7 @@ class AppDrawer extends StatelessWidget {
                   ),
                   ...?(() {
                     if (isDriver) {
-                      return [
-                        getDriverHeaderContent(context)
-                      ];
+                      return [getDriverHeaderContent(context)];
                     }
                   }())
                 ],
@@ -105,7 +110,8 @@ class AppDrawer extends StatelessWidget {
                       ? () => onNavigateWhenLocked()
                       : () {
                           mapViewState.resetMap();
-                          context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+                          context.read<UserWrapperState>().userMode =
+                              UserMode.passengerMode;
                         });
             }
             return ListTile(
@@ -115,68 +121,70 @@ class AppDrawer extends StatelessWidget {
                   ? () => onNavigateWhenLocked()
                   : () {
                       mapViewState.resetMap();
-                      context.read<UserWrapperState>().userMode = UserMode.driverMode;
+                      context.read<UserWrapperState>().userMode =
+                          UserMode.driverMode;
                     },
             );
           }()),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Log Out'),
-            onTap: () {
-              context.read<AuthService>().signOut();
-            },
-          ),
+              onTap: () {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("What would you like to report?"),
+                        content: Form(
+                            key: _feedbackFormKey,
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                  hintText: "Report an issue"),
+                              controller: _feedbackController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Cannot submit empty feedback!";
+                                }
+                                return null;
+                              },
+                            )),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context, "Cancel");
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              if (_feedbackFormKey.currentState!.validate()) {
+                                feedbackRepo.createFeedback(remote.Feedback(
+                                    feedback: _feedbackController.text.trim()));
+                                Navigator.pop(context, "Send");
+                              }
+                            },
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("Send"),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    });
+              },
+              title: const Text("Report an Issue"),
+              leading: const Icon(Icons.bug_report)),
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,
               child: ListTile(
-                  onTap: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text("What would you like to report?"),
-                            content: Form(
-                                key: _feedbackFormKey,
-                                child: TextFormField(
-                                  decoration: const InputDecoration(hintText: "Report an issue"),
-                                  controller: _feedbackController,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Cannot submit empty feedback!";
-                                    }
-                                    return null;
-                                  },
-                                )),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context, "Cancel");
-                                },
-                                child: const Text("Cancel"),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  if (_feedbackFormKey.currentState!.validate()) {
-                                    feedbackRepo
-                                        .createFeedback(remote.Feedback(feedback: _feedbackController.text.trim()));
-                                    Navigator.pop(context, "Send");
-                                  }
-                                },
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text("Send"),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          );
-                        });
-                  },
-                  title: const Text("Report an Issue"),
-                  leading: const Icon(Icons.bug_report)),
+                leading: const Icon(Icons.logout),
+                title: const Text('Log Out'),
+                onTap: () {
+                  context.read<AuthService>().signOut();
+                },
+              ),
             ),
           )
         ],
