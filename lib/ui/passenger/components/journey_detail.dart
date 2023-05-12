@@ -29,7 +29,7 @@ class JourneyDetail extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    color: Colors.white70,
+                    color: Colors.white,
                     borderRadius: BorderRadius.all(
                       Radius.circular(8),
                     ),

@@ -23,7 +23,7 @@ class SearchBar extends StatelessWidget {
         hideOnLoading: true,
         hideOnError: true,
         suggestionsBoxDecoration: const SuggestionsBoxDecoration(
-          color: Colors.white70,
+          color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(12.0)),
           elevation: 0.0,
         ),
@@ -62,7 +62,7 @@ class SearchBar extends StatelessWidget {
             border: const OutlineInputBorder(borderSide: BorderSide.none),
             hintText: "Where do you wish to go?",
             filled: true,
-            fillColor: Colors.white70,
+            fillColor: Colors.white,
           ),
         ),
       ),

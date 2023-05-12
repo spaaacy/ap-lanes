@@ -117,7 +117,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
             padding: const EdgeInsets.all(16),
             width: double.infinity,
             decoration: const BoxDecoration(
-              color: Colors.white70,
+              color: Colors.white,
               borderRadius: BorderRadius.all(
                 Radius.circular(8),
               ),
