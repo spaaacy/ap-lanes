@@ -44,16 +44,16 @@ class MyApp extends StatelessWidget {
         darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
         theme: ThemeData(
           useMaterial3: true, colorScheme: lightColorScheme,
-          // scaffoldBackgroundColor: Colors.white,
-          // elevatedButtonTheme: ElevatedButtonThemeData(
-          //   style: ElevatedButton.styleFrom(
-          //     backgroundColor: Colors.black,
-          //     foregroundColor: Colors.white,
-          //   ),
-          // ),
-          // filledButtonTheme: FilledButtonThemeData(
-          //   style: FilledButtonTheme.of(context).style,
-          // ),
+          scaffoldBackgroundColor: Colors.white,
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          filledButtonTheme: FilledButtonThemeData(
+            style: FilledButtonTheme.of(context).style,
+          ),
         ),
         home: AuthWrapper(context: context),
       ),
