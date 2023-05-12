@@ -111,7 +111,6 @@ class SearchBar extends StatelessWidget {
             width: 8.0,
           ),
           Switch(
-            // activeColor: Colors.black,
             value: state.toApu,
             onChanged: (value) => state.updateToApu(value),
           ),
