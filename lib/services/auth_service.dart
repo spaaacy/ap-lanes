@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../data/model/remote/passenger.dart';
 import '../data/model/remote/user.dart' as model;
-import '../data/repo/passenger_repo.dart';
 import '../data/repo/user_repo.dart';
 import '../util/constants.dart';
 
@@ -13,7 +11,6 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
   final _userRepo = UserRepo();
-  final _passengerRepo = PassengerRepo();
 
   Future<String> signIn({required String email, required String password}) async {
     try {
@@ -53,7 +50,6 @@ class AuthService {
       ),
     );
 
-    _passengerRepo.createPassenger(Passenger(id: id));
   }
 
   Future<void> signOut() async {

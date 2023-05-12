@@ -19,6 +19,8 @@ const int driverNotificationId = 1;
 const String driverChannelId = "driver";
 const String driverChannelName = "Driver Notifications";
 const int locationNotificationId = 2;
+const String locationChannelId = "location";
+const String locationChannelName = "Location Notifications";
 
 // Locations
 final LatLng apuLatLng = LatLng(3.0554057, 101.7005614);
