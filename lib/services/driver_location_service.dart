@@ -55,8 +55,8 @@ class DriverLocationService {
     await preferences.setString("driverPath", driver!.reference.path);
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      driverChannelId,
-      driverChannelName,
+      locationChannelId,
+      locationChannelName,
       description: 'Driver location is being updated periodically.', // description
       importance: Importance.low, // importance must be at low or higher level
     );
@@ -72,7 +72,7 @@ class DriverLocationService {
         onStart: _onStart,
         autoStart: true,
         isForegroundMode: true,
-        notificationChannelId: driverChannelId,
+        notificationChannelId: locationChannelId,
         initialNotificationTitle: 'APLanes',
         initialNotificationContent: 'Driver location is periodically being updated.',
         foregroundServiceNotificationId: locationNotificationId,

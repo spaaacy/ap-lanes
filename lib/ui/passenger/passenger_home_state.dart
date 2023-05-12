@@ -12,10 +12,8 @@ import 'package:uuid/uuid.dart';
 
 import '../../data/model/remote/driver.dart';
 import '../../data/model/remote/journey.dart';
-import '../../data/model/remote/passenger.dart';
 import '../../data/model/remote/user.dart';
 import '../../data/repo/journey_repo.dart';
-import '../../data/repo/passenger_repo.dart';
 import '../../data/repo/user_repo.dart';
 import '../../services/notification_service.dart';
 import '../../services/place_service.dart';
@@ -29,14 +27,12 @@ class PassengerHomeState extends ChangeNotifier {
   late final MapViewState mapViewState;
   final NotificationService notificationService = NotificationService();
 
-  final _passengerRepo = PassengerRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
   final _userRepo = UserRepo();
   final _placeService = PlaceService();
 
   QueryDocumentSnapshot<User>? _user;
-  QueryDocumentSnapshot<Passenger>? _passenger;
   QueryDocumentSnapshot<Journey>? _journey;
 
   StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
@@ -80,7 +76,6 @@ class PassengerHomeState extends ChangeNotifier {
       // Set user and last name
       _user = (await _userRepo.getUser(firebaseUser.uid))!;
       _lastName = _user!.data().lastName;
-      _passenger = (await _passengerRepo.getPassenger(firebaseUser.uid))!;
       notifyListeners();
 
       _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
@@ -289,8 +284,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   QueryDocumentSnapshot<Journey>? get journey => _journey;
 
-  QueryDocumentSnapshot<Passenger>? get passenger => _passenger;
-
   String? get lastName => _lastName;
 
   double? get routeDistance => _routeDistance;
@@ -340,11 +333,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   set journey(QueryDocumentSnapshot<Journey>? value) {
     _journey = value;
-    notifyListeners();
-  }
-
-  set passenger(QueryDocumentSnapshot<Passenger>? value) {
-    _passenger = value;
     notifyListeners();
   }
 
