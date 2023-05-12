@@ -1,3 +1,4 @@
+import 'package:ap_lanes/ui/auth/landing_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class AuthWrapper extends StatelessWidget {
         child: const UserWrapper(),
       );
     } else {
-      return AuthScreen();
+      return const LandingPage();
     }
   }
 }

@@ -6,8 +6,8 @@ import '../../services/auth_service.dart';
 import '../../util/constants.dart';
 import 'signup_screen.dart';
 
-class AuthScreen extends StatelessWidget {
-  AuthScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  LoginScreen({super.key});
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -16,7 +16,7 @@ class AuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign In")),
+      appBar: AppBar(title: const Text("Login")),
       body: Form(
         key: _signInFormKey,
         child: Padding(
@@ -48,44 +48,32 @@ class AuthScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SignUpScreen()),
-                        );
-                      },
-                      child: const Text("Sign Up"),
-                    ),
-                  ),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: ElevatedButton(
-                        onPressed: () async {
-                          String email = emailController.text.trim();
-                          String password = passwordController.text.trim();
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                    onPressed: () async {
+                      String email = emailController.text.trim();
+                      String password = passwordController.text.trim();
 
-                          if (_signInFormKey.currentState!.validate()) {
-                            String result = await context
-                                .read<AuthService>()
-                                .signIn(email: email, password: password);
-                            if (context.mounted && result != signedIn) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(result),
-                                ),
-                              );
-                            }
+                      if (_signInFormKey.currentState!.validate()) {
+                        String result = await context
+                            .read<AuthService>()
+                            .signIn(email: email, password: password);
+                        if (context.mounted) {
+                          if (result == signedIn) {
+                            Navigator.of(context).pop();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(result),
+                              ),
+                            );
                           }
-                        },
-                        child: const Text("Sign In")),
-                  ),
-                ],
+                        }
+                      }
+                    },
+                    child: const Text("Login"),
+                ),
               )
             ],
           ),
