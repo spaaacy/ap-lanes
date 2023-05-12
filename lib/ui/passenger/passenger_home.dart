@@ -58,7 +58,7 @@ class PassengerHome extends StatelessWidget {
                   }
                 }()),
                 ...?(() {
-                  if (state.destinationLatLng != null || state.isSearching) {
+                  if ((state.destinationLatLng != null && state.routeDistance != null) || state.isSearching) {
                     return [
                       const Positioned.fill(
                         bottom: 100.0,
