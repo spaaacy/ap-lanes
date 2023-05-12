@@ -16,7 +16,7 @@ class PassengerHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = Provider.of<PassengerHomeState>(context);
 
-    return (state.user == null || state.passenger == null)
+    return (state.user == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
         : Scaffold(
             appBar: AppBar(
