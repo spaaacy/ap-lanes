@@ -221,19 +221,33 @@ class PassengerHomeState extends ChangeNotifier {
 
   void createJourney(BuildContext context) {
     final firebaseUser = context.read<firebase_auth.User?>();
-    if (firebaseUser != null) {
-      _journeyRepo.createJourney(
-        Journey(
-            userId: firebaseUser.uid,
-            startLatLng: toApu ? _destinationLatLng! : apuLatLng,
-            endLatLng: toApu ? apuLatLng : _destinationLatLng!,
-            startDescription: _toApu ? _destinationDescription! : apuDescription,
-            endDescription: _toApu ? apuDescription : _destinationDescription!),
-      );
+    if (firebaseUser != null && _routeDistance != null) {
+      if (_routeDistance! <= 7.0){
+        isSearching = true;
+        _journeyRepo.createJourney(
+          Journey(
+              userId: firebaseUser.uid,
+              startLatLng: toApu ? _destinationLatLng! : apuLatLng,
+              endLatLng: toApu ? apuLatLng : _destinationLatLng!,
+              startDescription: _toApu
+                  ? _destinationDescription!
+                  : apuDescription,
+              endDescription: _toApu
+                  ? apuDescription
+                  : _destinationDescription!),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Journeys are limited to a distance of 7 km")
+          )
+        );
+      }
     }
   }
 
   void deleteJourney() {
+    isSearching = false;
     _journeyRepo.deleteJourney(_journey);
   }
 

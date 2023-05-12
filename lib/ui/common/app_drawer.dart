@@ -164,9 +164,9 @@ class AppDrawer extends StatelessWidget {
                                     Navigator.pop(context, "Send");
                                   }
                                 },
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
+                                  children: [
                                     Text("Send"),
                                   ],
                                 ),
