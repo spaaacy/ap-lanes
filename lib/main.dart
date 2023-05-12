@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:provider/provider.dart';
 
+import 'color_schemes.g.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'ui/auth/auth_wrapper.dart';
@@ -38,35 +39,21 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        title: "AP Lanes",
         debugShowCheckedModeBanner: false,
-        title: "AP Lanes", // TODO: Check if this is necessary
-
-        // TODO: Create theme widget for this
+        darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
         theme: ThemeData(
-          colorScheme: const ColorScheme(
-            brightness: Brightness.light,
-            primary: Colors.black,
-            onPrimary: Colors.white,
-            secondary: Colors.white,
-            onSecondary: Colors.black,
-            error: Colors.red,
-            onError: Colors.white,
-            background: Colors.white,
-            onBackground: Colors.black,
-            surface: Colors.white,
-            onSurface: Colors.black,
-          ),
-          useMaterial3: true,
-          scaffoldBackgroundColor: Colors.white,
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-            ),
-          ),
-          filledButtonTheme: FilledButtonThemeData(
-            style: FilledButtonTheme.of(context).style,
-          ),
+          useMaterial3: true, colorScheme: lightColorScheme,
+          // scaffoldBackgroundColor: Colors.white,
+          // elevatedButtonTheme: ElevatedButtonThemeData(
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: Colors.black,
+          //     foregroundColor: Colors.white,
+          //   ),
+          // ),
+          // filledButtonTheme: FilledButtonThemeData(
+          //   style: FilledButtonTheme.of(context).style,
+          // ),
         ),
         home: AuthWrapper(context: context),
       ),

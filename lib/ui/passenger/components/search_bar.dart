@@ -28,7 +28,8 @@ class SearchBar extends StatelessWidget {
           elevation: 0.0,
         ),
         suggestionsCallback: (input) async {
-          final results = await _placeService.fetchSuggestions(input, lang, state.sessionToken);
+          final results = await _placeService.fetchSuggestions(
+              input, lang, state.sessionToken);
           return results.take(4);
         },
         itemBuilder: (context, suggestion) {
@@ -50,7 +51,8 @@ class SearchBar extends StatelessWidget {
         textFieldConfiguration: TextFieldConfiguration(
           controller: state.searchController,
           decoration: InputDecoration(
-            suffixIcon: (state.destinationLatLng != null || state.searchController.text.isNotEmpty)
+            suffixIcon: (state.destinationLatLng != null ||
+                    state.searchController.text.isNotEmpty)
                 ? IconButton(
                     icon: const Icon(Icons.close),
                     color: Colors.black,
@@ -75,13 +77,17 @@ class SearchBar extends StatelessWidget {
             if (state.routeDistance != null) {
               return [
                 Container(
-                    decoration:
-                        const BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.all(Radius.circular(25))),
+                    decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.all(Radius.circular(25))),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         "${state.routeDistance!.toStringAsFixed(2)} km",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.white),
                       ),
                     ))
               ];
@@ -90,16 +96,22 @@ class SearchBar extends StatelessWidget {
           const Spacer(),
           Container(
               decoration: BoxDecoration(
-                  shape: BoxShape.rectangle, color: Colors.black54, borderRadius: BorderRadius.circular(25)),
+                  shape: BoxShape.rectangle,
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(25)),
               padding: const EdgeInsets.all(8.0),
-              child: Text(state.toApu ? "TO APU" : "FROM APU",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white))),
+              child: Text(
+                state.toApu ? "TO APU" : "FROM APU",
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.white),
+              )),
           const SizedBox(
             width: 8.0,
           ),
           Switch(
-
-            activeColor: Colors.black,
+            // activeColor: Colors.black,
             value: state.toApu,
             onChanged: (value) => state.updateToApu(value),
           ),
