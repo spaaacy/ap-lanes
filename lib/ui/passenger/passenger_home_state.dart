@@ -65,6 +65,7 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   Future<void> initialize(BuildContext context) async {
+    _searchController.addListener(() => notifyListeners());
     mapViewState = context.read<MapViewState>();
     initializeFirestore(context);
   }
