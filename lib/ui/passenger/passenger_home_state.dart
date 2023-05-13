@@ -21,9 +21,15 @@ import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
 
 class PassengerHomeState extends ChangeNotifier {
+
+  PassengerHomeState(this._context) {
+    initialize();
+  }
+
   /*
   * Variables
   * */
+  final BuildContext _context;
   late final MapViewState mapViewState;
   final NotificationService notificationService = NotificationService();
 
@@ -64,13 +70,13 @@ class PassengerHomeState extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> initialize(BuildContext context) async {
-    mapViewState = context.read<MapViewState>();
-    initializeFirestore(context);
+  Future<void> initialize() async {
+    mapViewState = _context.read<MapViewState>();
+    initializeFirestore();
   }
 
-  Future<void> initializeFirestore(BuildContext context) async {
-    final firebaseUser = context.read<firebase_auth.User?>();
+  Future<void> initializeFirestore() async {
+    final firebaseUser = _context.read<firebase_auth.User?>();
 
     if (firebaseUser != null) {
       // Set user and last name
@@ -158,21 +164,27 @@ class PassengerHomeState extends ChangeNotifier {
 
   void updateToApu(toApu) {
     _toApu = toApu;
-    notifyListeners(); // Notifies when _toApu set
+    notifyListeners();
     if (_destinationLatLng != null) {
       final start = _toApu ? _destinationLatLng! : apuLatLng;
       final end = _toApu ? apuLatLng : _destinationLatLng!;
-      _placeService.fetchRoute(start, end).then((polylines) {
-        mapViewState.polylines.clear();
-        mapViewState.polylines.add(polylines);
-        mapViewState.shouldCenter = false;
-        mapViewState.setCameraToRoute(
-          topOffsetPercentage: 0.5,
-          bottomOffsetPercentage: 0.5,
+      try {
+        _placeService.fetchRoute(start, end).then((polylines) {
+          mapViewState.polylines.clear();
+          mapViewState.polylines.add(polylines);
+          mapViewState.shouldCenter = false;
+          mapViewState.setCameraToRoute(
+            topOffsetPercentage: 0.5,
+            bottomOffsetPercentage: 0.5,
+          );
+          _routeDistance = calculateRouteDistance(polylines);
+          notifyListeners(); // Notifies when route is received
+        });
+      } on Exception catch (e) {
+        ScaffoldMessenger.of(_context).showSnackBar(
+            const SnackBar(content: Text("Invalid location! Please use another location."))
         );
-        _routeDistance = calculateRouteDistance(polylines);
-        notifyListeners(); // Notifies when route is received
-      });
+      }
     }
   }
 
@@ -191,28 +203,34 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void onLatLng(BuildContext context, LatLng latLng) {
-    _destinationLatLng = latLng;
-    final start = _toApu ? _destinationLatLng! : apuLatLng;
-    final end = _toApu ? apuLatLng : _destinationLatLng!;
-    notifyListeners(); // Notifies when _destinationLatLng set
-    _placeService.fetchRoute(start, end).then((polylines) {
-      mapViewState.polylines.add(polylines);
-      mapViewState.shouldCenter = false;
-      mapViewState.setCameraToRoute(
-        topOffsetPercentage: 0.5,
-        bottomOffsetPercentage: 0.5,
+    try {
+      final start = _toApu ? _destinationLatLng! : apuLatLng;
+      final end = _toApu ? apuLatLng : _destinationLatLng!;
+      _placeService.fetchRoute(start, end).then((polylines) {
+        mapViewState.polylines.add(polylines);
+        mapViewState.shouldCenter = false;
+        mapViewState.setCameraToRoute(
+          topOffsetPercentage: 0.5,
+          bottomOffsetPercentage: 0.5,
+        );
+        mapViewState.markers["start"] = Marker(
+          point: start,
+          builder: (_) => const Icon(Icons.location_pin, size: 35),
+        );
+        mapViewState.markers["destination"] = Marker(
+          point: end,
+          builder: (_) => const Icon(Icons.location_pin, size: 35),
+        );
+        _routeDistance = calculateRouteDistance(polylines);
+        notifyListeners();
+      });
+      _destinationLatLng = latLng;
+      notifyListeners();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid location! Please use another location."))
       );
-      mapViewState.markers["start"] = Marker(
-        point: start,
-        builder: (_) => const Icon(Icons.location_pin, size: 35),
-      );
-      mapViewState.markers["destination"] = Marker(
-        point: end,
-        builder: (_) => const Icon(Icons.location_pin, size: 35),
-      );
-      _routeDistance = calculateRouteDistance(polylines);
-      notifyListeners(); // Notifies when route is received
-    });
+    }
   }
 
   Future<void> cancelJourneyAsPassenger() async {
