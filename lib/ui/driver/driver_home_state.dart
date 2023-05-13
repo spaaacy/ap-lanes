@@ -89,10 +89,13 @@ class DriverHomeState extends ChangeNotifier {
     if (existingDriver != null) {
       driver = existingDriver;
     } else {
-      await showDriverSetupDialog();
+      final setupResult = await showDriverSetupDialog();
+      if(setupResult == false) {
+        _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+        dispose();
+        return;
+      }
     }
-
-    if (driver == null) return;
 
     if (!driver!.data().isVerified) {
       if (_context.mounted) {
@@ -117,6 +120,7 @@ class DriverHomeState extends ChangeNotifier {
       }
       if (!_context.mounted) return;
       _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+      dispose();
       return;
     }
 
@@ -130,7 +134,7 @@ class DriverHomeState extends ChangeNotifier {
     return user == null || driver == null;
   }
 
-  Future<void> showDriverSetupDialog() async {
+  Future<bool> showDriverSetupDialog() async {
     var result = await showDialog<String?>(
       context: _context,
       builder: (ctx) => SetupDriverProfileDialog(userId: _firebaseUser!.uid),
@@ -140,10 +144,10 @@ class DriverHomeState extends ChangeNotifier {
       var driverSnapshot = await _driverRepo.getDriver(_firebaseUser!.uid);
       if (driverSnapshot == null) throw Exception("Driver profile does not exist!");
       driver = driverSnapshot;
-      return;
+      return true;
     }
 
-    if (!_context.mounted) return;
+    if (!_context.mounted) return false;
     await showDialog(
       context: _context,
       builder: (ctx) => AlertDialog(
@@ -160,8 +164,7 @@ class DriverHomeState extends ChangeNotifier {
       ),
     );
 
-    if (!_context.mounted) return;
-    _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+    return false;
   }
 
   void startSearching() async {

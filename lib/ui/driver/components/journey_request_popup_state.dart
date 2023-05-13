@@ -8,14 +8,13 @@ import 'package:ap_lanes/services/place_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
 class JourneyRequestPopupState extends ChangeNotifier {
-  final BuildContext _context;
+  late final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
   late final DriverHomeState _driverHomeState;
@@ -34,6 +33,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
   void dispose() {
     _onDriverStateChangedListener?.cancel();
     _initialJourneysListener?.cancel();
+    _initialJourneysListener = null;
     super.dispose();
   }
 
@@ -90,9 +90,13 @@ class JourneyRequestPopupState extends ChangeNotifier {
 
   Future<void> updateAvailableJourney(QueryDocumentSnapshot<Journey>? journey) async {
     _availableJourney = journey;
+
     if (journey != null) {
+      _availableJourney = journey;
       _availableJourneyPassenger = await _userRepo.getUser(journey.data().userId);
       await updateJourneyRoutePolylines(journey.data());
+    } else {
+      resetAvailableJourneys();
     }
     notifyListeners();
   }
@@ -128,14 +132,14 @@ class JourneyRequestPopupState extends ChangeNotifier {
           _currentJourneyIndex++;
           journeyToShow = availableJourneys!.docs.elementAt(_currentJourneyIndex);
         } else {
-          await _initialJourneysListener?.cancel();
-          _initialJourneysListener = null;
           final nextJourneys = await _journeyRepo.getNextJourneyRequest(_firebaseUser!.uid, availableJourney!);
 
           if (nextJourneys.size > 0) {
             _availableJourneys = nextJourneys;
             _currentJourneyIndex = 0;
             journeyToShow = availableJourneys!.docs.elementAt(_currentJourneyIndex);
+            await _initialJourneysListener?.cancel();
+            _initialJourneysListener = null;
           } else {
             if (_context.mounted) {
               ScaffoldMessenger.of(_context).showSnackBar(
@@ -152,14 +156,14 @@ class JourneyRequestPopupState extends ChangeNotifier {
           _currentJourneyIndex--;
           journeyToShow = availableJourneys!.docs.elementAt(_currentJourneyIndex);
         } else {
-          await _initialJourneysListener?.cancel();
-          _initialJourneysListener = null;
           final previousJourneys = await _journeyRepo.getPrevJourneyRequest(_firebaseUser!.uid, availableJourney!);
 
           if (previousJourneys.size > 0) {
             _availableJourneys = previousJourneys;
             _currentJourneyIndex = availableJourneys!.size - 1;
             journeyToShow = availableJourneys!.docs.elementAt(_currentJourneyIndex);
+            await _initialJourneysListener?.cancel();
+            _initialJourneysListener = null;
           } else {
             if (_context.mounted) {
               ScaffoldMessenger.of(_context).showSnackBar(
@@ -173,7 +177,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
         break;
     }
     await updateAvailableJourney(journeyToShow);
-    _isLoadingJourneyRequests = false;
+    isLoadingJourneyRequests = false;
     notifyListeners();
   }
 
@@ -182,12 +186,16 @@ class JourneyRequestPopupState extends ChangeNotifier {
     _initialJourneysListener ??= _journeyRepo.getFirstJourneyRequest(_firebaseUser!.uid).listen((snap) async {
       _availableJourneys = snap;
       final journeyIndex = _currentJourneyIndex > (snap.size - 1) ? snap.size - 1 : _currentJourneyIndex;
-      await updateAvailableJourney(availableJourneys!.docs.elementAt(journeyIndex));
+      final journeyToShow = snap.size > 0 ? availableJourneys!.docs.elementAt(journeyIndex) : null;
+      await updateAvailableJourney(journeyToShow);
       _isLoadingJourneyRequests = false;
     });
   }
 
   void resetAvailableJourneys() {
+    _mapViewState.polylines.clear();
+    _mapViewState.markers.removeWhere((key, value) => key == "start" || key == "destination");
+    _mapViewState.notifyListeners();
     _availableJourney = null;
     _availableJourneyPassenger = null;
     notifyListeners();
