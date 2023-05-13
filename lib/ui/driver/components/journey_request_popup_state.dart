@@ -14,7 +14,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
 class JourneyRequestPopupState extends ChangeNotifier {
-  late final BuildContext _context;
+  final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
   late final DriverHomeState _driverHomeState;
@@ -89,8 +89,6 @@ class JourneyRequestPopupState extends ChangeNotifier {
   }
 
   Future<void> updateAvailableJourney(QueryDocumentSnapshot<Journey>? journey) async {
-    _availableJourney = journey;
-
     if (journey != null) {
       _availableJourney = journey;
       _availableJourneyPassenger = await _userRepo.getUser(journey.data().userId);
@@ -186,16 +184,18 @@ class JourneyRequestPopupState extends ChangeNotifier {
     _initialJourneysListener ??= _journeyRepo.getFirstJourneyRequest(_firebaseUser!.uid).listen((snap) async {
       _availableJourneys = snap;
       final journeyIndex = _currentJourneyIndex > (snap.size - 1) ? snap.size - 1 : _currentJourneyIndex;
-      final journeyToShow = snap.size > 0 ? availableJourneys!.docs.elementAt(journeyIndex) : null;
+      final journeyToShow = snap.size > 0 ? _availableJourneys!.docs.elementAt(journeyIndex) : null;
       await updateAvailableJourney(journeyToShow);
       _isLoadingJourneyRequests = false;
     });
   }
 
   void resetAvailableJourneys() {
+    _currentJourneyIndex = 0;
     _mapViewState.polylines.clear();
     _mapViewState.markers.removeWhere((key, value) => key == "start" || key == "destination");
     _mapViewState.notifyListeners();
+    _availableJourneys = null;
     _availableJourney = null;
     _availableJourneyPassenger = null;
     notifyListeners();
@@ -226,6 +226,8 @@ class JourneyRequestPopupState extends ChangeNotifier {
     switch (state.key) {
       case DriverState.idle:
         resetAvailableJourneys();
+        _initialJourneysListener?.cancel();
+        _initialJourneysListener = null;
         break;
       case DriverState.searching:
         fetchInitialJourneys();

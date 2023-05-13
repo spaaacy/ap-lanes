@@ -50,8 +50,8 @@ class DriverHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  late final Stream<MapEntry<DriverState, dynamic>> onDriverStateChanged;
-  late final StreamController<MapEntry<DriverState, dynamic>> _onDriverStateStreamController;
+  late final StreamController<MapEntry<DriverState, dynamic>> _onDriverStateStreamController = StreamController();
+  late final Stream<MapEntry<DriverState, dynamic>> onDriverStateChanged = _onDriverStateStreamController.stream;
 
   late final StreamController<QueryDocumentSnapshot<Journey>?> _onJourneyRequestAcceptedStreamController =
       StreamController();
@@ -64,9 +64,6 @@ class DriverHomeState extends ChangeNotifier {
 
   DriverHomeState(this._context) {
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
-
-    _onDriverStateStreamController = StreamController();
-    onDriverStateChanged = _onDriverStateStreamController.stream;
     initializeFirebase();
   }
 
@@ -90,7 +87,7 @@ class DriverHomeState extends ChangeNotifier {
       driver = existingDriver;
     } else {
       final setupResult = await showDriverSetupDialog();
-      if(setupResult == false) {
+      if (setupResult == false) {
         _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
         dispose();
         return;
@@ -200,6 +197,7 @@ class DriverHomeState extends ChangeNotifier {
 
   void didAcceptJourneyRequest(QueryDocumentSnapshot<Journey>? acceptedJourneyRequest) {
     _driverState = DriverState.ongoing;
+    _onDriverStateStreamController.add(const MapEntry(DriverState.ongoing, null));
     _onJourneyRequestAcceptedStreamController.add(acceptedJourneyRequest);
     notifyListeners();
   }

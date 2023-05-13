@@ -17,7 +17,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 class OngoingJourneyPopupState extends ChangeNotifier {
-  late final BuildContext _context;
+  final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
   late final MapViewState _mapViewState;
   late final DriverHomeState _driverHomeState;
