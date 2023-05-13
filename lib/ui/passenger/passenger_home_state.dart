@@ -87,10 +87,9 @@ class PassengerHomeState extends ChangeNotifier {
 
           if (_journey!.data().driverId.isNotEmpty) {
             if (!_isPickedUp && _journey!.data().isPickedUp) {
-              _isPickedUp = _journey!.data().isPickedUp;
               notificationService.notifyPassenger("Your driver has picked you up!");
             }
-
+            _isPickedUp = _journey!.data().isPickedUp == true;
             notifyListeners();
 
             // Get driver name
@@ -108,7 +107,7 @@ class PassengerHomeState extends ChangeNotifier {
                 _driverLicensePlate = driver.data().licensePlate;
                 _routeDistance = null;
                 mapViewState.polylines.clear();
-                mapViewState.shouldCenter = true;
+                mapViewState.shouldCenter = false;
                 mapViewState.markers.remove("start");
                 mapViewState.markers.remove("destination");
                 if (!_hasDriver) {
