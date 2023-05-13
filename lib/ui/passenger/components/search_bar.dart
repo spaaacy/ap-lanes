@@ -1,3 +1,5 @@
+import 'package:ap_lanes/ui/common/map_view/map_view.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +15,8 @@ class SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<PassengerHomeState>(context);
+    final state = context.read<PassengerHomeState>();
+    final mapViewState = context.read<MapViewState>();
     String lang = Localizations.localeOf(context).languageCode;
 
     return Column(children: [
@@ -29,7 +32,7 @@ class SearchBar extends StatelessWidget {
         ),
         suggestionsCallback: (input) async {
           final results = await _placeService.fetchSuggestions(
-              input, lang, state.sessionToken);
+              input, mapViewState.currentPosition, lang, state.sessionToken);
           return results.take(4);
         },
         itemBuilder: (context, suggestion) {
