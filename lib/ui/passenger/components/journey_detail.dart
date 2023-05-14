@@ -44,13 +44,43 @@ class JourneyDetail extends StatelessWidget {
                               state.driverLicensePlate != null &&
                               state.driverPhone != null) {
                             return [
-                              Text("Your Driver",
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(state.driverName!, style: Theme.of(context).textTheme.titleSmall),
-                              const SizedBox(height: 8.0),
-                              Text("License Plate",
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(state.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Your Driver",
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                                      Text(state.driverName!, style: Theme.of(context).textTheme.titleSmall),
+                                      const SizedBox(height: 8.0),
+                                      Text("License Plate",
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                                      Text(state.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  if (state.driverPhone != null)
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                            onPressed: () {
+                                              launchWhatsApp(state.driverPhone!);
+                                            },
+                                            icon: SvgPicture.asset(
+                                              'assets/icons/whatsapp.svg',
+                                              height: 30,
+                                              width: 30,
+                                            )),
+                                        IconButton(
+                                            onPressed: () {
+                                              launchUrl(Uri.parse("tel://${state.driverPhone!.trim()}"));
+                                            },
+                                            icon: const Icon(Icons.phone)),
+                                      ],
+                                    ),
+                                ],
+                              )
                             ];
                           } else {
                             return [
@@ -66,14 +96,20 @@ class JourneyDetail extends StatelessWidget {
                         ...?(() {
                           if (state.journey != null) {
                             return [
-                              Text("TO", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-                              Text(trimDescription(state.journey!.data().endDescription),
-                                  style: Theme.of(context).textTheme.titleSmall),
-                              const SizedBox(height: 8.0),
                               Text("FROM",
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
                               Text(trimDescription(state.journey!.data().startDescription),
                                   style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                              Text("TO", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text(trimDescription(state.journey!.data().endDescription),
+                                  style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                              Text("PRICE", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text("RM ${state.journey!.data().price}", style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                              Text("PAYMENT MODE", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text(state.journey!.data().paymentMode.toUpperCase(), style: Theme.of(context).textTheme.titleSmall),
                             ];
                           }
                         }())
@@ -130,26 +166,6 @@ class JourneyDetail extends StatelessWidget {
                               ];
                             }
                           }()),
-                          const Spacer(),
-                          if (state.driverPhone != null)
-                            Row(
-                              children: [
-                                IconButton(
-                                    onPressed: () {
-                                      launchWhatsApp(state.driverPhone!);
-                                    },
-                                    icon: SvgPicture.asset(
-                                      'assets/icons/whatsapp.svg',
-                                      height: 30,
-                                      width: 30,
-                                    )),
-                                IconButton(
-                                    onPressed: () {
-                                      launchUrl(Uri.parse("tel://${state.driverPhone!.trim()}"));
-                                    },
-                                    icon: const Icon(Icons.phone)),
-                              ],
-                            ),
                         ],
                       )
                     ];

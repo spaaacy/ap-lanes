@@ -76,6 +76,7 @@ class DriverLocationService {
         initialNotificationTitle: 'APLanes',
         initialNotificationContent: 'Driver location is periodically being updated.',
         foregroundServiceNotificationId: locationNotificationId,
+        autoStartOnBoot: false
       ),
       iosConfiguration: IosConfiguration(
         onForeground: _onStart,

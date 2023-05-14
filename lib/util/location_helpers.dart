@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:ap_lanes/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -28,6 +29,10 @@ double calculateRouteDistance(Polyline? polylines) {
   });
 
   return totalDistance;
+}
+
+double calculateRoutePrice(double distance) {
+  return baseCharge + (distance * kmCharge);
 }
 
 
@@ -85,7 +90,7 @@ Future<bool> handleLocationPermission(context) async {
     await showDialog(context: context, builder: (BuildContext context) {
       return AlertDialog(
           title: const Text("Location permissions"),
-          content: const Text("APLanes uses your location in the background only when necessary and is required to use this application. "),
+          content: const Text("APLanes uses your location in the background when necessary and is required to use this application. Please select \"Allow all the time\" to continue"),
           actions: [
             TextButton(onPressed: () {
               Navigator.pop(context, "Okay");

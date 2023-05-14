@@ -153,7 +153,6 @@ class OngoingJourneyPopupState extends ChangeNotifier {
   void startOngoingJourneyListener() async {
     isLoadingJourneyRequest = true;
 
-    _registerDriverLocationListener();
     _activeJourneyListener ??= _journeyRepo.getOngoingJourneyStream(_firebaseUser!.uid).listen((snap) async {
       final hasOngoingJourney = snap.size > 0;
 
@@ -168,6 +167,9 @@ class OngoingJourneyPopupState extends ChangeNotifier {
         handleActiveJourneyDisappear();
       }
     });
+
+    _registerDriverLocationListener();
+
     notifyListeners();
   }
 
@@ -199,6 +201,8 @@ class OngoingJourneyPopupState extends ChangeNotifier {
     _driverLocationListener ??= Geolocator.getPositionStream(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
     ).listen((position) {
+      if (_activeJourney == null) return;
+
       final latLng = LatLng(position.latitude, position.longitude);
 
       LatLng targetLatLng =

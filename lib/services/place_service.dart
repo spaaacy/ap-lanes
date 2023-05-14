@@ -12,13 +12,14 @@ import '../util/constants.dart';
 class PlaceService {
   final client = Client();
 
-  Future<List<Suggestion>> fetchSuggestions(String input, String lang, String sessionToken) async {
+  Future<List<Suggestion>> fetchSuggestions(String input, LatLng? currentLocation, String lang, String sessionToken) async {
     if (input.isEmpty) {
       return [];
     }
 
+    currentLocation ??= apuLatLng;
     final request =
-        "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=establishment&language=$lang&components=country:my&key=$androidApiKey&sessiontoken=$sessionToken";
+        "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&radius=5000&location=${currentLocation.latitude}%2C${currentLocation.longitude}&types=establishment&language=$lang&components=country:my&key=$androidApiKey&sessiontoken=$sessionToken";
     final response = await client.get(Uri.parse(request));
 
     if (response.statusCode == 200) {
@@ -83,7 +84,7 @@ class PlaceService {
 
         final polyline = Polyline(
           points: points,
-          color: Colors.blue,
+          color: Colors.purple,
           strokeWidth: 5.0,
         );
 

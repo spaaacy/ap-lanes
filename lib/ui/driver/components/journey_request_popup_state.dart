@@ -8,7 +8,6 @@ import 'package:ap_lanes/services/place_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -21,6 +20,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
   late final DriverHomeState _driverHomeState;
 
   StreamSubscription<MapEntry<DriverState, dynamic>>? _onDriverStateChangedListener;
+  StreamSubscription<QuerySnapshot<Journey>>? _initialJourneysListener;
 
   JourneyRequestPopupState(this._context) {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
@@ -32,7 +32,8 @@ class JourneyRequestPopupState extends ChangeNotifier {
   @override
   void dispose() {
     _onDriverStateChangedListener?.cancel();
-    // TODO: implement dispose
+    _initialJourneysListener?.cancel();
+    _initialJourneysListener = null;
     super.dispose();
   }
 
@@ -88,11 +89,13 @@ class JourneyRequestPopupState extends ChangeNotifier {
   }
 
   Future<void> updateAvailableJourney(QueryDocumentSnapshot<Journey>? journey) async {
-    if (journey == null) return;
-
-    _availableJourney = journey;
-    _availableJourneyPassenger = await _userRepo.getUser(journey.data().userId);
-    await updateJourneyRoutePolylines(journey.data());
+    if (journey != null) {
+      _availableJourney = journey;
+      _availableJourneyPassenger = await _userRepo.getUser(journey.data().userId);
+      await updateJourneyRoutePolylines(journey.data());
+    } else {
+      resetAvailableJourneys();
+    }
     notifyListeners();
   }
 
@@ -126,7 +129,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
 
   void onRequestPopupNavigate(RequestNavigationDirection direction) async {
     isLoadingJourneyRequests = true;
-    QueryDocumentSnapshot<Journey>? journeyToShow;
+    QueryDocumentSnapshot<Journey>? journeyToShow = _availableJourney;
     switch (direction) {
       case RequestNavigationDirection.forward:
         if ((_currentJourneyIndex + 1) <= availableJourneys!.size - 1) {
@@ -139,6 +142,8 @@ class JourneyRequestPopupState extends ChangeNotifier {
             _availableJourneys = nextJourneys;
             _currentJourneyIndex = 0;
             journeyToShow = availableJourneys!.docs.elementAt(_currentJourneyIndex);
+            await _initialJourneysListener?.cancel();
+            _initialJourneysListener = null;
           } else {
             if (_context.mounted) {
               ScaffoldMessenger.of(_context).showSnackBar(
@@ -161,6 +166,8 @@ class JourneyRequestPopupState extends ChangeNotifier {
             _availableJourneys = previousJourneys;
             _currentJourneyIndex = availableJourneys!.size - 1;
             journeyToShow = availableJourneys!.docs.elementAt(_currentJourneyIndex);
+            await _initialJourneysListener?.cancel();
+            _initialJourneysListener = null;
           } else {
             if (_context.mounted) {
               ScaffoldMessenger.of(_context).showSnackBar(
@@ -174,18 +181,27 @@ class JourneyRequestPopupState extends ChangeNotifier {
         break;
     }
     await updateAvailableJourney(journeyToShow);
-    _isLoadingJourneyRequests = false;
+    isLoadingJourneyRequests = false;
     notifyListeners();
   }
 
   Future<void> fetchInitialJourneys() async {
     _isLoadingJourneyRequests = true;
-    _availableJourneys = await _journeyRepo.getFirstJourneyRequest(_firebaseUser!.uid);
-    await updateAvailableJourney(availableJourneys!.docs.firstOrNull);
-    _isLoadingJourneyRequests = false;
+    _initialJourneysListener ??= _journeyRepo.getFirstJourneyRequest(_firebaseUser!.uid).listen((snap) async {
+      _availableJourneys = snap;
+      final journeyIndex = _currentJourneyIndex > (snap.size - 1) ? snap.size - 1 : _currentJourneyIndex;
+      final journeyToShow = snap.size > 0 ? _availableJourneys!.docs.elementAt(journeyIndex) : null;
+      await updateAvailableJourney(journeyToShow);
+      _isLoadingJourneyRequests = false;
+    });
   }
 
   void resetAvailableJourneys() {
+    _currentJourneyIndex = 0;
+    _mapViewState.polylines.clear();
+    _mapViewState.markers.removeWhere((key, value) => key == "start" || key == "destination");
+    _mapViewState.notifyListeners();
+    _availableJourneys = null;
     _availableJourney = null;
     _availableJourneyPassenger = null;
     notifyListeners();
@@ -196,6 +212,9 @@ class JourneyRequestPopupState extends ChangeNotifier {
       await _journeyRepo.acceptJourneyRequest(_availableJourney!, _firebaseUser!.uid);
 
       _driverHomeState.stopSearching();
+
+      await _initialJourneysListener?.cancel();
+      _initialJourneysListener = null;
 
       _driverHomeState.didAcceptJourneyRequest(availableJourney!);
     } catch (e) {
@@ -213,6 +232,8 @@ class JourneyRequestPopupState extends ChangeNotifier {
     switch (state.key) {
       case DriverState.idle:
         resetAvailableJourneys();
+        _initialJourneysListener?.cancel();
+        _initialJourneysListener = null;
         break;
       case DriverState.searching:
         fetchInitialJourneys();

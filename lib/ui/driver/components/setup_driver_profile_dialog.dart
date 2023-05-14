@@ -16,6 +16,9 @@ class SetupDriverProfileDialog extends StatefulWidget {
 class _SetupDriverProfileDialogState extends State<SetupDriverProfileDialog> {
   final _driverSetupFormKey = GlobalKey<FormState>();
   final _licensePlateController = TextEditingController();
+  final _vehicleManufacturerController = TextEditingController();
+  final _vehicleModelController = TextEditingController();
+  final _vehicleColorController = TextEditingController();
   final DriverRepo _driverRepo = DriverRepo();
   bool isLoading = false;
 
@@ -26,8 +29,18 @@ class _SetupDriverProfileDialogState extends State<SetupDriverProfileDialog> {
 
     if (_driverSetupFormKey.currentState!.validate()) {
       String licensePlate = _licensePlateController.text.trim().toUpperCase();
+      String vehicleManufacturer = _vehicleManufacturerController.text.trim().toUpperCase();
+      String vehicleModel = _vehicleModelController.text.trim().toUpperCase();
+      String vehicleColor = _vehicleColorController.text.trim().toUpperCase();
       await _driverRepo.createDriver(
-        Driver(id: widget.userId, licensePlate: licensePlate, isAvailable: false, isVerified: false),
+        Driver(
+            id: widget.userId,
+            licensePlate: licensePlate,
+            vehicleManufacturer: vehicleManufacturer,
+            vehicleModel: vehicleModel,
+            vehicleColor: vehicleColor,
+            isAvailable: false,
+            isVerified: false),
       );
 
       if (context.mounted) {
@@ -65,6 +78,36 @@ class _SetupDriverProfileDialogState extends State<SetupDriverProfileDialog> {
               },
               controller: _licensePlateController,
               decoration: const InputDecoration(hintText: "Car License Plate"),
+            ),
+            TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your vehicle manufacturer';
+                }
+                return null;
+              },
+              controller: _vehicleManufacturerController,
+              decoration: const InputDecoration(hintText: "Vehicle Manufacturer (e.g. Proton)"),
+            ),
+            TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your vehicle model';
+                }
+                return null;
+              },
+              controller: _vehicleModelController,
+              decoration: const InputDecoration(hintText: "Vehicle Model (e.g. x50)"),
+            ),
+            TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your vehicle color';
+                }
+                return null;
+              },
+              controller: _vehicleColorController,
+              decoration: const InputDecoration(hintText: "Vehicle Color (e.g. Red)"),
             ),
           ],
         ),

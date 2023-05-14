@@ -1,3 +1,4 @@
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +14,8 @@ class SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<PassengerHomeState>(context);
+    final state = context.read<PassengerHomeState>();
+    final mapViewState = context.read<MapViewState>();
     String lang = Localizations.localeOf(context).languageCode;
 
     return Column(children: [
@@ -28,8 +30,8 @@ class SearchBar extends StatelessWidget {
           elevation: 0.0,
         ),
         suggestionsCallback: (input) async {
-          final results = await _placeService.fetchSuggestions(
-              input, lang, state.sessionToken);
+          final results =
+              await _placeService.fetchSuggestions(input, mapViewState.currentPosition, lang, state.sessionToken);
           return results.take(4);
         },
         itemBuilder: (context, suggestion) {
@@ -51,8 +53,7 @@ class SearchBar extends StatelessWidget {
         textFieldConfiguration: TextFieldConfiguration(
           controller: state.searchController,
           decoration: InputDecoration(
-            suffixIcon: (state.destinationLatLng != null ||
-                    state.searchController.text.isNotEmpty)
+            suffixIcon: (state.destinationLatLng != null || state.searchController.text.isNotEmpty)
                 ? IconButton(
                     icon: const Icon(Icons.close),
                     color: Colors.black,
@@ -73,39 +74,37 @@ class SearchBar extends StatelessWidget {
       ),
       Row(
         children: [
-          ...?(() {
-            if (state.routeDistance != null) {
-              return [
-                Container(
-                    decoration: const BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.all(Radius.circular(25))),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "${state.routeDistance!.toStringAsFixed(2)} km",
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: Colors.white),
-                      ),
-                    ))
-              ];
-            }
-          }()),
+          if (state.routeDistance != null)
+            Container(
+                decoration:
+                    const BoxDecoration(color: Colors.black, borderRadius: BorderRadius.all(Radius.circular(25))),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "${state.routeDistance!.toStringAsFixed(2)} km",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                  ),
+                )),
+          const SizedBox(width: 8.0),
+          if (state.routePrice != null)
+            Container(
+                decoration:
+                    const BoxDecoration(color: Colors.black, borderRadius: BorderRadius.all(Radius.circular(25))),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "RM ${state.routePrice!.toStringAsFixed(2)}",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                  ),
+                )),
           const Spacer(),
           Container(
               decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(25)),
+                  shape: BoxShape.rectangle, color: Colors.black, borderRadius: BorderRadius.circular(25)),
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 state.toApu ? "TO APU" : "FROM APU",
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Colors.white),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
               )),
           const SizedBox(
             width: 8.0,
