@@ -27,51 +27,72 @@ class _State extends State<MapView> with TickerProviderStateMixin {
         ? const Center(
             child: CircularProgressIndicator(),
           )
-        : FlutterMap(
-            mapController: mapViewState.mapController,
-            options: MapOptions(
-              onMapReady: () => mapViewState.isMapReady = true,
-              interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-              center: mapViewState.currentPosition,
-              zoom: 17,
-              minZoom: 7,
-              maxZoom: 18,
-            ),
-            nonRotatedChildren: [
-                RichAttributionWidget(
-                  showFlutterMapAttribution: false,
-                    alignment: AttributionAlignment.bottomLeft,
-                    attributions: [
-                  TextSourceAttribution(
-                    'OpenStreetMap contributors',
-                    onTap: () => launchUrl(
-                      Uri.parse('https://openstreetmap.org/copyright'),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  ),
-                  TextSourceAttribution(
-                    'Jawg Maps',
-                    onTap: () => launchUrl(
-                      Uri.parse('https://www.jawg.io/en/'),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  ),
-                ])
-              ],
+        : Stack(
             children: [
-                TileLayer(
-                  minZoom: 1,
-                  maxZoom: 18,
-                  backgroundColor: Colors.white,
-                  urlTemplate:
-                      'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
-                  subdomains: const ['a', 'b', 'c', 'd'],
-                  tileProvider: FMTC.instance('mapStore').getTileProvider(),
-                ),
-                MarkerLayer(markers: mapViewState.markers.values.toList()),
-                PolylineLayer(
-                  polylines: mapViewState.polylines.toList(),
-                )
-              ]);
+              FlutterMap(
+                  mapController: mapViewState.mapController,
+                  options: MapOptions(
+                    onMapReady: () => mapViewState.isMapReady = true,
+                    interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    center: mapViewState.currentPosition,
+                    zoom: 17,
+                    minZoom: 7,
+                    maxZoom: 18,
+                  ),
+                  children: [
+                    TileLayer(
+                      minZoom: 1,
+                      maxZoom: 18,
+                      backgroundColor: Colors.white,
+                      urlTemplate:
+                          'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
+                      subdomains: const ['a', 'b', 'c', 'd'],
+                      tileProvider: FMTC.instance('mapStore').getTileProvider(),
+                    ),
+                    MarkerLayer(markers: mapViewState.markers.values.toList()),
+                    PolylineLayer(
+                      polylines: mapViewState.polylines.toList(),
+                    )
+                  ]),
+              Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: IconButton(
+                icon: const Icon(Icons.info_outline),
+                onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                              title: const Text("Map Attributions"),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  TextButton(
+                                    onPressed: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright'),
+                                        mode: LaunchMode.externalApplication),
+                                    child: const Text("© OpenStreetMap Contributors"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => launchUrl(Uri.parse('https://www.jawg.io/en/'),
+                                        mode: LaunchMode.externalApplication),
+                                    child: const Text("© Jawg Maps"),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context, "Okay");
+                                    },
+                                    child: const Text("Okay")),
+                              ]);
+                        });
+                },
+              ),
+                  ))
+            ],
+          );
   }
 }
