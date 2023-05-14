@@ -38,7 +38,6 @@ class PassengerHomeState extends ChangeNotifier {
   StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
-  String? _lastName;
   double? _routeDistance;
   double? _routePrice;
   LatLng? _destinationLatLng;
@@ -77,7 +76,6 @@ class PassengerHomeState extends ChangeNotifier {
     if (firebaseUser != null) {
       // Set user and last name
       _user = (await _userRepo.getUser(firebaseUser.uid))!;
-      _lastName = _user!.data().lastName;
       notifyListeners();
 
       _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
@@ -301,8 +299,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   QueryDocumentSnapshot<Journey>? get journey => _journey;
 
-  String? get lastName => _lastName;
-
   double? get routeDistance => _routeDistance;
 
   double? get routePrice => _routePrice;
@@ -412,11 +408,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   set routePrice(double? value) {
     _routePrice = value;
-    notifyListeners();
-  }
-
-  set lastName(String? value) {
-    _lastName = value;
     notifyListeners();
   }
 }

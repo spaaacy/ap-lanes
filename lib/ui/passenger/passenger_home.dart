@@ -21,7 +21,7 @@ class PassengerHome extends StatelessWidget {
         : Scaffold(
             appBar: AppBar(
               title: Text(
-                getGreeting(state.lastName),
+                getGreeting(state.user!.data().lastName),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
