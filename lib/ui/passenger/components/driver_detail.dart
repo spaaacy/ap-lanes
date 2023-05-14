@@ -13,77 +13,79 @@ class DriverDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<PassengerHomeState>();
 
+    if (!state.hasDriver) return const SizedBox.shrink();
+
     return Positioned.fill(
-      bottom: 24.0,
+        bottom: 24.0,
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Align(
-      alignment: Alignment.bottomRight,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Container(
+            alignment: Alignment.bottomRight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                        decoration: const BoxDecoration(
+                            color: Colors.black, borderRadius: BorderRadius.all(Radius.circular(25))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            state.driverName!,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                          ),
+                        )),
+                    const SizedBox(width: 8.0),
+                    Container(
+                        decoration: const BoxDecoration(
+                            color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(25))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            state.driverLicensePlate!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: Colors.black, fontWeight: FontWeight.bold),
+                          ),
+                        )),
+                    const Spacer(),
+                    IconButton(
+                        onPressed: () {
+                          launchWhatsApp(state.driverPhone!);
+                        },
+                        icon: SvgPicture.asset(
+                          'assets/icons/whatsapp.svg',
+                          height: 30,
+                          width: 30,
+                        )),
+                    IconButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse("tel://${state.driverPhone!.trim()}"));
+                        },
+                        icon: const Icon(Icons.phone)),
+                  ],
+                ),
+                Container(
+                  width: double.infinity,
                   decoration:
-                  const BoxDecoration(color: Colors.black, borderRadius: BorderRadius.all(Radius.circular(25))),
+                      const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(8))),
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text("Your Driver", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),),
-                  )),
-              const Spacer(),
-              IconButton(
-                  onPressed: () {
-                    launchWhatsApp(state.driverPhone!);
-                  },
-                  icon: SvgPicture.asset(
-                    'assets/icons/whatsapp.svg',
-                    height: 30,
-                    width: 30,
-                  )),
-              IconButton(
-                  onPressed: () {
-                    launchUrl(Uri.parse("tel://${state.driverPhone!.trim()}"));
-                  },
-                  icon: const Icon(Icons.phone)),
-            ],
-          ),
-          Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(8))),
-              child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(state.driverName!, style: Theme.of(context).textTheme.titleSmall),
-                          const SizedBox(height: 8.0),
-                          Text(state.driverLicensePlate!, style: Theme.of(context).textTheme.titleSmall),
+                          Text("VEHICLE DETAILS", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                          const Spacer(),
+                          Text("${state.vehicleColor}, ${state.vehicleManufacturer!} ${state.vehicleModel}", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                         ],
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(state.vehicleManufacturer!, style: Theme.of(context).textTheme.titleSmall),
-                          const SizedBox(height: 8.0),
-                          Text(state.vehicleModel!, style: Theme.of(context).textTheme.titleSmall),
-                          const SizedBox(height: 8.0),
-                          Text(state.vehicleColor!, style: Theme.of(context).textTheme.titleSmall),
-                        ],
-                      ),
-                    ],
-
-                  )),
+                      )),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-    ),
         ));
   }
 }

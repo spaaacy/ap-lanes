@@ -39,6 +39,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
             ),
             nonRotatedChildren: [
                 RichAttributionWidget(
+                  showFlutterMapAttribution: false,
                     alignment: AttributionAlignment.bottomLeft,
                     attributions: [
                   TextSourceAttribution(
