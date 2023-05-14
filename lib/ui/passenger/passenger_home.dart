@@ -1,11 +1,12 @@
+import 'package:ap_lanes/ui/passenger/components/driver_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../util/ui_helpers.dart';
 import '../common/app_drawer.dart';
 import '../common/map_view/map_view.dart';
-import 'components/go_button.dart';
 import 'components/journey_detail.dart';
+import 'components/passenger_go_button.dart';
 import 'components/search_bar.dart' as passenger_view;
 import 'passenger_home_state.dart';
 
@@ -41,22 +42,16 @@ class PassengerHome extends StatelessWidget {
             body: Stack(
               children: [
                 const MapView(),
-                if (state.isSearching || state.hasDriver) const JourneyDetail(),
-                ...?(() {
-                  if (!state.isSearching && !state.hasDriver) {
-                    return [
-                      Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: passenger_view.SearchBar(),
-                          ),
-                        ),
-                      ),
-                    ];
-                  }
-                }()),
+                const JourneyDetail(),
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: passenger_view.SearchBar(),
+                    ),
+                  ),
+                ),
                 ...?(() {
                   if ((state.destinationLatLng != null && state.routeDistance != null) || state.isSearching) {
                     return [
@@ -64,12 +59,13 @@ class PassengerHome extends StatelessWidget {
                         bottom: 100.0,
                         child: Align(
                           alignment: Alignment.bottomCenter,
-                          child: GoButton(),
+                          child: PassengerGoButton(),
                         ),
                       )
                     ];
                   }
                 }()),
+                const DriverDetail(),
               ],
             ),
           );

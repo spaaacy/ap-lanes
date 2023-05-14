@@ -47,12 +47,17 @@ class PassengerHomeState extends ChangeNotifier {
   bool _hasDriver = false;
   bool _inJourney = false;
   bool _toApu = false;
+
   String? _driverName;
   String? _driverLicensePlate;
   String? _driverPhone;
+  String? _vehicleManufacturer;
+  String? _vehicleModel;
+  String? _vehicleColor;
 
   final _searchController = TextEditingController();
   String _sessionToken = const Uuid().v4();
+
 
   /*
   * Functions
@@ -101,21 +106,29 @@ class PassengerHomeState extends ChangeNotifier {
             });
 
             _driverRepo.getDriver(driverId).then((driver) {
-              // Sets journey details
               if (driver != null) {
+                // Get driver details
                 _driverLicensePlate = driver.data().licensePlate;
+                _vehicleManufacturer = driver.data().vehicleManufacturer;
+                _vehicleModel = driver.data().vehicleModel;
+                _vehicleColor = driver.data().vehicleColor;
+                _hasDriver = true;
+
+                // Clear map state
                 _routeDistance = null;
                 _routePrice = null;
                 mapViewState.polylines.clear();
                 mapViewState.shouldCenter = false;
                 mapViewState.markers.remove("start");
                 mapViewState.markers.remove("destination");
+                _isSearching = false;
+
                 if (!_hasDriver) {
                   notificationService.notifyPassenger("Driver has been found!",
                       body:
                           "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
                 }
-                _hasDriver = true;
+
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
@@ -142,6 +155,7 @@ class PassengerHomeState extends ChangeNotifier {
             });
           } else {
             _isSearching = true;
+            _resetDriverDetails();
             notifyListeners();
           }
         } else if (_journey != null) {
@@ -149,6 +163,16 @@ class PassengerHomeState extends ChangeNotifier {
         }
       });
     }
+  }
+
+  void _resetDriverDetails() {
+    _hasDriver = false;
+    _driverName = null;
+    _driverPhone = null;
+    _driverLicensePlate = null;
+    _vehicleColor = null;
+    _vehicleManufacturer = null;
+    _vehicleColor = null;
   }
 
   void onDescription(description) {
@@ -279,11 +303,6 @@ class PassengerHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void disposeListener() {
-    _journeyListener?.cancel();
-    _driverListener?.cancel();
-  }
-
   /*
   * Getters
   * */
@@ -322,6 +341,12 @@ class PassengerHomeState extends ChangeNotifier {
   bool get isPickedUp => _isPickedUp;
 
   bool get isSearching => _isSearching;
+
+  String? get vehicleModel => _vehicleModel;
+
+  String? get vehicleManufacturer => _vehicleManufacturer;
+
+  String? get vehicleColor => _vehicleColor;
 
   /*
   * Setters

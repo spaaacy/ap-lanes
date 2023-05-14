@@ -18,6 +18,8 @@ class SearchBar extends StatelessWidget {
     final mapViewState = context.read<MapViewState>();
     String lang = Localizations.localeOf(context).languageCode;
 
+    if (state.isSearching || state.hasDriver) return const SizedBox.shrink();
+
     return Column(children: [
       TypeAheadField(
         keepSuggestionsOnLoading: true,

@@ -14,6 +14,8 @@ class JourneyDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = Provider.of<PassengerHomeState>(context);
 
+    if (!state.isSearching && !state.hasDriver) return const SizedBox.shrink();
+
     return Positioned.fill(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
