@@ -158,11 +158,13 @@ class MapViewState extends ChangeNotifier {
         id = inProgressId;
       }
 
-      hasTriggeredMove |= _mapController.move(
-        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
-        zoomTween.evaluate(animation),
-        id: id,
-      );
+      if (mapView!.mounted){
+        hasTriggeredMove |= _mapController.move(
+          LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+          zoomTween.evaluate(animation),
+          id: id,
+        );
+      }
     });
 
     animation.addStatusListener((status) {
