@@ -75,10 +75,10 @@ class PassengerHomeState extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> initialize(BuildContext context) async {
+  Future<void> initialize() async {
     _searchController.addListener(() => notifyListeners());
-    mapViewState = context.read<MapViewState>();
-    initializeFirestore(context);
+    mapViewState = _context.read<MapViewState>();
+    initializeFirestore();
   }
 
   Future<void> initializeFirestore() async {
@@ -186,14 +186,14 @@ class PassengerHomeState extends ChangeNotifier {
     _sessionToken = const Uuid().v4();
   }
 
-  void updateToApu(toApu) {
+  Future<void> updateToApu(toApu) async {
     _toApu = toApu;
     notifyListeners();
     if (_destinationLatLng != null) {
       final start = _toApu ? _destinationLatLng! : apuLatLng;
       final end = _toApu ? apuLatLng : _destinationLatLng!;
       try {
-        _placeService.fetchRoute(start, end).then((polylines) {
+        await _placeService.fetchRoute(start, end).then((polylines) {
           mapViewState.polylines.clear();
           mapViewState.polylines.add(polylines);
           mapViewState.shouldCenter = false;
@@ -202,16 +202,14 @@ class PassengerHomeState extends ChangeNotifier {
             bottomOffsetPercentage: 0.5,
           );
           _routeDistance = calculateRouteDistance(polylines);
+          _routePrice = calculateRoutePrice(_routeDistance!);
           notifyListeners(); // Notifies when route is received
         });
       } on Exception catch (e) {
         ScaffoldMessenger.of(_context).showSnackBar(
             const SnackBar(content: Text("Invalid location! Please use another location."))
         );
-        _routeDistance = calculateRouteDistance(polylines);
-        _routePrice = calculateRoutePrice(_routeDistance!);
-        notifyListeners(); // Notifies when route is received
-      });
+      }
     }
   }
 
@@ -231,11 +229,13 @@ class PassengerHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void onLatLng(BuildContext context, LatLng latLng) {
+  Future<void> onLatLng(BuildContext context, LatLng latLng) async {
     try {
+      _destinationLatLng = latLng;
+      notifyListeners();
       final start = _toApu ? _destinationLatLng! : apuLatLng;
       final end = _toApu ? apuLatLng : _destinationLatLng!;
-      _placeService.fetchRoute(start, end).then((polylines) {
+      await _placeService.fetchRoute(start, end).then((polylines) {
         mapViewState.polylines.add(polylines);
         mapViewState.shouldCenter = false;
         mapViewState.setCameraToRoute(
@@ -251,18 +251,14 @@ class PassengerHomeState extends ChangeNotifier {
           builder: (_) => const Icon(Icons.location_pin, size: 35),
         );
         _routeDistance = calculateRouteDistance(polylines);
+        _routePrice = calculateRoutePrice(_routeDistance!);
         notifyListeners();
       });
-      _destinationLatLng = latLng;
-      notifyListeners();
-    } catch (e) {
+    } on Exception catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Invalid location! Please use another location."))
       );
-      _routeDistance = calculateRouteDistance(polylines);
-      _routePrice = calculateRoutePrice(_routeDistance!);
-      notifyListeners(); // Notifies when route is received
-    });
+    }
   }
 
   Future<void> cancelJourneyAsPassenger() async {
