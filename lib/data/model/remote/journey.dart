@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../util/location_helpers.dart';
-import 'package:latlong2/latlong.dart';
+
+class PaymentMode {
+  static String cash = "CASH";
+}
 
 class Journey {
   final String userId;
@@ -13,6 +17,9 @@ class Journey {
   bool isPickedUp;
   bool isCancelled;
   String driverId;
+  String distance;
+  String price;
+  String paymentMode;
   DateTime createdAt;
 
   Journey({
@@ -21,6 +28,9 @@ class Journey {
     required this.endLatLng,
     required this.startDescription,
     required this.endDescription,
+    required this.distance,
+    required this.price,
+    required this.paymentMode,
     this.isCompleted = false,
     this.isCancelled = false,
     this.isPickedUp = false,
@@ -39,6 +49,9 @@ class Journey {
       if (isCancelled != null) "isCancelled": isCancelled,
       if (isPickedUp != null) "isPickedUp": isPickedUp,
       if (driverId != null) "driverId": driverId,
+      if (distance != null) "distance": distance,
+      if (price != null) "price": price,
+      if (paymentMode != null) "paymentMode": paymentMode,
       if (createdAt != null) "createdAt": createdAt.millisecondsSinceEpoch,
     };
   }
@@ -58,11 +71,10 @@ class Journey {
       isCancelled: data?['isCancelled'],
       isPickedUp: data?['isPickedUp'],
       driverId: data?['driverId'],
-      createdOn: data?['createdAt'] == null
-          ? DateTime.now()
-          : DateTime.fromMillisecondsSinceEpoch(
-              data!['createdAt'],
-            ),
+      distance: data?['distance'],
+      price: data?['price'],
+      paymentMode: data?['paymentMode'],
+      createdOn: DateTime.fromMillisecondsSinceEpoch(data!['createdAt']),
     );
   }
 }
