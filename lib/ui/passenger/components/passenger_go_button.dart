@@ -4,15 +4,16 @@ import 'package:provider/provider.dart';
 
 import '../passenger_home_state.dart';
 
-class GoButton extends StatelessWidget {
-  const GoButton({super.key});
+class PassengerGoButton extends StatelessWidget {
+  const PassengerGoButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<firebase_auth.User?>();
     final state = Provider.of<PassengerHomeState>(context);
 
-    if (!state.hasDriver) {
+    if (state.routeDistance == null && !state.isSearching) return const SizedBox.shrink();
+
       return ElevatedButton(
           onPressed: () {
             if (firebaseUser != null) {
@@ -35,8 +36,5 @@ class GoButton extends StatelessWidget {
                   semanticLabel: "Cancel Search",
                   size: 20,
                 ));
-    } else {
-      return const SizedBox.shrink();
     }
-  }
 }

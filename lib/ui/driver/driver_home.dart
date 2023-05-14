@@ -18,40 +18,42 @@ class DriverHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = Provider.of<DriverHomeState>(context);
 
-    return Scaffold(
-      drawer: AppDrawer(
-        user: state.user,
-        isDriver: true,
-        isNavigationLocked: state.driverState != DriverState.idle,
-        onNavigateWhenLocked: () {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("You cannot change to passenger mode while you are searching or carrying out a job."),
+    return (state.user == null)
+        ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+        : Scaffold(
+            drawer: AppDrawer(
+              user: state.user,
+              isDriver: true,
+              isNavigationLocked: state.driverState != DriverState.idle,
+              onNavigateWhenLocked: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("You cannot change to passenger mode while you are searching or carrying out a job."),
+                  ),
+                );
+              },
+            ),
+            appBar: AppBar(
+              title: Text(
+                getGreeting(state.user?.data().lastName),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            body: Stack(
+              children: [
+                const MapView(),
+                const DriverGoButton(),
+                ChangeNotifierProvider<JourneyRequestPopupState>(
+                  create: (ctx) => JourneyRequestPopupState(ctx),
+                  child: const JourneyRequestPopup(),
+                ),
+                ChangeNotifierProvider<OngoingJourneyPopupState>(
+                  create: (ctx) => OngoingJourneyPopupState(ctx),
+                  child: const OngoingJourneyPopup(),
+                ),
+              ],
             ),
           );
-        },
-      ),
-      appBar: AppBar(
-        title: Text(
-          getGreeting(state.user?.data().lastName),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-      body: Stack(
-        children: [
-          const MapView(),
-          const DriverGoButton(),
-          ChangeNotifierProvider<JourneyRequestPopupState>(
-            create: (ctx) => JourneyRequestPopupState(ctx),
-            child: const JourneyRequestPopup(),
-          ),
-          ChangeNotifierProvider<OngoingJourneyPopupState>(
-            create: (ctx) => OngoingJourneyPopupState(ctx),
-            child: const OngoingJourneyPopup(),
-          ),
-        ],
-      ),
-    );
   }
 }
