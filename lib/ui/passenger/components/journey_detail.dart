@@ -19,7 +19,7 @@ class JourneyDetail extends StatelessWidget {
         child: Align(
           alignment: Alignment.topCenter,
           child: AnimatedOpacity(
-            opacity: (state.inJourney) ? 1.0 : 0.0,
+            opacity: (state.journey != null) ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
             child: Column(
               mainAxisSize: MainAxisSize.min,

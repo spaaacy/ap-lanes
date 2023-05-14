@@ -51,7 +51,6 @@ class PassengerHomeState extends ChangeNotifier {
   bool _isSearching = false;
   bool _isPickedUp = false;
   bool _hasDriver = false;
-  bool _inJourney = false;
   bool _toApu = false;
 
   String? _driverName;
@@ -92,7 +91,6 @@ class PassengerHomeState extends ChangeNotifier {
       _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
         if (journey.docs.isNotEmpty) {
           _journey = journey.docs.first;
-          _inJourney = true;
           notifyListeners();
 
           if (_journey!.data().driverId.isNotEmpty) {
@@ -304,7 +302,6 @@ class PassengerHomeState extends ChangeNotifier {
     driverPhone = null;
     journey = null;
     isSearching = false;
-    inJourney = false;
     isPickedUp = false;
     _searchController.clear();
     routeDistance = null;
@@ -351,8 +348,6 @@ class PassengerHomeState extends ChangeNotifier {
   String? get driverName => _driverName;
 
   bool get toApu => _toApu;
-
-  bool get inJourney => _inJourney;
 
   bool get hasDriver => _hasDriver;
 
@@ -411,11 +406,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   set toApu(bool value) {
     _toApu = value;
-    notifyListeners();
-  }
-
-  set inJourney(bool value) {
-    _inJourney = value;
     notifyListeners();
   }
 
