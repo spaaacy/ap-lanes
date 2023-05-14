@@ -104,6 +104,12 @@ class JourneyDetail extends StatelessWidget {
                               Text("TO", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
                               Text(trimDescription(state.journey!.data().endDescription),
                                   style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                              Text("PRICE", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text("RM ${state.journey!.data().price}", style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8.0),
+                              Text("PAYMENT MODE", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+                              Text(state.journey!.data().paymentMode.toUpperCase(), style: Theme.of(context).textTheme.titleSmall),
                             ];
                           }
                         }())

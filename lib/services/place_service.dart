@@ -84,7 +84,7 @@ class PlaceService {
 
         final polyline = Polyline(
           points: points,
-          color: Colors.blue,
+          color: Colors.purple,
           strokeWidth: 5.0,
         );
 

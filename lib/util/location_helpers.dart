@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:ap_lanes/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -28,6 +29,10 @@ double calculateRouteDistance(Polyline? polylines) {
   });
 
   return totalDistance;
+}
+
+double calculateRoutePrice(double distance) {
+  return baseCharge + (distance * kmCharge);
 }
 
 

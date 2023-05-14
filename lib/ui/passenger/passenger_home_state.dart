@@ -40,6 +40,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   String? _lastName;
   double? _routeDistance;
+  double? _routePrice;
   LatLng? _destinationLatLng;
   String? _destinationDescription;
   bool _isSearching = false;
@@ -106,6 +107,7 @@ class PassengerHomeState extends ChangeNotifier {
               if (driver != null) {
                 _driverLicensePlate = driver.data().licensePlate;
                 _routeDistance = null;
+                _routePrice = null;
                 mapViewState.polylines.clear();
                 mapViewState.shouldCenter = false;
                 mapViewState.markers.remove("start");
@@ -131,7 +133,7 @@ class PassengerHomeState extends ChangeNotifier {
                       mapViewState.setCameraBetweenMarkers(
                         firstLatLng: latLng,
                         secondLatLng: mapViewState.currentPosition!,
-                        topOffsetPercentage: 3,
+                        topOffsetPercentage: 3.5,
                         bottomOffsetPercentage: 1,
                       );
                       notifyListeners();
@@ -171,6 +173,7 @@ class PassengerHomeState extends ChangeNotifier {
           bottomOffsetPercentage: 0.5,
         );
         _routeDistance = calculateRouteDistance(polylines);
+        _routePrice = calculateRoutePrice(_routeDistance!);
         notifyListeners(); // Notifies when route is received
       });
     }
@@ -181,12 +184,14 @@ class PassengerHomeState extends ChangeNotifier {
     mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
     _routeDistance = null;
+    _routePrice = null;
     mapViewState.markers.remove("start");
     mapViewState.markers.remove("destination");
     if (mapViewState.currentPosition != null) {
       mapViewState.resetCamera();
     }
     _routeDistance = null;
+    _routePrice = null;
     notifyListeners();
   }
 
@@ -211,6 +216,7 @@ class PassengerHomeState extends ChangeNotifier {
         builder: (_) => const Icon(Icons.location_pin, size: 35),
       );
       _routeDistance = calculateRouteDistance(polylines);
+      _routePrice = calculateRoutePrice(_routeDistance!);
       notifyListeners(); // Notifies when route is received
     });
   }
@@ -221,27 +227,24 @@ class PassengerHomeState extends ChangeNotifier {
 
   void createJourney(BuildContext context) {
     final firebaseUser = context.read<firebase_auth.User?>();
-    if (firebaseUser != null && _routeDistance != null) {
-      if (_routeDistance! <= 7.0){
+    if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
+      if (_routeDistance! <= 7.0) {
         isSearching = true;
         _journeyRepo.createJourney(
           Journey(
-              userId: firebaseUser.uid,
-              startLatLng: toApu ? _destinationLatLng! : apuLatLng,
-              endLatLng: toApu ? apuLatLng : _destinationLatLng!,
-              startDescription: _toApu
-                  ? _destinationDescription!
-                  : apuDescription,
-              endDescription: _toApu
-                  ? apuDescription
-                  : _destinationDescription!),
+            userId: firebaseUser.uid,
+            startLatLng: toApu ? _destinationLatLng! : apuLatLng,
+            endLatLng: toApu ? apuLatLng : _destinationLatLng!,
+            startDescription: _toApu ? _destinationDescription! : apuDescription,
+            endDescription: _toApu ? apuDescription : _destinationDescription!,
+            distance: _routeDistance!.toStringAsFixed(2),
+            price: _routePrice!.toStringAsFixed(2),
+            paymentMode: PaymentMode.cash,
+          ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Journeys are limited to a distance of 7 km")
-          )
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Journeys are limited to a distance of 7 km")));
       }
     }
   }
@@ -301,6 +304,8 @@ class PassengerHomeState extends ChangeNotifier {
   String? get lastName => _lastName;
 
   double? get routeDistance => _routeDistance;
+
+  double? get routePrice => _routePrice;
 
   LatLng? get destinationLatLng => _destinationLatLng;
 
@@ -402,6 +407,11 @@ class PassengerHomeState extends ChangeNotifier {
 
   set routeDistance(double? value) {
     _routeDistance = value;
+    notifyListeners();
+  }
+
+  set routePrice(double? value) {
+    _routePrice = value;
     notifyListeners();
   }
 
