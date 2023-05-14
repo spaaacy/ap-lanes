@@ -32,7 +32,7 @@ class DriverDetail extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            state.driverName!,
+                            state.driverName!.toUpperCase(),
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
                           ),
                         )),
@@ -64,7 +64,7 @@ class DriverDetail extends StatelessWidget {
                         onPressed: () {
                           launchUrl(Uri.parse("tel://${state.driverPhone!.trim()}"));
                         },
-                        icon: const Icon(Icons.phone)),
+                        icon: const Icon(Icons.phone, color: Colors.black,)),
                   ],
                 ),
                 Container(
@@ -77,7 +77,7 @@ class DriverDetail extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("VEHICLE DETAILS", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                          Text("VEHICLE DETAILS", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w400, color: Colors.black54)),
                           const Spacer(),
                           Text("${state.vehicleColor}, ${state.vehicleManufacturer!} ${state.vehicleModel}", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                         ],
