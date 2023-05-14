@@ -33,7 +33,7 @@ class MapViewState extends ChangeNotifier {
         final latLng = LatLng(position.latitude, position.longitude);
         _currentPosition = latLng;
         _markers["user"] =
-            Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35));
+            Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35, color: Colors.black));
         notifyListeners();
 
         if (_shouldCenter) {

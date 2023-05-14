@@ -113,11 +113,11 @@ class JourneyRequestPopupState extends ChangeNotifier {
       );
       _mapViewState.markers["start"] = Marker(
         point: start,
-        builder: (_) => const Icon(Icons.location_pin, size: 35),
+        builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
       );
       _mapViewState.markers["destination"] = Marker(
         point: end,
-        builder: (_) => const Icon(Icons.location_pin, size: 35),
+        builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
       );
       _mapViewState.notifyListeners();
     } on Exception catch (e) {

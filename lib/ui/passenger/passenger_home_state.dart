@@ -142,7 +142,7 @@ class PassengerHomeState extends ChangeNotifier {
                     if (latLng != null && mapViewState.currentPosition != null) {
                       mapViewState.markers["driver"] = Marker(
                         point: latLng,
-                        builder: (_) => const Icon(Icons.drive_eta, size: 35),
+                        builder: (_) => const Icon(Icons.drive_eta, size: 35, color: Colors.black),
                       );
                       mapViewState.shouldCenter = false;
                       mapViewState.setCameraBetweenMarkers(
@@ -242,11 +242,11 @@ class PassengerHomeState extends ChangeNotifier {
         );
         mapViewState.markers["start"] = Marker(
           point: start,
-          builder: (_) => const Icon(Icons.location_pin, size: 35),
+          builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
         );
         mapViewState.markers["destination"] = Marker(
           point: end,
-          builder: (_) => const Icon(Icons.location_pin, size: 35),
+          builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
         );
         _routeDistance = calculateRouteDistance(polylines);
         _routePrice = calculateRoutePrice(_routeDistance!);

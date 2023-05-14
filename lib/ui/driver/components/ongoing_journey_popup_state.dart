@@ -105,7 +105,7 @@ class OngoingJourneyPopupState extends ChangeNotifier {
     if (journeySnapshot.data().isPickedUp) {
       _mapViewState.markers["drop-off"] = Marker(
         point: journeySnapshot.data().endLatLng,
-        builder: (_) => const Icon(Icons.location_pin, size: 35),
+        builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
       );
       if (_mapViewState.currentPosition != null) {
         updateCameraBoundsWithPopup(_mapViewState.currentPosition!, journeySnapshot.data().endLatLng);
@@ -113,7 +113,7 @@ class OngoingJourneyPopupState extends ChangeNotifier {
     } else {
       _mapViewState.markers["pick-up"] = Marker(
         point: journeySnapshot.data().startLatLng,
-        builder: (_) => const Icon(Icons.location_pin, size: 35),
+        builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
       );
       if (_mapViewState.currentPosition != null) {
         updateCameraBoundsWithPopup(_mapViewState.currentPosition!, journeySnapshot.data().endLatLng);
@@ -269,14 +269,14 @@ class OngoingJourneyPopupState extends ChangeNotifier {
         _mapViewState.markers.remove("pick-up");
         _mapViewState.markers["pick-up"] = Marker(
           point: activeJourney!.data().endLatLng,
-          builder: (_) => const Icon(Icons.location_pin, size: 35),
+          builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
         );
         updateCameraBoundsWithPopup(_mapViewState.currentPosition!, activeJourney!.data().endLatLng);
       } else {
         _mapViewState.markers.remove("drop-off");
         _mapViewState.markers["pick-up"] = Marker(
           point: activeJourney!.data().startLatLng,
-          builder: (_) => const Icon(Icons.location_pin, size: 35),
+          builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
         );
         updateCameraBoundsWithPopup(_mapViewState.currentPosition!, activeJourney!.data().startLatLng);
       }
