@@ -27,5 +27,5 @@ final LatLng apuLatLng = LatLng(3.0554057, 101.7005614);
 const String apuDescription = "Asia Pacific University of Technology & Innovation (APU), Jalan Teknologi 5, Technology Park Malaysia, Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia";
 
 // Pricing
-const double baseCharge = 1.00;
-const double kmCharge = 1.00;
+const double baseCharge = 0.00;
+const double kmCharge = 0.85;
