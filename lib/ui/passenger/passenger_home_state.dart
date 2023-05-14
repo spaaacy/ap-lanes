@@ -148,8 +148,10 @@ class PassengerHomeState extends ChangeNotifier {
                       mapViewState.setCameraBetweenMarkers(
                         firstLatLng: latLng,
                         secondLatLng: mapViewState.currentPosition!,
-                        topOffsetPercentage: 3.5,
+                        topOffsetPercentage: 2,
                         bottomOffsetPercentage: 1,
+                        leftOffsetPercentage: 1,
+                        rightOffsetPercentage: 1,
                       );
                       notifyListeners();
                     }
