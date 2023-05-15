@@ -116,7 +116,6 @@ class PassengerHomeState extends ChangeNotifier {
                 _vehicleManufacturer = driver.data().vehicleManufacturer;
                 _vehicleModel = driver.data().vehicleModel;
                 _vehicleColor = driver.data().vehicleColor;
-                _hasDriver = true;
 
                 // Clear map state
                 _routeDistance = null;
@@ -132,6 +131,7 @@ class PassengerHomeState extends ChangeNotifier {
                       body:
                           "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
                 }
+                _hasDriver = true;
 
                 notifyListeners();
 
