@@ -25,14 +25,10 @@ class JourneyDetail extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(8),
-                    ),
-                  ),
+                Material(
+                  elevation: 6.0,
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -83,49 +79,44 @@ class JourneyDetail extends StatelessWidget {
                     return [
                       Row(
                         children: [
-                          ...?(() {
-                            if (!state.isPickedUp) {
-                              return [
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                  onPressed: () {
-                                    showDialog<String>(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text("Cancel journey"),
-                                            content: const Text("Are you sure you would like to cancel your journey?"),
-                                            actions: [
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context, "No");
-                                                  },
-                                                  child: const Text("No")),
-                                              TextButton(
-                                                  onPressed: () async {
-                                                    try {
-                                                      await state.cancelJourneyAsPassenger();
-                                                    } catch (exception) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                          content: Text(
-                                                              "Sorry, you cannot cancel the journey after being picked up.")));
-                                                    } finally {
-                                                      Navigator.pop(context, "Yes");
-                                                    }
-                                                  },
-                                                  child: const Text("Yes")),
-                                            ],
-                                          );
-                                        });
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.only(left: 8.0, right: 8.0),
-                                    child: Text("Cancel"),
-                                  ),
-                                )
-                              ];
-                            }
-                          }()),
+                          if (!state.isPickedUp)
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, elevation: 4.0),
+                              onPressed: () {
+                                showDialog<String>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text("Cancel journey"),
+                                        content: const Text("Are you sure you would like to cancel your journey?"),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context, "No");
+                                              },
+                                              child: const Text("No")),
+                                          TextButton(
+                                              onPressed: () async {
+                                                try {
+                                                  await state.cancelJourneyAsPassenger();
+                                                } catch (exception) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                      content: Text(
+                                                          "Sorry, you cannot cancel the journey after being picked up.")));
+                                                } finally {
+                                                  Navigator.pop(context, "Yes");
+                                                }
+                                              },
+                                              child: const Text("Yes")),
+                                        ],
+                                      );
+                                    });
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.only(left: 8.0, right: 8.0),
+                                child: Text("Cancel"),
+                              ),
+                            )
                         ],
                       )
                     ];
