@@ -12,12 +12,12 @@ class MapViewState extends ChangeNotifier {
   * Variables
   * */
   bool _shouldCenter = true;
-  bool isMapReady = false;
   final MapController _mapController = MapController();
   LatLng? _currentPosition;
   StreamSubscription<Position>? _locationListener;
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<String, Marker> _markers = <String, Marker>{};
+  bool isMapReady = false;
   TickerProviderStateMixin? ticker;
   AnimationController? animationController;
 

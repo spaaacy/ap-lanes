@@ -29,9 +29,10 @@ class DriverDetail extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(
-                          decoration: const BoxDecoration(
-                              color: Colors.black, borderRadius: BorderRadius.all(Radius.circular(25))),
+                      Material(
+                          elevation: 4.0,
+                          color: Colors.black,
+                          borderRadius: const BorderRadius.all(Radius.circular(25)),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
@@ -40,9 +41,10 @@ class DriverDetail extends StatelessWidget {
                             ),
                           )),
                       const SizedBox(width: 8.0),
-                      Container(
-                          decoration: const BoxDecoration(
-                              color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(25))),
+                      Material(
+                          elevation: 4.0,
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.all(Radius.circular(25)),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
@@ -67,22 +69,30 @@ class DriverDetail extends StatelessWidget {
                           onPressed: () {
                             launchUrl(Uri.parse("tel://${state.driverPhone!.trim()}"));
                           },
-                          icon: const Icon(Icons.phone, color: Colors.black,)),
+                          icon: const Icon(
+                            Icons.phone,
+                            color: Colors.black,
+                          )),
                     ],
                   ),
-                  Container(
-                    width: double.infinity,
-                    decoration:
-                        const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(8))),
+                  Material(
+                    elevation: 6.0,
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                     child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("VEHICLE DETAILS", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w400, color: Colors.black54)),
+                            Text("VEHICLE DETAILS",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w400, color: Colors.black54)),
                             const Spacer(),
-                            Text("${state.vehicleColor}, ${state.vehicleManufacturer!} ${state.vehicleModel}", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
+                            Text("${state.vehicleColor}, ${state.vehicleManufacturer!} ${state.vehicleModel}",
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
                           ],
                         )),
                   ),

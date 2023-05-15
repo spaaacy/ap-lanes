@@ -67,6 +67,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
+
                               title: const Text("Map Attributions"),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
