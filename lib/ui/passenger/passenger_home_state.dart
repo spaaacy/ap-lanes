@@ -111,11 +111,18 @@ class PassengerHomeState extends ChangeNotifier {
 
             _driverRepo.getDriver(driverId).then((driver) {
               if (driver != null) {
+                if (!_hasDriver) {
+                  notificationService.notifyPassenger("Driver has been found!",
+                      body:
+                      "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
+                }
+
                 // Get driver details
                 _driverLicensePlate = driver.data().licensePlate;
                 _vehicleManufacturer = driver.data().vehicleManufacturer;
                 _vehicleModel = driver.data().vehicleModel;
                 _vehicleColor = driver.data().vehicleColor;
+                _hasDriver = true;
 
                 // Clear map state
                 _routeDistance = null;
@@ -126,12 +133,6 @@ class PassengerHomeState extends ChangeNotifier {
                 mapViewState.markers.remove("destination");
                 _isSearching = false;
 
-                if (!_hasDriver) {
-                  notificationService.notifyPassenger("Driver has been found!",
-                      body:
-                          "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
-                }
-                _hasDriver = true;
 
                 notifyListeners();
 
@@ -297,18 +298,19 @@ class PassengerHomeState extends ChangeNotifier {
   Future<void> resetState() async {
     if (hasDriver) {
       notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for using APLanes.");
-      hasDriver = false;
+      _hasDriver = false;
     }
-    driverName = null;
-    driverLicensePlate = null;
-    driverPhone = null;
-    journey = null;
-    isSearching = false;
-    isPickedUp = false;
+    _driverName = null;
+    _driverLicensePlate = null;
+    _driverPhone = null;
+    _journey = null;
+    _isSearching = false;
+    _isPickedUp = false;
     _searchController.clear();
-    routeDistance = null;
-    destinationDescription = null;
-    destinationLatLng = null;
+    _routeDistance = null;
+    _routePrice = null;
+    _destinationDescription = null;
+    _destinationLatLng = null;
     mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
     mapViewState.markers.remove("driver");

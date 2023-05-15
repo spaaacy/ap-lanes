@@ -13,10 +13,13 @@ class MapView extends StatefulWidget {
 }
 
 class _State extends State<MapView> with TickerProviderStateMixin {
+  AnimationController? animationController;
+
   @override
   void initState() {
     super.initState();
-    context.read<MapViewState>().mapView = this;
+    context.read<MapViewState>().ticker = this;
+    animationController = context.read<MapViewState>().animationController;
   }
 
   @override
@@ -56,10 +59,10 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                   ]),
               Positioned.fill(
                   child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: IconButton(
-                icon: const Icon(Icons.info_outline),
-                onPressed: () {
+                alignment: Alignment.bottomLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: () {
                     showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -89,10 +92,17 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                                     child: const Text("Okay")),
                               ]);
                         });
-                },
-              ),
-                  ))
+                  },
+                ),
+              ))
             ],
           );
   }
+
+  @override
+  void dispose() {
+    animationController?.dispose();
+    super.dispose();
+  }
+
 }

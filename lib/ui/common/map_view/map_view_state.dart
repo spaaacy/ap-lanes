@@ -18,7 +18,8 @@ class MapViewState extends ChangeNotifier {
   StreamSubscription<Position>? _locationListener;
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<String, Marker> _markers = <String, Marker>{};
-  TickerProviderStateMixin? mapView;
+  TickerProviderStateMixin? ticker;
+  AnimationController? animationController;
 
   /*
   * Functions
@@ -44,7 +45,7 @@ class MapViewState extends ChangeNotifier {
   }
 
   Future<void> resetCamera() async {
-    if (currentPosition == null) return;
+    if (!isMapReady || currentPosition == null) return;
     _animateCamera(_currentPosition!, 17.0);
   }
 
@@ -131,56 +132,55 @@ class MapViewState extends ChangeNotifier {
   }
 
   void _animateCamera(LatLng destLocation, double destZoom) {
-    if (!isMapReady || mapView == null) return;
+    if (isMapReady && ticker != null) {
+      const startedId = 'AnimatedMapController#MoveStarted';
+      const inProgressId = 'AnimatedMapController#MoveInProgress';
+      const finishedId = 'AnimatedMapController#MoveFinished';
 
-    const startedId = 'AnimatedMapController#MoveStarted';
-    const inProgressId = 'AnimatedMapController#MoveInProgress';
-    const finishedId = 'AnimatedMapController#MoveFinished';
+      final latTween = Tween<double>(begin: _mapController.center.latitude, end: destLocation.latitude);
+      final lngTween = Tween<double>(begin: _mapController.center.longitude, end: destLocation.longitude);
+      final zoomTween = Tween<double>(begin: _mapController.zoom, end: destZoom);
 
-    final latTween = Tween<double>(begin: _mapController.center.latitude, end: destLocation.latitude);
-    final lngTween = Tween<double>(begin: _mapController.center.longitude, end: destLocation.longitude);
-    final zoomTween = Tween<double>(begin: _mapController.zoom, end: destZoom);
+      final animationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: ticker!);
 
-    final controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: mapView!);
+      final Animation<double> animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
 
-    final Animation<double> animation = CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
+      final startIdWithTarget = '$startedId#${destLocation.latitude},${destLocation.longitude},$destZoom';
+      bool hasTriggeredMove = false;
 
-    final startIdWithTarget = '$startedId#${destLocation.latitude},${destLocation.longitude},$destZoom';
-    bool hasTriggeredMove = false;
+      animationController.addListener(() {
+        final String id;
+        if (animation.value == 1.0) {
+          id = finishedId;
+        } else if (!hasTriggeredMove) {
+          id = startIdWithTarget;
+        } else {
+          id = inProgressId;
+        }
 
-    controller.addListener(() {
-      final String id;
-      if (animation.value == 1.0) {
-        id = finishedId;
-      } else if (!hasTriggeredMove) {
-        id = startIdWithTarget;
-      } else {
-        id = inProgressId;
-      }
-
-      if (mapView!.mounted){
         hasTriggeredMove |= _mapController.move(
           LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
           zoomTween.evaluate(animation),
           id: id,
         );
-      }
-    });
+      });
 
-    animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        controller.dispose();
-      } else if (status == AnimationStatus.dismissed) {
-        controller.dispose();
-      }
-    });
+      animation.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          animationController.dispose();
+        } else if (status == AnimationStatus.dismissed) {
+          animationController.dispose();
+        }
+      });
 
-    controller.forward();
+      animationController.forward();
+    }
   }
 
   void resetMap() {
     isMapReady = false;
-    mapView = null;
+    ticker = null;
+    animationController = null;
     _shouldCenter = true;
     _polylines.clear();
     _markers.removeWhere((key, value) => key != "user");
