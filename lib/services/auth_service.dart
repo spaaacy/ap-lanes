@@ -51,10 +51,7 @@ class AuthService {
   }
 
   void sendEmailVerification() {
-    final user = _firebaseAuth.currentUser;
-    if (user != null) {
-      _firebaseAuth.currentUser?.sendEmailVerification();
-    }
+    _firebaseAuth.currentUser?.sendEmailVerification();
   }
 
   void _registerUser(

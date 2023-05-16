@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:ap_lanes/services/auth_service.dart';
 import 'package:ap_lanes/ui/auth/landing_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,27 +16,26 @@ import 'login_screen.dart';
 class AuthWrapper extends StatefulWidget {
   final BuildContext context;
 
-  const AuthWrapper({super.key, required this.context});
+  AuthWrapper({super.key, required this.context});
 
   @override
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
-  bool isEmailVerified = false;
   Timer? timer;
-
+  bool isEmailVerified = false;
 
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(seconds: 3), (_) {
-      setState(() {
-        FirebaseAuth.instance.currentUser?;
-        {
-          isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
-        }
-      });
+    timer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      await FirebaseAuth.instance.currentUser?.reload();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
+      }
+      setState(() {});
     });
   }
 
@@ -42,7 +43,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
 
-    if (firebaseUser != null && firebaseUser.emailVerified) {
+    if (firebaseUser != null && isEmailVerified) {
       timer?.cancel();
       return MultiProvider(
         providers: [
@@ -58,4 +59,3 @@ class _AuthWrapperState extends State<AuthWrapper> {
     }
   }
 }
-
