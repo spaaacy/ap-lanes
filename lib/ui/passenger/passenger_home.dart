@@ -1,3 +1,4 @@
+import 'package:ap_lanes/ui/common/app_drawer/app_drawer_state.dart';
 import 'package:ap_lanes/ui/passenger/components/driver_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +27,11 @@ class PassengerHome extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-            drawer: AppDrawer(
+            drawer: ChangeNotifierProvider<AppDrawerState>(
+              create: (context) => AppDrawerState(context),
+              child: AppDrawer(
+                isDriverMode: false,
+                user: state.user,
                 isNavigationLocked: state.isSearching,
                 onNavigateWhenLocked: () {
                   Navigator.of(context).pop();
@@ -36,7 +41,9 @@ class PassengerHome extends StatelessWidget {
                           "You cannot change to driver mode while you are searching for a driver or are in a journey."),
                     ),
                   );
-                }),
+                },
+              ),
+            ),
             body: Stack(
               children: [
                 const MapView(),

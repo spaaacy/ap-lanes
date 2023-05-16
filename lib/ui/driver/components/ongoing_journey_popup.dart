@@ -167,7 +167,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                                   style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                                 ),
                                 Text(
-                                  "RM ${ongoingState.activeJourney!.data().price}",
+                                  "RM ${ongoingState.activeJourney?.data().price ?? '0.00'}",
                                   style: Theme.of(context).textTheme.titleSmall,
                                 ),
                               ],
@@ -181,7 +181,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                                   style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
                                 ),
                                 Text(
-                                  ongoingState.activeJourney!.data().paymentMode,
+                                  ongoingState.activeJourney?.data().paymentMode ?? "Loading",
                                   style: Theme.of(context).textTheme.titleSmall,
                                 ),
                               ],
