@@ -10,6 +10,7 @@ const String driverMode = "DRIVER_MODE";
 // Firebase Authentication
 const String signedIn = "SIGNED_IN";
 const String signedUp = "SIGNED_UP";
+const String unverified = "UNVERIFIED";
 
 // Notifications
 const int passengerNotificationId = 0;

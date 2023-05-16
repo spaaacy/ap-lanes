@@ -36,7 +36,7 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                   mapController: mapViewState.mapController,
                   options: MapOptions(
                     onMapReady: () => mapViewState.isMapReady = true,
-                    interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    interactiveFlags: mapViewState.shouldCenter ? InteractiveFlag.all & ~InteractiveFlag.rotate : InteractiveFlag.none,
                     center: mapViewState.currentPosition,
                     zoom: 17,
                     minZoom: 7,

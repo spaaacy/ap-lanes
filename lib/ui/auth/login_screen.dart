@@ -1,4 +1,5 @@
 import 'package:ap_lanes/services/notification_service.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,36 +22,37 @@ class LoginScreen extends StatelessWidget {
         key: _signInFormKey,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextFormField(
-                controller: emailController,
-                decoration: const InputDecoration(hintText: "Email"),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
+          child: Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextFormField(
+                  controller: emailController,
+                  decoration: const InputDecoration(hintText: "Email"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
 
-                  return null;
-                },
-              ),
-              TextFormField(
-                obscureText: true,
-                controller: passwordController,
-                decoration: const InputDecoration(hintText: "Password"),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  obscureText: true,
+                  controller: passwordController,
+                  decoration: const InputDecoration(hintText: "Password"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
 
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8.0),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8.0),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
                     onPressed: () async {
                       String email = emailController.text.trim();
                       String password = passwordController.text.trim();
@@ -73,9 +75,19 @@ class LoginScreen extends StatelessWidget {
                       }
                     },
                     child: const Text("Login"),
+                  ),
                 ),
-              )
-            ],
+                if (context.watch<firebase_auth.User?>() != null)
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: TextButton(
+                        onPressed: () {
+                          context.read<AuthService>().sendEmailVerification();
+                        },
+                        child: const Text("Send verification email")),
+                  )
+              ],
+            ),
           ),
         ),
       ),
