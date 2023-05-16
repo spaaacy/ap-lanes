@@ -1,4 +1,5 @@
-import 'package:ap_lanes/ui/common/app_drawer.dart';
+import 'package:ap_lanes/ui/common/app_drawer/app_drawer.dart';
+import 'package:ap_lanes/ui/common/app_drawer/app_drawer_state.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view.dart';
 import 'package:ap_lanes/ui/driver/components/driver_go_button.dart';
 import 'package:ap_lanes/ui/driver/components/journey_request_popup.dart';
@@ -21,18 +22,20 @@ class DriverHome extends StatelessWidget {
     return (state.user == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
         : Scaffold(
-            drawer: AppDrawer(
-              user: state.user,
-              isDriver: true,
-              isNavigationLocked: state.driverState != DriverState.idle,
-              onNavigateWhenLocked: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("You cannot change to passenger mode while you are searching or carrying out a job."),
-                  ),
-                );
-              },
+            drawer: ChangeNotifierProvider<AppDrawerState>(
+              create: (context) => AppDrawerState(context),
+              child: AppDrawer(
+                isNavigationLocked: state.driverState != DriverState.idle,
+                onNavigateWhenLocked: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text("You cannot change to passenger mode while you are searching or carrying out a job."),
+                    ),
+                  );
+                },
+              ),
             ),
             appBar: AppBar(
               title: Text(
