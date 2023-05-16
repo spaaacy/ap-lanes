@@ -26,65 +26,102 @@ class JourneyRequestPopup extends StatelessWidget {
       top: 12,
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(8),
-              ),
+          Material(
+            elevation: isBusy ? 0 : 4.0,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(8),
             ),
-            child: isBusy
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Loading...',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'PASSENGER',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                      ),
-                      Text(
-                        requestState.availableJourneyPassenger?.data().getFullName() ?? 'Loading...',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'FROM',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                      ),
-                      Text(
-                        trimDescription(requestState.availableJourney!.data().startDescription),
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'TO',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                      ),
-                      Text(
-                        trimDescription(requestState.availableJourney!.data().endDescription),
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'DISTANCE',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                      ),
-                      Text(
-                        "${calculateRouteDistance(mapViewState.polylines.firstOrNull).toStringAsFixed(2)} km",
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                    ],
-                  ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              child: isBusy
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Loading...',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'PASSENGER',
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                        ),
+                        Text(
+                          requestState.availableJourneyPassenger?.data().getFullName() ?? 'Loading...',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'FROM',
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                        ),
+                        Text(
+                          trimDescription(requestState.availableJourney!.data().startDescription),
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'TO',
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                        ),
+                        Text(
+                          trimDescription(requestState.availableJourney!.data().endDescription),
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'DISTANCE',
+                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                                ),
+                                Text(
+                                  "${calculateRouteDistance(mapViewState.polylines.firstOrNull).toStringAsFixed(2)} km",
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'PRICE',
+                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                                ),
+                                Text(
+                                  "RM ${requestState.availableJourney!.data().price}",
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'PAYMENT MODE',
+                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                                ),
+                                Text(
+                                  requestState.availableJourney!.data().paymentMode,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+            ),
           ),
           const SizedBox(height: 8),
           ...(() {
@@ -95,17 +132,23 @@ class JourneyRequestPopup extends StatelessWidget {
                   Expanded(
                     flex: 0,
                     child: FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.blue),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        elevation: isBusy ? 0 : 4.0,
+                      ),
                       onPressed: isBusy
                           ? null
-                          : () => requestState.onRequestPopupNavigate(RequestNavigationDirection.backward),
+                          : () => requestState.onRequestPopupNavigate(RequestNavigationDirection.backward, context),
                       child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        elevation: isBusy ? 0 : 4.0,
+                      ),
                       onPressed: isBusy ? null : () => requestState.onJourneyAccept(),
                       child: Text(
                         'ACCEPT',
@@ -120,9 +163,13 @@ class JourneyRequestPopup extends StatelessWidget {
                   Expanded(
                     flex: 0,
                     child: FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.blue),
-                      onPressed:
-                          isBusy ? null : () => requestState.onRequestPopupNavigate(RequestNavigationDirection.forward),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        elevation: isBusy ? 0 : 4.0,
+                      ),
+                      onPressed: isBusy
+                          ? null
+                          : () => requestState.onRequestPopupNavigate(RequestNavigationDirection.forward, context),
                       child: const Icon(Icons.arrow_forward, color: Colors.white),
                     ),
                   ),

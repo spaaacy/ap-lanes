@@ -27,14 +27,19 @@ class JourneyRequestPopupState extends ChangeNotifier {
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
     _driverHomeState = Provider.of<DriverHomeState>(_context, listen: false);
     _onDriverStateChangedListener = _driverHomeState.onDriverStateChanged.listen(onDriverStateChangedCallback);
+
+    if (_driverHomeState.driverState == DriverState.searching) {
+      fetchInitialJourneys();
+      debugPrint("Ran initial fetch");
+    }
   }
 
   @override
-  void dispose() {
-    _onDriverStateChangedListener?.cancel();
-    _initialJourneysListener?.cancel();
-    _initialJourneysListener = null;
+  void dispose() async {
     super.dispose();
+    // await _onDriverStateChangedListener?.cancel();
+    await _initialJourneysListener?.cancel();
+    _initialJourneysListener = null;
   }
 
   final _userRepo = UserRepo();
@@ -121,13 +126,12 @@ class JourneyRequestPopupState extends ChangeNotifier {
       );
       _mapViewState.notifyListeners();
     } on Exception catch (e) {
-      ScaffoldMessenger.of(_context).showSnackBar(
-        const SnackBar(content: Text("The journey location retrieved was invalid."))
-      );
+      ScaffoldMessenger.of(_context)
+          .showSnackBar(const SnackBar(content: Text("The journey location retrieved was invalid.")));
     }
   }
 
-  void onRequestPopupNavigate(RequestNavigationDirection direction) async {
+  void onRequestPopupNavigate(RequestNavigationDirection direction, BuildContext context) async {
     isLoadingJourneyRequests = true;
     QueryDocumentSnapshot<Journey>? journeyToShow = _availableJourney;
     switch (direction) {
@@ -145,8 +149,8 @@ class JourneyRequestPopupState extends ChangeNotifier {
             await _initialJourneysListener?.cancel();
             _initialJourneysListener = null;
           } else {
-            if (_context.mounted) {
-              ScaffoldMessenger.of(_context).showSnackBar(
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text("Reached end of request list."),
                 ),
@@ -169,8 +173,8 @@ class JourneyRequestPopupState extends ChangeNotifier {
             await _initialJourneysListener?.cancel();
             _initialJourneysListener = null;
           } else {
-            if (_context.mounted) {
-              ScaffoldMessenger.of(_context).showSnackBar(
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text("Reached start of request list."),
                 ),
@@ -190,9 +194,10 @@ class JourneyRequestPopupState extends ChangeNotifier {
     _initialJourneysListener ??= _journeyRepo.getFirstJourneyRequest(_firebaseUser!.uid).listen((snap) async {
       _availableJourneys = snap;
       final journeyIndex = _currentJourneyIndex > (snap.size - 1) ? snap.size - 1 : _currentJourneyIndex;
-      final journeyToShow = snap.size > 0 ? _availableJourneys!.docs.elementAt(journeyIndex) : null;
+      final journeyToShow = snap.size > 0 ? snap.docs.elementAt(journeyIndex) : null;
       await updateAvailableJourney(journeyToShow);
       _isLoadingJourneyRequests = false;
+      notifyListeners();
     });
   }
 
@@ -229,6 +234,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
   }
 
   void onDriverStateChangedCallback(MapEntry<DriverState, dynamic> state) {
+    if (!_context.mounted) return;
     switch (state.key) {
       case DriverState.idle:
         resetAvailableJourneys();

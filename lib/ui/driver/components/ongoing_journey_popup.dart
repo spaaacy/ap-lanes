@@ -42,18 +42,6 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
     }
   }
 
-  void _handleContactAppLaunch(String value, String phoneNumber) {
-    switch (value) {
-      case 'whatsapp':
-        launchWhatsApp(phoneNumber);
-        break;
-      case 'phone':
-      default:
-        launchUrl(Uri.parse("tel://${phoneNumber.trim()}"));
-        break;
-    }
-  }
-
   DriverAction _getCurrentDriverAction() {
     final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
 
@@ -106,41 +94,103 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
       top: 12,
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(8),
-              ),
+          Material(
+            elevation: ongoingState.isLoadingJourneyRequest ? 0.0 : 4.0,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(8),
             ),
-            child: ongoingState.isLoadingJourneyRequest
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getStatusMessage(),
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                      ),
-                      Text(
-                        ongoingState.activeJourneyPassenger?.data().getFullName() ?? 'Loading...',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'AT',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
-                      ),
-                      Text(
-                        trimDescription(_getTargetLocation()),
-                        style: Theme.of(context).textTheme.titleSmall,
-                      )
-                    ],
-                  ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              child: ongoingState.isLoadingJourneyRequest
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _getStatusMessage(),
+                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                                ),
+                                Text(
+                                  ongoingState.activeJourneyPassenger?.data().getFullName() ?? 'Loading...',
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            IconButton(
+                                onPressed: () {
+                                  launchWhatsApp(ongoingState.activeJourneyPassenger?.data().phoneNumber ?? "");
+                                },
+                                icon: SvgPicture.asset(
+                                  'assets/icons/whatsapp.svg',
+                                  height: 30,
+                                  width: 30,
+                                )),
+                            IconButton(
+                              onPressed: () {
+                                launchUrl(
+                                  Uri.parse("tel://${ongoingState.activeJourneyPassenger?.data().phoneNumber}"),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.phone,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'AT',
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                        ),
+                        Text(
+                          trimDescription(_getTargetLocation()),
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'PRICE',
+                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                                ),
+                                Text(
+                                  "RM ${ongoingState.activeJourney!.data().price}",
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'PAYMENT MODE',
+                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black45),
+                                ),
+                                Text(
+                                  ongoingState.activeJourney!.data().paymentMode,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+            ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -148,78 +198,55 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              PopupMenuButton<String>(
-                onSelected: _handleNavigationAppLaunch,
-                icon: const Icon(Icons.navigation, size: 20),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'waze',
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/waze.svg',
-                          height: 24,
-                          width: 24,
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                height: 48,
+                child: Material(
+                  elevation: ongoingState.isLoadingJourneyRequest ? 0.0 : 4.0,
+                  shape: const CircleBorder(),
+                  child: PopupMenuButton<String>(
+                    onSelected: _handleNavigationAppLaunch,
+                    icon: const Icon(Icons.navigation, size: 16),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'waze',
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              'assets/icons/waze.svg',
+                              height: 24,
+                              width: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Waze')
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const Text('Waze')
-                      ],
-                    ),
+                      ),
+                      PopupMenuItem(
+                        value: 'google-maps',
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              'assets/icons/google_maps.svg',
+                              height: 24,
+                              width: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Google Maps')
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                  PopupMenuItem(
-                    value: 'google-maps',
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/google_maps.svg',
-                          height: 24,
-                          width: 24,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text('Google Maps')
-                      ],
-                    ),
-                  )
-                ],
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) => _handleContactAppLaunch(
-                  value,
-                  ongoingState.activeJourneyPassenger?.data().phoneNumber ?? "",
                 ),
-                icon: const Icon(Icons.phone, size: 22),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'phone',
-                    child: Row(
-                      children: const [
-                        Icon(Icons.phone),
-                        SizedBox(width: 8),
-                        Text('Call'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'whatsapp',
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/whatsapp.svg',
-                          height: 24,
-                          width: 24,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text('WhatsApp'),
-                      ],
-                    ),
-                  )
-                ],
               ),
+              const SizedBox(width: 8),
               (() {
                 if (ongoingState.activeJourney?.get('isPickedUp') == true) {
                   return ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
+                      elevation: ongoingState.isLoadingJourneyRequest ? 0.0 : 4.0,
                     ),
                     onPressed: ongoingState.isLoadingJourneyRequest ? null : () => ongoingState.onJourneyPickUp(),
                     child: const Text('UNDO PICK-UP'),
@@ -229,6 +256,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                     child: FilledButton(
                       style: FilledButton.styleFrom(
                         backgroundColor: Colors.blue,
+                        elevation: ongoingState.isLoadingJourneyRequest ? 0.0 : 4.0,
                       ),
                       onPressed: ongoingState.isLoadingJourneyRequest ? null : () => ongoingState.onJourneyPickUp(),
                       child: Text(
@@ -248,7 +276,10 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: FilledButton(
-                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          elevation: ongoingState.isLoadingJourneyRequest ? 0.0 : 4.0,
+                        ),
                         onPressed: ongoingState.isLoadingJourneyRequest ? null : () => ongoingState.onJourneyDropOff(),
                         child: Text(
                           'CONFIRM DROP-OFF',
