@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
             style: FilledButtonTheme.of(context).style,
           ),
         ),
-        home: AuthWrapper(context: context),
+        home: const AuthWrapper(),
       ),
     );
   }

@@ -9,8 +9,24 @@ import '../util/constants.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth;
+  Timer? timer;
+  bool isEmailVerified = false;
 
-  AuthService(this._firebaseAuth);
+  void _checkIfEmailVerified() async {
+    await FirebaseAuth.instance.currentUser?.reload();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
+    }
+  }
+
+  AuthService(this._firebaseAuth) {
+    if (_firebaseAuth.currentUser?.emailVerified == false) {
+      timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+        _checkIfEmailVerified();
+      });
+    }
+  }
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
@@ -22,6 +38,7 @@ class AuthService {
       await _firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
       if (_firebaseAuth.currentUser!.emailVerified) {
+        timer?.cancel();
         return signedIn;
       } else {
         return "Verify your email to continue";
@@ -74,5 +91,9 @@ class AuthService {
 
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+    isEmailVerified = false;
+    timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _checkIfEmailVerified();
+    });
   }
 }
