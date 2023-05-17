@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<AuthService>(
+        ChangeNotifierProvider<AuthService>(
           create: (_) => AuthService(FirebaseAuth.instance),
         ),
         StreamProvider<User?>(
@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
             style: FilledButtonTheme.of(context).style,
           ),
         ),
-        home: AuthWrapper(context: context),
+        home: const AuthWrapper(),
       ),
     );
   }

@@ -8,6 +8,10 @@ import 'package:latlong2/latlong.dart';
 import '../../../util/location_helpers.dart';
 
 class MapViewState extends ChangeNotifier {
+  MapViewState(BuildContext context) {
+    initializeLocation(context);
+  }
+
   /*
   * Variables
   * */

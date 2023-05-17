@@ -57,7 +57,7 @@ class SignUpScreen extends StatelessWidget {
               ),
               TextFormField(
                 validator: (value) {
-                  if (value == null || value.isEmpty || !_emailRegExp.hasMatch(value)) {
+                  if (value == null || value.isEmpty) { // || !_emailRegExp.hasMatch(value)) {
                     return 'Your email must belong to APU';
                   }
                   return null;
@@ -119,10 +119,15 @@ class SignUpScreen extends StatelessWidget {
                             if (result == constants.signedIn) {
                               Navigator.of(context).pop(); // pop loader
                               Navigator.of(context).pop(); // pop signup page
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Verify your email to continue")),
+                              );
                             } else {
                               Navigator.of(context).pop(); // pop loader
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Something went wrong when signing up.')),
+                                SnackBar(content: Text(result)),
+                              );ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(result)),
                               );
                             }
                           }
