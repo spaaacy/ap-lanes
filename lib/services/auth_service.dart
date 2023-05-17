@@ -41,7 +41,6 @@ class AuthService extends ChangeNotifier {
       await _firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
       if (_firebaseAuth.currentUser!.emailVerified) {
-        timer?.cancel();
         return signedIn;
       } else {
         return "Verify your email to continue";
