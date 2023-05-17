@@ -15,7 +15,7 @@ class SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.read<PassengerHomeState>();
-    final mapViewState = context.read<MapViewState>();
+    final mapViewState = context.watch<MapViewState>();
     String lang = Localizations.localeOf(context).languageCode;
 
     if (state.isSearching || state.hasDriver || mapViewState.currentPosition == null) return const SizedBox.shrink();
