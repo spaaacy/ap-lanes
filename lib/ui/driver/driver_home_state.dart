@@ -50,28 +50,33 @@ class DriverHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
-  late final StreamController<MapEntry<DriverState, dynamic>> _onDriverStateStreamController = StreamController();
-  late final Stream<MapEntry<DriverState, dynamic>> onDriverStateChanged = _onDriverStateStreamController.stream;
+  late final StreamController<MapEntry<DriverState, dynamic>> _onDriverStateStreamController;
+  late final Stream<MapEntry<DriverState, dynamic>> onDriverStateChanged;
 
-  late final StreamController<QueryDocumentSnapshot<Journey>?> _onJourneyRequestAcceptedStreamController =
-      StreamController();
-  late final Stream<QueryDocumentSnapshot<Journey>?> onJourneyRequestAccepted =
-      _onJourneyRequestAcceptedStreamController.stream;
+  late final StreamController<QueryDocumentSnapshot<Journey>?> _onJourneyRequestAcceptedStreamController;
+  late final Stream<QueryDocumentSnapshot<Journey>?> onJourneyRequestAccepted;
 
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
 
   DriverHomeState(this._context) {
+    _onDriverStateStreamController = StreamController.broadcast();
+    onDriverStateChanged = _onDriverStateStreamController.stream;
+
+    _onJourneyRequestAcceptedStreamController = StreamController();
+    onJourneyRequestAccepted = _onJourneyRequestAcceptedStreamController.stream;
+
     _mapViewState = Provider.of<MapViewState>(_context, listen: false);
     initializeFirebase();
   }
 
   @override
-  void dispose() {
-    _onDriverStateStreamController.close();
-
+  void dispose() async {
     super.dispose();
+
+    await _onDriverStateStreamController.close();
+    await _onJourneyRequestAcceptedStreamController.close();
   }
 
   Future<void> initializeFirebase() async {
@@ -89,7 +94,6 @@ class DriverHomeState extends ChangeNotifier {
       final setupResult = await showDriverSetupDialog();
       if (setupResult == false) {
         _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
-        dispose();
         return;
       }
     }
@@ -117,7 +121,6 @@ class DriverHomeState extends ChangeNotifier {
       }
       if (!_context.mounted) return;
       _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
-      dispose();
       return;
     }
 
