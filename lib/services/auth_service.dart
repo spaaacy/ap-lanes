@@ -7,7 +7,7 @@ import '../data/model/remote/user.dart' as model;
 import '../data/repo/user_repo.dart';
 import '../util/constants.dart';
 
-class AuthService {
+class AuthService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth;
   Timer? timer;
   bool isEmailVerified = false;
@@ -17,14 +17,17 @@ class AuthService {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
+      notifyListeners();
     }
   }
 
   AuthService(this._firebaseAuth) {
-    if (_firebaseAuth.currentUser?.emailVerified == false) {
+    if (_firebaseAuth.currentUser?.emailVerified != true) {
       timer = Timer.periodic(const Duration(seconds: 3), (timer) {
         _checkIfEmailVerified();
       });
+    } else if (_firebaseAuth.currentUser != null && _firebaseAuth.currentUser!.emailVerified == true) {
+      isEmailVerified = true;
     }
   }
 
