@@ -1,7 +1,8 @@
-import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -9,35 +10,37 @@ class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
 
   @override
-  State<MapView> createState() => _State();
+  State<MapView> createState() => MapViewState();
 }
 
-class _State extends State<MapView> with TickerProviderStateMixin {
+class MapViewState extends State<MapView> with TickerProviderStateMixin {
   AnimationController? animationController;
+  MapViewProvider? mapViewState;
 
   @override
   void initState() {
     super.initState();
-    context.read<MapViewState>().ticker = this;
-    animationController = context.read<MapViewState>().animationController;
+    context.read<MapViewProvider>().mapView = this;
   }
 
   @override
   Widget build(BuildContext context) {
-    final MapViewState mapViewState = context.watch<MapViewState>();
+    mapViewState = context.watch<MapViewProvider>();
 
-    return mapViewState.currentPosition == null
+    return mapViewState!.currentPosition == null
         ? const Center(
             child: CircularProgressIndicator(),
           )
         : Stack(
             children: [
               FlutterMap(
-                  mapController: mapViewState.mapController,
+                  mapController: mapViewState!.mapController,
                   options: MapOptions(
-                    onMapReady: () => mapViewState.isMapReady = true,
-                    interactiveFlags: mapViewState.shouldCenter ? InteractiveFlag.all & ~InteractiveFlag.rotate : InteractiveFlag.none,
-                    center: mapViewState.currentPosition,
+                    onMapReady: () => mapViewState!.isMapReady = true,
+                    interactiveFlags: mapViewState!.shouldCenter
+                        ? InteractiveFlag.all & ~InteractiveFlag.rotate
+                        : InteractiveFlag.none,
+                    center: mapViewState!.currentPosition,
                     zoom: 17,
                     minZoom: 7,
                     maxZoom: 18,
@@ -52,9 +55,9 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                       subdomains: const ['a', 'b', 'c', 'd'],
                       tileProvider: FMTC.instance('mapStore').getTileProvider(),
                     ),
-                    MarkerLayer(markers: mapViewState.markers.values.toList()),
+                    MarkerLayer(markers: mapViewState!.markers.values.toList()),
                     PolylineLayer(
-                      polylines: mapViewState.polylines.toList(),
+                      polylines: mapViewState!.polylines.toList(),
                     )
                   ]),
               Positioned.fill(
@@ -67,7 +70,6 @@ class _State extends State<MapView> with TickerProviderStateMixin {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-
                               title: const Text("Map Attributions"),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -100,10 +102,55 @@ class _State extends State<MapView> with TickerProviderStateMixin {
           );
   }
 
+  void animateCamera(LatLng destLocation, double destZoom) {
+    if (mapViewState != null) {
+      const startedId = 'AnimatedMapController#MoveStarted';
+      const inProgressId = 'AnimatedMapController#MoveInProgress';
+      const finishedId = 'AnimatedMapController#MoveFinished';
+
+      final latTween = Tween<double>(begin: mapViewState!.mapController.center.latitude, end: destLocation.latitude);
+      final lngTween = Tween<double>(begin: mapViewState!.mapController.center.longitude, end: destLocation.longitude);
+      final zoomTween = Tween<double>(begin: mapViewState!.mapController.zoom, end: destZoom);
+
+      final animationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+
+      final Animation<double> animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
+
+      final startIdWithTarget = '$startedId#${destLocation.latitude},${destLocation.longitude},$destZoom';
+      bool hasTriggeredMove = false;
+
+      animationController.addListener(() {
+        final String id;
+        if (animation.value == 1.0) {
+          id = finishedId;
+        } else if (!hasTriggeredMove) {
+          id = startIdWithTarget;
+        } else {
+          id = inProgressId;
+        }
+
+        hasTriggeredMove |= mapViewState!.mapController.move(
+          LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+          zoomTween.evaluate(animation),
+          id: id,
+        );
+      });
+
+      animation.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          animationController.dispose();
+        } else if (status == AnimationStatus.dismissed) {
+          animationController.dispose();
+        }
+      });
+
+      animationController.forward();
+    }
+  }
+
   @override
   void dispose() {
     animationController?.dispose();
     super.dispose();
   }
-
 }

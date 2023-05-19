@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ap_lanes/ui/common/map_view/map_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,8 +8,8 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../util/location_helpers.dart';
 
-class MapViewState extends ChangeNotifier {
-  MapViewState(BuildContext context) {
+class MapViewProvider extends ChangeNotifier {
+  MapViewProvider(BuildContext context) {
     initializeLocation(context);
   }
 
@@ -16,14 +17,13 @@ class MapViewState extends ChangeNotifier {
   * Variables
   * */
   bool _shouldCenter = true;
-  final MapController _mapController = MapController();
   LatLng? _currentPosition;
   StreamSubscription<Position>? _locationListener;
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<String, Marker> _markers = <String, Marker>{};
   bool isMapReady = false;
-  TickerProviderStateMixin? ticker;
-  AnimationController? animationController;
+  MapViewState? mapView;
+  final MapController _mapController = MapController();
 
   /*
   * Functions
@@ -50,7 +50,7 @@ class MapViewState extends ChangeNotifier {
 
   Future<void> resetCamera() async {
     if (!isMapReady || currentPosition == null) return;
-    _animateCamera(_currentPosition!, 17.0);
+    mapView?.animateCamera(_currentPosition!, 17.0);
   }
 
   void setCameraBetweenMarkers({
@@ -92,7 +92,7 @@ class MapViewState extends ChangeNotifier {
 
     final centerZoom = _mapController.centerZoomFitBounds(bounds);
 
-    _animateCamera(centerZoom.center, centerZoom.zoom);
+    mapView?.animateCamera(centerZoom.center, centerZoom.zoom);
   }
 
   void setCameraToRoute({
@@ -131,60 +131,13 @@ class MapViewState extends ChangeNotifier {
 
     final centerZoom = _mapController.centerZoomFitBounds(bounds);
 
-    _animateCamera(centerZoom.center, centerZoom.zoom);
+    mapView?.animateCamera(centerZoom.center, centerZoom.zoom);
 
-  }
-
-  void _animateCamera(LatLng destLocation, double destZoom) {
-    if (isMapReady && ticker != null) {
-      const startedId = 'AnimatedMapController#MoveStarted';
-      const inProgressId = 'AnimatedMapController#MoveInProgress';
-      const finishedId = 'AnimatedMapController#MoveFinished';
-
-      final latTween = Tween<double>(begin: _mapController.center.latitude, end: destLocation.latitude);
-      final lngTween = Tween<double>(begin: _mapController.center.longitude, end: destLocation.longitude);
-      final zoomTween = Tween<double>(begin: _mapController.zoom, end: destZoom);
-
-      final animationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: ticker!);
-
-      final Animation<double> animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
-
-      final startIdWithTarget = '$startedId#${destLocation.latitude},${destLocation.longitude},$destZoom';
-      bool hasTriggeredMove = false;
-
-      animationController.addListener(() {
-        final String id;
-        if (animation.value == 1.0) {
-          id = finishedId;
-        } else if (!hasTriggeredMove) {
-          id = startIdWithTarget;
-        } else {
-          id = inProgressId;
-        }
-
-        hasTriggeredMove |= _mapController.move(
-          LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
-          zoomTween.evaluate(animation),
-          id: id,
-        );
-      });
-
-      animation.addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          animationController.dispose();
-        } else if (status == AnimationStatus.dismissed) {
-          animationController.dispose();
-        }
-      });
-
-      animationController.forward();
-    }
   }
 
   void resetMap() {
     isMapReady = false;
-    ticker = null;
-    animationController = null;
+    mapView = null;
     _shouldCenter = true;
     _polylines.clear();
     _markers.removeWhere((key, value) => key != "user");

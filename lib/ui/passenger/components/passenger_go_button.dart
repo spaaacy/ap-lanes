@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../passenger_home_state.dart';
+import '../passenger_home_provider.dart';
 
 class PassengerGoButton extends StatelessWidget {
   const PassengerGoButton({super.key});
@@ -10,7 +10,7 @@ class PassengerGoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<firebase_auth.User?>();
-    final state = Provider.of<PassengerHomeState>(context);
+    final state = Provider.of<PassengerHomeProvider>(context);
 
     if (state.routeDistance == null && !state.isSearching) return const SizedBox.shrink();
 
