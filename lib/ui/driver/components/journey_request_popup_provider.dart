@@ -5,27 +5,27 @@ import 'package:ap_lanes/data/model/remote/user.dart';
 import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/services/place_service.dart';
-import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
-import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
+import 'package:ap_lanes/ui/driver/driver_home_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:provider/provider.dart';
 
-class JourneyRequestPopupState extends ChangeNotifier {
+class JourneyRequestPopupProvider extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
-  late final MapViewState _mapViewState;
-  late final DriverHomeState _driverHomeState;
+  late final MapViewProvider _mapViewState;
+  late final DriverHomeProvider _driverHomeState;
 
   StreamSubscription<MapEntry<DriverState, dynamic>>? _onDriverStateChangedListener;
   StreamSubscription<QuerySnapshot<Journey>>? _initialJourneysListener;
 
-  JourneyRequestPopupState(this._context) {
+  JourneyRequestPopupProvider(this._context) {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
-    _mapViewState = Provider.of<MapViewState>(_context, listen: false);
-    _driverHomeState = Provider.of<DriverHomeState>(_context, listen: false);
+    _mapViewState = Provider.of<MapViewProvider>(_context, listen: false);
+    _driverHomeState = Provider.of<DriverHomeProvider>(_context, listen: false);
     _onDriverStateChangedListener = _driverHomeState.onDriverStateChanged.listen(onDriverStateChangedCallback);
 
     if (_driverHomeState.driverState == DriverState.searching) {

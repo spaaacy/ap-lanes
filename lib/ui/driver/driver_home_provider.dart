@@ -6,8 +6,8 @@ import 'package:ap_lanes/data/model/remote/user.dart';
 import 'package:ap_lanes/data/repo/driver_repo.dart';
 import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
-import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
-import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
+import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_provider.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -20,10 +20,10 @@ enum DriverState {
   ongoing,
 }
 
-class DriverHomeState extends ChangeNotifier {
+class DriverHomeProvider extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
-  late final MapViewState _mapViewState;
+  late final MapViewProvider _mapViewState;
 
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Driver>? _driver;
@@ -60,14 +60,14 @@ class DriverHomeState extends ChangeNotifier {
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
 
-  DriverHomeState(this._context) {
+  DriverHomeProvider(this._context) {
     _onDriverStateStreamController = StreamController.broadcast();
     onDriverStateChanged = _onDriverStateStreamController.stream;
 
     _onJourneyRequestAcceptedStreamController = StreamController();
     onJourneyRequestAccepted = _onJourneyRequestAcceptedStreamController.stream;
 
-    _mapViewState = Provider.of<MapViewState>(_context, listen: false);
+    _mapViewState = Provider.of<MapViewProvider>(_context, listen: false);
     initializeFirebase();
   }
 
@@ -93,7 +93,7 @@ class DriverHomeState extends ChangeNotifier {
     } else {
       final setupResult = await showDriverSetupDialog();
       if (setupResult == false) {
-        _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+        _context.read<UserWrapperProvider>().userMode = UserMode.passengerMode;
         return;
       }
     }
@@ -120,7 +120,7 @@ class DriverHomeState extends ChangeNotifier {
         );
       }
       if (!_context.mounted) return;
-      _context.read<UserWrapperState>().userMode = UserMode.passengerMode;
+      _context.read<UserWrapperProvider>().userMode = UserMode.passengerMode;
       return;
     }
 

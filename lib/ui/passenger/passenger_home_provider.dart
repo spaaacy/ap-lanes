@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:ap_lanes/data/repo/driver_repo.dart';
-import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -20,9 +20,9 @@ import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
 
-class PassengerHomeState extends ChangeNotifier {
+class PassengerHomeProvider extends ChangeNotifier {
 
-  PassengerHomeState(this._context) {
+  PassengerHomeProvider(this._context) {
     initialize();
   }
 
@@ -30,7 +30,7 @@ class PassengerHomeState extends ChangeNotifier {
   * Variables
   * */
   final BuildContext _context;
-  late final MapViewState mapViewState;
+  late final MapViewProvider mapViewState;
   final NotificationService notificationService = NotificationService();
 
   final _driverRepo = DriverRepo();
@@ -76,7 +76,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   Future<void> initialize() async {
     _searchController.addListener(() => notifyListeners());
-    mapViewState = _context.read<MapViewState>();
+    mapViewState = _context.read<MapViewProvider>();
     initializeFirestore();
   }
 

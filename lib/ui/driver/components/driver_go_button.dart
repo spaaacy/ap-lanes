@@ -1,4 +1,4 @@
-import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +7,7 @@ class DriverGoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<DriverHomeState>(context);
+    final state = Provider.of<DriverHomeProvider>(context);
 
     if (state.driverState == DriverState.ongoing) return const SizedBox.shrink();
 

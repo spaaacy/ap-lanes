@@ -1,4 +1,4 @@
-import 'package:ap_lanes/ui/passenger/passenger_home_state.dart';
+import 'package:ap_lanes/ui/passenger/passenger_home_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +11,7 @@ class DriverDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<PassengerHomeState>();
+    final state = context.watch<PassengerHomeProvider>();
 
     if (!state.hasDriver) return const SizedBox.shrink();
 

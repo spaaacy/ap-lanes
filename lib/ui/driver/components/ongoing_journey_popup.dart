@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
-import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_provider.dart';
+import 'package:ap_lanes/ui/driver/driver_home_provider.dart';
 import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -22,7 +22,7 @@ class OngoingJourneyPopup extends StatefulWidget {
 
 class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   void _handleNavigationAppLaunch(String value) {
-    final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
+    final state = Provider.of<OngoingJourneyPopupProvider>(context, listen: false);
 
     Future<void> Function(LatLng latLng) launchFunction;
     switch (value) {
@@ -43,7 +43,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   }
 
   DriverAction _getCurrentDriverAction() {
-    final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
+    final state = Provider.of<OngoingJourneyPopupProvider>(context, listen: false);
 
     if (state.activeJourney == null) return DriverAction.idle;
 
@@ -67,7 +67,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
   }
 
   String _getTargetLocation() {
-    final state = Provider.of<OngoingJourneyPopupState>(context, listen: false);
+    final state = Provider.of<OngoingJourneyPopupProvider>(context, listen: false);
 
     switch (_getCurrentDriverAction()) {
       case DriverAction.droppingOff:
@@ -82,11 +82,11 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<DriverHomeState>(context);
+    final state = Provider.of<DriverHomeProvider>(context);
 
     if (state.driverState != DriverState.ongoing) return const SizedBox.shrink();
 
-    final ongoingState = Provider.of<OngoingJourneyPopupState>(context);
+    final ongoingState = Provider.of<OngoingJourneyPopupProvider>(context);
 
     return Positioned.fill(
       left: 12,

@@ -1,11 +1,11 @@
-import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
 
 import '../../../services/place_service.dart';
 import '../../../util/location_helpers.dart';
-import '../passenger_home_state.dart';
+import '../passenger_home_provider.dart';
 
 class SearchBar extends StatelessWidget {
   final _placeService = PlaceService();
@@ -14,8 +14,8 @@ class SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.read<PassengerHomeState>();
-    final mapViewState = context.watch<MapViewState>();
+    final state = context.read<PassengerHomeProvider>();
+    final mapViewState = context.watch<MapViewProvider>();
     String lang = Localizations.localeOf(context).languageCode;
 
     if (state.isSearching || state.hasDriver || mapViewState.currentPosition == null) return const SizedBox.shrink();
