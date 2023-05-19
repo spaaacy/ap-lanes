@@ -6,8 +6,8 @@ import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/services/driver_location_service.dart';
 import 'package:ap_lanes/services/notification_service.dart';
-import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
-import 'package:ap_lanes/ui/driver/driver_home_provider.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -16,11 +16,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
-class OngoingJourneyPopupProvider extends ChangeNotifier {
+class OngoingJourneyPopupState extends ChangeNotifier {
   final BuildContext _context;
   late final firebase_auth.User? _firebaseUser;
-  late final MapViewProvider _mapViewState;
-  late final DriverHomeProvider _driverHomeState;
+  late final MapViewState2 _mapViewState;
+  late final DriverHomeState _driverHomeState;
   late StreamSubscription<QueryDocumentSnapshot<Journey>?> _onJourneyRequestAcceptedListener;
 
   QueryDocumentSnapshot<Journey>? _ongoingJourneyRequest;
@@ -69,10 +69,10 @@ class OngoingJourneyPopupProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  OngoingJourneyPopupProvider(this._context) {
+  OngoingJourneyPopupState(this._context) {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
-    _mapViewState = Provider.of<MapViewProvider>(_context, listen: false);
-    _driverHomeState = Provider.of<DriverHomeProvider>(_context, listen: false);
+    _mapViewState = Provider.of<MapViewState2>(_context, listen: false);
+    _driverHomeState = Provider.of<DriverHomeState>(_context, listen: false);
     _onJourneyRequestAcceptedListener =
         _driverHomeState.onJourneyRequestAccepted.listen(onJourneyRequestAcceptedCallback);
   }

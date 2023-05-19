@@ -1,13 +1,13 @@
 import 'package:ap_lanes/data/model/remote/user.dart';
-import 'package:ap_lanes/ui/common/app_drawer/app_drawer_provider.dart';
-import 'package:ap_lanes/ui/driver/driver_home_provider.dart';
+import 'package:ap_lanes/ui/common/app_drawer/app_drawer_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../services/auth_service.dart';
-import '../map_view/map_view_provider.dart';
-import '../user_wrapper/user_wrapper_provider.dart';
+import '../map_view/map_view_state.dart';
+import '../user_wrapper/user_wrapper_state.dart';
 
 class AppDrawer extends StatelessWidget {
   final QueryDocumentSnapshot<User>? user;
@@ -26,7 +26,7 @@ class AppDrawer extends StatelessWidget {
   });
 
   Widget getDriverHeaderContent(BuildContext context) {
-    final state = Provider.of<DriverHomeProvider>(context, listen: false);
+    final state = Provider.of<DriverHomeState>(context, listen: false);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
@@ -47,8 +47,8 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MapViewProvider mapViewState = context.watch<MapViewProvider>();
-    final AppDrawerProvider appDrawerState = context.watch<AppDrawerProvider>();
+    final MapViewState2 mapViewState = context.watch<MapViewState2>();
+    final AppDrawerState appDrawerState = context.watch<AppDrawerState>();
 
     return Drawer(
       child: Column(
@@ -101,7 +101,7 @@ class AppDrawer extends StatelessWidget {
                       ? () => onNavigateWhenLocked()
                       : () {
                           mapViewState.resetMap();
-                          context.read<UserWrapperProvider>().userMode = UserMode.passengerMode;
+                          context.read<UserWrapperState>().userMode = UserMode.passengerMode;
                         });
             }
             return ListTile(
@@ -111,7 +111,7 @@ class AppDrawer extends StatelessWidget {
                   ? () => onNavigateWhenLocked()
                   : () {
                       mapViewState.resetMap();
-                      context.read<UserWrapperProvider>().userMode = UserMode.driverMode;
+                      context.read<UserWrapperState>().userMode = UserMode.driverMode;
                     },
             );
           }()),

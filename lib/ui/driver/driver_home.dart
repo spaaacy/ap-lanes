@@ -1,12 +1,12 @@
 import 'package:ap_lanes/ui/common/app_drawer/app_drawer.dart';
-import 'package:ap_lanes/ui/common/app_drawer/app_drawer_provider.dart';
+import 'package:ap_lanes/ui/common/app_drawer/app_drawer_state.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view.dart';
 import 'package:ap_lanes/ui/driver/components/driver_go_button.dart';
 import 'package:ap_lanes/ui/driver/components/journey_request_popup.dart';
-import 'package:ap_lanes/ui/driver/components/journey_request_popup_provider.dart';
+import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
 import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup.dart';
-import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_provider.dart';
-import 'package:ap_lanes/ui/driver/driver_home_provider.dart';
+import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,13 +17,13 @@ class DriverHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<DriverHomeProvider>(context);
+    final state = Provider.of<DriverHomeState>(context);
 
     return (state.user == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
         : Scaffold(
-            drawer: ChangeNotifierProvider<AppDrawerProvider>(
-              create: (context) => AppDrawerProvider(context),
+            drawer: ChangeNotifierProvider<AppDrawerState>(
+              create: (context) => AppDrawerState(context),
               child: AppDrawer(
                 isDriverMode: true,
                 user: state.user,
@@ -49,12 +49,12 @@ class DriverHome extends StatelessWidget {
               children: [
                 const MapView(),
                 const DriverGoButton(),
-                ChangeNotifierProvider<JourneyRequestPopupProvider>(
-                  create: (ctx) => JourneyRequestPopupProvider(ctx),
+                ChangeNotifierProvider<JourneyRequestPopupState>(
+                  create: (ctx) => JourneyRequestPopupState(ctx),
                   child: const JourneyRequestPopup(),
                 ),
-                ChangeNotifierProvider<OngoingJourneyPopupProvider>(
-                  create: (ctx) => OngoingJourneyPopupProvider(ctx),
+                ChangeNotifierProvider<OngoingJourneyPopupState>(
+                  create: (ctx) => OngoingJourneyPopupState(ctx),
                   child: const OngoingJourneyPopup(),
                 ),
               ],

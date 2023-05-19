@@ -1,4 +1,4 @@
-import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
@@ -10,22 +10,22 @@ class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
 
   @override
-  State<MapView> createState() => MapViewState();
+  State<MapView> createState() => MapViewState1();
 }
 
-class MapViewState extends State<MapView> with TickerProviderStateMixin {
+class MapViewState1 extends State<MapView> with TickerProviderStateMixin {
   AnimationController? animationController;
-  MapViewProvider? mapViewState;
+  MapViewState2? mapViewState;
 
   @override
   void initState() {
     super.initState();
-    context.read<MapViewProvider>().mapView = this;
+    context.read<MapViewState2>().mapView = this;
   }
 
   @override
   Widget build(BuildContext context) {
-    mapViewState = context.watch<MapViewProvider>();
+    mapViewState = context.watch<MapViewState2>();
 
     return mapViewState!.currentPosition == null
         ? const Center(

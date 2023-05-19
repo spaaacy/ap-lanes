@@ -8,8 +8,8 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../util/location_helpers.dart';
 
-class MapViewProvider extends ChangeNotifier {
-  MapViewProvider(BuildContext context) {
+class MapViewState2 extends ChangeNotifier {
+  MapViewState2(BuildContext context) {
     initializeLocation(context);
   }
 
@@ -22,7 +22,7 @@ class MapViewProvider extends ChangeNotifier {
   final Set<Polyline> _polylines = <Polyline>{};
   final Map<String, Marker> _markers = <String, Marker>{};
   bool isMapReady = false;
-  MapViewState? mapView;
+  MapViewState1? mapView;
   final MapController _mapController = MapController();
 
   /*

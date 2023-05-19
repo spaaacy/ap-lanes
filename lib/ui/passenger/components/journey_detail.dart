@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../util/location_helpers.dart';
-import '../passenger_home_provider.dart';
+import '../passenger_home_state.dart';
 
 class JourneyDetail extends StatelessWidget {
   const JourneyDetail({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<PassengerHomeProvider>(context);
+    final state = Provider.of<PassengerHomeState>(context);
 
     if (!state.isSearching && !state.hasDriver) return const SizedBox.shrink();
 

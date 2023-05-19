@@ -1,6 +1,6 @@
-import 'package:ap_lanes/ui/common/map_view/map_view_provider.dart';
-import 'package:ap_lanes/ui/driver/components/journey_request_popup_provider.dart';
-import 'package:ap_lanes/ui/driver/driver_home_provider.dart';
+import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
+import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,11 +12,11 @@ class JourneyRequestPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<DriverHomeProvider>(context);
+    final state = Provider.of<DriverHomeState>(context);
     if (state.driverState != DriverState.searching) return const SizedBox.shrink();
-    final requestState = Provider.of<JourneyRequestPopupProvider>(context);
+    final requestState = Provider.of<JourneyRequestPopupState>(context);
 
-    final MapViewProvider mapViewState = context.watch<MapViewProvider>();
+    final MapViewState2 mapViewState = context.watch<MapViewState2>();
 
     final isBusy = requestState.availableJourney == null || requestState.isLoadingJourneyRequests;
 

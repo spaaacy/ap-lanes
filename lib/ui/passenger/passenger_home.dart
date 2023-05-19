@@ -1,4 +1,4 @@
-import 'package:ap_lanes/ui/common/app_drawer/app_drawer_provider.dart';
+import 'package:ap_lanes/ui/common/app_drawer/app_drawer_state.dart';
 import 'package:ap_lanes/ui/passenger/components/driver_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,14 +9,14 @@ import '../common/map_view/map_view.dart';
 import 'components/journey_detail.dart';
 import 'components/passenger_go_button.dart';
 import 'components/search_bar.dart' as passenger_view;
-import 'passenger_home_provider.dart';
+import 'passenger_home_state.dart';
 
 class PassengerHome extends StatelessWidget {
   const PassengerHome({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<PassengerHomeProvider>(context);
+    final state = Provider.of<PassengerHomeState>(context);
 
     return (state.user == null)
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
@@ -27,8 +27,8 @@ class PassengerHome extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-            drawer: ChangeNotifierProvider<AppDrawerProvider>(
-              create: (context) => AppDrawerProvider(context),
+            drawer: ChangeNotifierProvider<AppDrawerState>(
+              create: (context) => AppDrawerState(context),
               child: AppDrawer(
                 isDriverMode: false,
                 user: state.user,
