@@ -24,7 +24,7 @@ showLoaderDialog(BuildContext context, String loadingText) {
   );
 }
 
-String getGreeting(String? lastName) {
+String getGreeting(String? firstName) {
   var hour = DateTime.now().hour;
   final String greeting;
 
@@ -38,9 +38,9 @@ String getGreeting(String? lastName) {
     greeting = 'Good Night';
   }
 
-  if (lastName == null) {
+  if (firstName == null) {
     return greeting;
   } else {
-    return "$greeting, $lastName";
+    return "$greeting, $firstName";
   }
 }
