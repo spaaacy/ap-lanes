@@ -30,8 +30,6 @@ class PassengerHome extends StatelessWidget {
             drawer: ChangeNotifierProvider<AppDrawerState>(
               create: (context) => AppDrawerState(context),
               child: AppDrawer(
-                isDriverMode: false,
-                user: state.user,
                 isNavigationLocked: state.isSearching,
                 onNavigateWhenLocked: () {
                   Navigator.of(context).pop();
