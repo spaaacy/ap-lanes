@@ -14,7 +14,6 @@ import 'ui/auth/auth_wrapper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  NotificationService().initialize();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -28,6 +27,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Initialized here to access context
+    NotificationService().initialize(context);
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthService>(
