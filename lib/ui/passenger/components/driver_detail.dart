@@ -83,15 +83,14 @@ class DriverDetail extends StatelessWidget {
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text("VEHICLE DETAILS",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w400, color: Colors.black54)),
+                            const Icon(Icons.drive_eta, color: Colors.black),
+                            const SizedBox(width: 4.0),
+                            Text("${state.vehicleColor}",
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
                             const Spacer(),
-                            Text("${state.vehicleColor}, ${state.vehicleManufacturer!} ${state.vehicleModel}",
+                            Text("${state.vehicleManufacturer!} ${state.vehicleModel}",
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
                           ],
                         )),
