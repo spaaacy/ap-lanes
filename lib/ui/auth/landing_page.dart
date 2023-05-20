@@ -21,7 +21,7 @@ class LandingPage extends StatelessWidget {
               Text("Welcome to",
                   style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 8.0),
-              Image.asset("assets/icons/logo.png", width: 200)
+              SizedBox(height: 50, child: Image.asset("assets/icons/logo.png", width: 100))
             ],
           )),
           Row(
