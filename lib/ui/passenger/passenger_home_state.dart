@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -21,7 +22,6 @@ import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
 
 class PassengerHomeState extends ChangeNotifier {
-
   PassengerHomeState(this._context) {
     initialize();
   }
@@ -53,6 +53,8 @@ class PassengerHomeState extends ChangeNotifier {
   bool _hasDriver = false;
   bool _toApu = false;
 
+  bool _stripeReady = false;
+
   String? _driverName;
   String? _driverLicensePlate;
   String? _driverPhone;
@@ -62,7 +64,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   final _searchController = TextEditingController();
   String _sessionToken = const Uuid().v4();
-
 
   /*
   * Functions
@@ -114,7 +115,7 @@ class PassengerHomeState extends ChangeNotifier {
                 if (!_hasDriver) {
                   notificationService.notifyPassenger("Driver has been found!",
                       body:
-                      "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
+                          "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
                 }
 
                 // Get driver details
@@ -132,7 +133,6 @@ class PassengerHomeState extends ChangeNotifier {
                 mapViewState.markers.remove("start");
                 mapViewState.markers.remove("destination");
                 _isSearching = false;
-
 
                 notifyListeners();
 
@@ -207,9 +207,8 @@ class PassengerHomeState extends ChangeNotifier {
           notifyListeners(); // Notifies when route is received
         });
       } on Exception catch (e) {
-        ScaffoldMessenger.of(_context).showSnackBar(
-            const SnackBar(content: Text("Invalid location! Please use another location."))
-        );
+        ScaffoldMessenger.of(_context)
+            .showSnackBar(const SnackBar(content: Text("Invalid location! Please use another location.")));
       }
     }
   }
@@ -256,9 +255,8 @@ class PassengerHomeState extends ChangeNotifier {
         notifyListeners();
       });
     } on Exception catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid location! Please use another location."))
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Invalid location! Please use another location.")));
     }
   }
 
