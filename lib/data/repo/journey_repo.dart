@@ -13,15 +13,15 @@ class JourneyRepo {
       .collection("journey")
       .withConverter(fromFirestore: Journey.fromFirestore, toFirestore: (Journey journey, _) => journey.toFirestore());
 
-  Future<void> createJourney(Journey journey) async {
+  Future<void> create(Journey journey) async {
     _journeyRef.add(journey);
   }
 
-  Future<void> deleteJourney(QueryDocumentSnapshot<Journey>? journey) async {
+  Future<void> delete(QueryDocumentSnapshot<Journey>? journey) async {
     journey?.reference.delete();
   }
 
-  Future<void> updateJourney(QueryDocumentSnapshot<Journey> journey, Map<Object, Object?> updatedValues) async {
+  Future<void> update(QueryDocumentSnapshot<Journey> journey, Map<Object, Object?> updatedValues) async {
     await journey.reference.update(updatedValues);
   }
 

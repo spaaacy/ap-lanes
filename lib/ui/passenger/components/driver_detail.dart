@@ -48,7 +48,7 @@ class DriverDetail extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
-                              state.driverLicensePlate!,
+                              state.vehicle?.data().licensePlate ?? '',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyMedium
@@ -87,10 +87,10 @@ class DriverDetail extends StatelessWidget {
                           children: [
                             const Icon(Icons.drive_eta, color: Colors.black),
                             const SizedBox(width: 4.0),
-                            Text("${state.vehicleColor}",
+                            Text("${state.vehicle?.data().color}",
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
                             const Spacer(),
-                            Text("${state.vehicleManufacturer!} ${state.vehicleModel}",
+                            Text("${state.vehicle?.data().manufacturer} ${state.vehicle?.data().model}",
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
                           ],
                         )),

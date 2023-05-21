@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:ap_lanes/data/model/remote/vehicle.dart';
 import 'package:ap_lanes/data/repo/driver_repo.dart';
+import 'package:ap_lanes/data/repo/vehicle_repo.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -36,6 +38,7 @@ class PassengerHomeState extends ChangeNotifier {
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
   final _userRepo = UserRepo();
+  final _vehicleRepo = VehicleRepo();
   final _placeService = PlaceService();
 
   QueryDocumentSnapshot<User>? _user;
@@ -54,11 +57,8 @@ class PassengerHomeState extends ChangeNotifier {
   bool _toApu = false;
 
   String? _driverName;
-  String? _driverLicensePlate;
   String? _driverPhone;
-  String? _vehicleManufacturer;
-  String? _vehicleModel;
-  String? _vehicleColor;
+  QueryDocumentSnapshot<Vehicle>? _vehicle;
 
   final _searchController = TextEditingController();
   String _sessionToken = const Uuid().v4();
@@ -85,7 +85,7 @@ class PassengerHomeState extends ChangeNotifier {
 
     if (firebaseUser != null) {
       // Set user and last name
-      _user = (await _userRepo.getUser(firebaseUser.uid))!;
+      _user = (await _userRepo.get(firebaseUser.uid))!;
       notifyListeners();
 
       _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
@@ -102,27 +102,25 @@ class PassengerHomeState extends ChangeNotifier {
 
             // Get driver name
             final driverId = _journey!.data().driverId;
-            await _userRepo.getUser(driverId).then((driver) {
+            await _userRepo.get(driverId).then((driver) {
               if (driver != null) {
                 _driverName = driver.data().getFullName();
                 _driverPhone = driver.data().phoneNumber;
               }
             });
 
-            _driverRepo.getDriver(driverId).then((driver) {
+            _driverRepo.get(driverId).then((driver) async {
               if (driver != null) {
-                if (!_hasDriver) {
-                  notificationService.notifyPassenger("Driver has been found!",
-                      body:
-                      "Your driver for today is $_driverName. Look for the license plate $_driverLicensePlate to meet your driver.");
-                }
 
                 // Get driver details
-                _driverLicensePlate = driver.data().licensePlate;
-                _vehicleManufacturer = driver.data().vehicleManufacturer;
-                _vehicleModel = driver.data().vehicleModel;
-                _vehicleColor = driver.data().vehicleColor;
+                _vehicle = await _vehicleRepo.get(driver.data().id);
                 _hasDriver = true;
+
+                if (_hasDriver) {
+                  notificationService.notifyPassenger("Driver has been found!",
+                      body:
+                      "Your driver for today is $_driverName. Look for the license plate ${_vehicle?.data().licensePlate} to meet your driver.");
+                }
 
                 // Clear map state
                 _routeDistance = null;
@@ -137,7 +135,7 @@ class PassengerHomeState extends ChangeNotifier {
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
-                _driverListener ??= _driverRepo.listenToDriver(driverId).listen((driver) {
+                _driverListener ??= _driverRepo.listen(driverId).listen((driver) {
                   if (driver.docs.isNotEmpty) {
                     final latLng = driver.docs.first.data().currentLatLng;
                     if (latLng != null && mapViewState.currentPosition != null) {
@@ -176,10 +174,7 @@ class PassengerHomeState extends ChangeNotifier {
     _hasDriver = false;
     _driverName = null;
     _driverPhone = null;
-    _driverLicensePlate = null;
-    _vehicleColor = null;
-    _vehicleManufacturer = null;
-    _vehicleColor = null;
+    _vehicle = null;
   }
 
   void onDescription(description) {
@@ -271,7 +266,7 @@ class PassengerHomeState extends ChangeNotifier {
     if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
       if (_routeDistance! <= 7.0) {
         isSearching = true;
-        _journeyRepo.createJourney(
+        _journeyRepo.create(
           Journey(
             userId: firebaseUser.uid,
             startLatLng: toApu ? _destinationLatLng! : apuLatLng,
@@ -292,7 +287,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   void deleteJourney() {
     isSearching = false;
-    _journeyRepo.deleteJourney(_journey);
+    _journeyRepo.delete(_journey);
   }
 
   Future<void> resetState() async {
@@ -301,8 +296,8 @@ class PassengerHomeState extends ChangeNotifier {
       _hasDriver = false;
     }
     _driverName = null;
-    _driverLicensePlate = null;
     _driverPhone = null;
+    _vehicle = null;
     _journey = null;
     _isSearching = false;
     _isPickedUp = false;
@@ -347,8 +342,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   String? get driverPhone => _driverPhone;
 
-  String? get driverLicensePlate => _driverLicensePlate;
-
   String? get driverName => _driverName;
 
   bool get toApu => _toApu;
@@ -359,11 +352,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   bool get isSearching => _isSearching;
 
-  String? get vehicleModel => _vehicleModel;
-
-  String? get vehicleManufacturer => _vehicleManufacturer;
-
-  String? get vehicleColor => _vehicleColor;
+  QueryDocumentSnapshot<Vehicle>? get vehicle => _vehicle;
 
   /*
   * Setters
@@ -395,11 +384,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   set driverPhone(String? value) {
     _driverPhone = value;
-    notifyListeners();
-  }
-
-  set driverLicensePlate(String? value) {
-    _driverLicensePlate = value;
     notifyListeners();
   }
 

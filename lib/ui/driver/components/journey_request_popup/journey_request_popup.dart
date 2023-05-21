@@ -1,11 +1,11 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
-import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
+import 'package:ap_lanes/ui/driver/components/journey_request_popup/journey_request_popup_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../util/location_helpers.dart';
+import '../../../../util/location_helpers.dart';
 
 class JourneyRequestPopup extends StatelessWidget {
   const JourneyRequestPopup({super.key});

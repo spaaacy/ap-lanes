@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
+import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup/ongoing_journey_popup_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../util/url_helpers.dart';
+import '../../../../util/url_helpers.dart';
 
 enum DriverAction { idle, pickingUp, droppingOff }
 

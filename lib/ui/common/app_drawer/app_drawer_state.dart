@@ -14,7 +14,7 @@ class AppDrawerState extends ChangeNotifier {
   // bool isDriverMode() => _context.read()<UserWrapperState>().userMode == UserMode.driverMode;
 
   void submitFeedback(String feedback) {
-    feedbackRepo.createFeedback(
+    feedbackRepo.create(
       remote.Feedback(
         feedback: feedback,
       ),
