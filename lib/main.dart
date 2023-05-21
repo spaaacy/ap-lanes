@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:ap_lanes/services/notification_service.dart';
-import 'package:ap_lanes/util/payment_helpers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +13,6 @@ import 'color_schemes.g.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'ui/auth/auth_wrapper.dart';
-import '.env';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +20,8 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await FlutterMapTileCaching.initialise();
-  Stripe.publishableKey = stripePublishableKey;
+  await dotenv.load(fileName: 'assets/.env');
+  Stripe.publishableKey = dotenv.env['STRIPE_TEST_PUBLISHABLE']!;
   await Stripe.instance.applySettings();
   FMTC.instance('mapStore').manage.create();
   runApp(const MyApp());

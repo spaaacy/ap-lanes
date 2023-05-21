@@ -19,7 +19,6 @@ class PassengerGoButton extends StatelessWidget {
           onPressed: () {
             if (firebaseUser != null) {
               if (!state.isSearching) {
-                await mapViewState.
                 state.createJourney(context);
               } else {
                 state.deleteJourney();
