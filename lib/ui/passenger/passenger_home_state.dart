@@ -17,6 +17,7 @@ import '../../data/model/remote/user.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/user_repo.dart';
 import '../../services/notification_service.dart';
+import '../../services/payment_service.dart';
 import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
@@ -37,6 +38,7 @@ class PassengerHomeState extends ChangeNotifier {
   final _journeyRepo = JourneyRepo();
   final _userRepo = UserRepo();
   final _placeService = PlaceService();
+  final _paymentService = PaymentService();
 
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
@@ -264,27 +266,38 @@ class PassengerHomeState extends ChangeNotifier {
     await _journeyRepo.cancelJourneyAsPassenger(_journey!);
   }
 
-  void createJourney(BuildContext context) {
-    final firebaseUser = context.read<firebase_auth.User?>();
-    if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
-      if (_routeDistance! <= 7.0) {
-        isSearching = true;
-        _journeyRepo.createJourney(
-          Journey(
-            userId: firebaseUser.uid,
-            startLatLng: toApu ? _destinationLatLng! : apuLatLng,
-            endLatLng: toApu ? apuLatLng : _destinationLatLng!,
-            startDescription: _toApu ? _destinationDescription! : apuDescription,
-            endDescription: _toApu ? apuDescription : _destinationDescription!,
-            distance: _routeDistance!.toStringAsFixed(2),
-            price: _routePrice!.toStringAsFixed(2),
-            paymentMode: PaymentMode.cash,
-          ),
-        );
+  void createJourney(BuildContext context) async {
+    if (_routeDistance == null) return;
+    final paymentSuccess = await _paymentService.stripePaymentSheet(_routeDistance!.toStringAsFixed(2));
+
+    if (_context.mounted){
+      if (paymentSuccess) {
+        final firebaseUser = context.read<firebase_auth.User?>();
+        if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
+          if (_routeDistance! <= 7.0) {
+            isSearching = true;
+            _journeyRepo.createJourney(
+              Journey(
+                userId: firebaseUser.uid,
+                startLatLng: toApu ? _destinationLatLng! : apuLatLng,
+                endLatLng: toApu ? apuLatLng : _destinationLatLng!,
+                startDescription: _toApu ? _destinationDescription! : apuDescription,
+                endDescription: _toApu ? apuDescription : _destinationDescription!,
+                distance: _routeDistance!.toStringAsFixed(2),
+                price: _routePrice!.toStringAsFixed(2),
+                paymentMode: PaymentMode.cash,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text("Journeys are limited to a distance of 7 km")));
+          }
+        }
       } else {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Journeys are limited to a distance of 7 km")));
+            .showSnackBar(const SnackBar(content: Text("Payment failed!")));
       }
+
     }
   }
 

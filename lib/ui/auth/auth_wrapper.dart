@@ -1,6 +1,5 @@
 import 'package:ap_lanes/services/auth_service.dart';
 import 'package:ap_lanes/ui/auth/landing_page.dart';
-import 'package:ap_lanes/util/payment_helpers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,6 @@ class AuthWrapper extends StatelessWidget {
 
     if (firebaseUser != null && authService.isEmailVerified) {
       authService.timer?.cancel();
-      initPaymentSheet(context);
 
       return MultiProvider(
         providers: [
