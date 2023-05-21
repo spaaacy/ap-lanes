@@ -105,7 +105,6 @@ class JourneyRequestPopupState extends ChangeNotifier {
   }
 
   Future<void> updateJourneyRoutePolylines(Journey journey) async {
-    try {
       final start = journey.startLatLng;
       final end = journey.endLatLng;
       final polylines = await _placeService.fetchRoute(start, end);
@@ -125,10 +124,6 @@ class JourneyRequestPopupState extends ChangeNotifier {
         builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
       );
       _mapViewState.notifyListeners();
-    } on Exception catch (e) {
-      ScaffoldMessenger.of(_context)
-          .showSnackBar(const SnackBar(content: Text("The journey location retrieved was invalid.")));
-    }
   }
 
   void onRequestPopupNavigate(RequestNavigationDirection direction, BuildContext context) async {
