@@ -39,7 +39,7 @@ class DriverHome extends StatelessWidget {
             ),
             appBar: AppBar(
               title: Text(
-                getGreeting(state.user?.data().lastName),
+                getGreeting(state.user?.data().firstName),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
