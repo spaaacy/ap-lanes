@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 
 import '../passenger_home_state.dart';
@@ -18,6 +19,7 @@ class PassengerGoButton extends StatelessWidget {
           onPressed: () {
             if (firebaseUser != null) {
               if (!state.isSearching) {
+                await mapViewState.
                 state.createJourney(context);
               } else {
                 state.deleteJourney();
