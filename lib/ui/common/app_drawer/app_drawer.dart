@@ -1,7 +1,5 @@
-import 'package:ap_lanes/data/model/remote/user.dart';
 import 'package:ap_lanes/ui/common/app_drawer/app_drawer_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,8 +8,6 @@ import '../map_view/map_view_state.dart';
 import '../user_wrapper/user_wrapper_state.dart';
 
 class AppDrawer extends StatelessWidget {
-  final QueryDocumentSnapshot<User>? user;
-  final bool isDriverMode;
   final bool isNavigationLocked;
   final void Function() onNavigateWhenLocked;
   final _feedbackFormKey = GlobalKey<FormState>();
@@ -19,8 +15,6 @@ class AppDrawer extends StatelessWidget {
 
   AppDrawer({
     super.key,
-    required this.user,
-    required this.isDriverMode,
     required this.isNavigationLocked,
     required this.onNavigateWhenLocked,
   });
@@ -54,7 +48,7 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: isDriverMode ? 250 : 200,
+            height: appDrawerState.isDriverMode ? 250 : 200,
             child: DrawerHeader(
               decoration: const BoxDecoration(
                 color: Colors.black,
@@ -70,7 +64,7 @@ class AppDrawer extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.center,
                         child: Text(
-                          user?.data().getFullName().characters.first.toUpperCase() ?? '?',
+                          appDrawerState.user?.data().getFullName().characters.first.toUpperCase() ?? '?',
                           style: const TextStyle(fontSize: 48),
                         ),
                       ),
@@ -79,12 +73,12 @@ class AppDrawer extends StatelessWidget {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
                     child: Text(
-                      user?.data().getFullName() ?? 'Unknown User',
+                      appDrawerState.user?.data().getFullName() ?? 'Unknown User',
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   ...?(() {
-                    if (isDriverMode) {
+                    if (appDrawerState.isDriverMode) {
                       return [getDriverHeaderContent(context)];
                     }
                   }())
@@ -93,7 +87,7 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           (() {
-            if (isDriverMode) {
+            if (appDrawerState.isDriverMode) {
               return ListTile(
                   leading: const Icon(Icons.person),
                   title: const Text('Passenger Mode'),

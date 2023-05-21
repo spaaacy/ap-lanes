@@ -19,6 +19,7 @@ class AuthWrapper extends StatelessWidget {
 
     if (firebaseUser != null && authService.isEmailVerified) {
       authService.timer?.cancel();
+
       return MultiProvider(
         providers: [
           ChangeNotifierProvider<UserWrapperState>(

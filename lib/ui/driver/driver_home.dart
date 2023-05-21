@@ -27,8 +27,6 @@ class DriverHome extends StatelessWidget {
             drawer: ChangeNotifierProvider<AppDrawerState>(
               create: (context) => AppDrawerState(context),
               child: AppDrawer(
-                isDriverMode: true,
-                user: state.user,
                 isNavigationLocked: state.driverState != DriverState.idle,
                 onNavigateWhenLocked: () {
                   Navigator.of(context).pop();
