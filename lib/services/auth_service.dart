@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ap_lanes/services/payment_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -11,6 +12,7 @@ class AuthService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth;
   Timer? timer;
   bool isEmailVerified = false;
+  final _paymentService = PaymentService();
 
   void _checkIfEmailVerified() async {
     await FirebaseAuth.instance.currentUser?.reload();
@@ -63,6 +65,7 @@ class AuthService extends ChangeNotifier {
       _registerUser(
           firstName: firstName, lastName: lastName, phoneNumber: phoneNumber);
       sendEmailVerification();
+      _paymentService.createCustomer(email);
       return signedIn;
     } on FirebaseAuthException catch (e) {
       return e.message ?? "";

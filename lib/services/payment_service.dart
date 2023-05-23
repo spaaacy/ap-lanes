@@ -9,6 +9,22 @@ import 'package:http/http.dart';
 class PaymentService {
 
   dynamic paymentIntent;
+  final client = Client();
+
+  void createCustomer(String email) async {
+    try {
+      client.post(
+          Uri.parse(
+              'https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreateCustomer'),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: email
+      );
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 
   Future<bool> stripePaymentSheet(String distance) async {
     try {
@@ -25,15 +41,12 @@ class PaymentService {
       );
 
       return await _displayPaymentSheet();
-
     } catch (e) {
       throw Exception(e);
     }
   }
 
   _createPaymentIntent(String distance, String currency) async {
-    final client = Client();
-
     try {
       //Request body
       Map<String, dynamic> body = {
@@ -43,9 +56,9 @@ class PaymentService {
 
       //Make post request to Stripe
       var response = await client.post(
-        Uri.parse('https://asia-east2-apu-rideshare.cloudfunctions.net/StripeGetPaymentIntent'),
+        Uri.parse(
+            'https://asia-east2-apu-rideshare.cloudfunctions.net/StripeGetPaymentIntent'),
         headers: {
-        //   'Authorization': 'Bearer ${dotenv.env['STRIPE_TEST_SECRET']}',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,
@@ -75,11 +88,6 @@ class PaymentService {
       success = false;
     }
     return success;
-  }
-
-  String _recalculateAmount(String amount) {
-    final calculatedAmount = (int.parse(amount)) * 100;
-    return calculatedAmount.toString();
   }
 
 }
