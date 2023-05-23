@@ -24,6 +24,16 @@ exports.StripeCreateCustomer = functions.region("asia-east2").https.onRequest(as
 	}
 });
 
+exports.StripeRetreiveCustomer = functions.region("asia-east2").https.onRequest(async (req, res) => {
+	const customerId = req.body;
+	
+	try {
+		const customer = await stripe.customers.retreive(customerId);
+	} catch (e) {
+		return res.send({ error: e.message });
+	}
+});
+
 exports.StripeGetPaymentIntent = functions.region("asia-east2").https.onRequest(async (req, res) => {
 		const { distance, currency } = req.body;
 
