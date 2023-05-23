@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ap_lanes/services/payment_service.dart';
+import 'package:ap_lanes/util/ui_helpers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -37,11 +38,9 @@ class AuthService extends ChangeNotifier {
 
   final _userRepo = UserRepo();
 
-  Future<String> signIn(
-      {required String email, required String password}) async {
+  Future<String> signIn({required String email, required String password}) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
-          email: email, password: password);
+      await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
       if (_firebaseAuth.currentUser!.emailVerified) {
         return signedIn;
       } else {
@@ -60,12 +59,22 @@ class AuthService extends ChangeNotifier {
     required String phoneNumber,
   }) async {
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email, password: password);
-      _registerUser(
-          firstName: firstName, lastName: lastName, phoneNumber: phoneNumber);
+      final fullName = "${firstName.capitalize()} ${lastName.capitalize()}";
+      final customerId = await _paymentService.createCustomer(email, fullName, phoneNumber);
+      await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
+      final id = _firebaseAuth.currentUser?.uid;
+      final userEmail = _firebaseAuth.currentUser?.email;
+      _userRepo.createUser(
+        model.User(
+          id: id!,
+          email: userEmail!,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
+          customerId: customerId,
+        ),
+      );
       sendEmailVerification();
-      _paymentService.createCustomer(email);
       return signedIn;
     } on FirebaseAuthException catch (e) {
       return e.message ?? "";
@@ -74,24 +83,6 @@ class AuthService extends ChangeNotifier {
 
   void sendEmailVerification() {
     _firebaseAuth.currentUser?.sendEmailVerification();
-  }
-
-  void _registerUser(
-      {required String firstName,
-      required String lastName,
-      required String phoneNumber}) {
-    final id = _firebaseAuth.currentUser?.uid;
-    final userEmail = _firebaseAuth.currentUser?.email;
-
-    _userRepo.create(
-      model.User(
-        id: id!,
-        email: userEmail!,
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber,
-      ),
-    );
   }
 
   Future<void> signOut() async {
