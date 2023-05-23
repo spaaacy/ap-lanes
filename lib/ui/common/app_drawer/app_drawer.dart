@@ -30,7 +30,7 @@ class AppDrawer extends StatelessWidget {
         ),
       ),
       child: Text(
-        state.driver?.data().licensePlate ?? 'XXX 0000',
+        state.vehicle?.data().licensePlate ?? 'NO VEHICLE',
         style: const TextStyle(
           color: Colors.white,
           fontFamily: "monospace",

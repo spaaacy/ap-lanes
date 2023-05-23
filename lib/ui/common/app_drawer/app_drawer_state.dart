@@ -29,7 +29,7 @@ class AppDrawerState extends ChangeNotifier {
   }
 
   void submitFeedback(String feedback) {
-    _feedbackRepo.createFeedback(
+    _feedbackRepo.create(
       remote.Feedback(
         feedback: feedback,
       ),
