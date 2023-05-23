@@ -96,7 +96,7 @@ class JourneyRequestPopupState extends ChangeNotifier {
   Future<void> updateAvailableJourney(QueryDocumentSnapshot<Journey>? journey) async {
     if (journey != null) {
       _availableJourney = journey;
-      _availableJourneyPassenger = await _userRepo.getUser(journey.data().userId);
+      _availableJourneyPassenger = await _userRepo.get(journey.data().userId);
       await updateJourneyRoutePolylines(journey.data());
     } else {
       resetAvailableJourneys();

@@ -20,69 +20,70 @@ class SearchBar extends StatelessWidget {
 
     if (state.isSearching || state.hasDriver || mapViewState.currentPosition == null) return const SizedBox.shrink();
 
-    return Column(children: [
-      Material(
-        borderRadius: const BorderRadius.all(Radius.circular(12.0)),
-        elevation: 4.0,
-        child: TypeAheadField(
-          keepSuggestionsOnLoading: true,
-          hideOnEmpty: true,
-          hideOnLoading: true,
-          hideOnError: true,
-          suggestionsBoxDecoration: const SuggestionsBoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(12.0)),
-            elevation: 4.0,
-          ),
-          suggestionsCallback: (input) async {
-            final results =
-                await _placeService.fetchSuggestions(input, mapViewState.currentPosition, lang, state.sessionToken);
-            return results.take(4);
-          },
-          itemBuilder: (context, suggestion) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                trimDescription(suggestion.description),
-                style: const TextStyle(fontSize: 16.0),
+    return Column(
+      children: [
+        Material(
+          borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+          elevation: 4.0,
+          child: TypeAheadField(
+            keepSuggestionsOnLoading: true,
+            hideOnEmpty: true,
+            hideOnLoading: true,
+            hideOnError: true,
+            suggestionsBoxDecoration: const SuggestionsBoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(12.0)),
+              elevation: 4.0,
+            ),
+            suggestionsCallback: (input) async {
+              final results =
+                  await _placeService.fetchSuggestions(input, mapViewState.currentPosition, lang, state.sessionToken);
+              return results.take(4);
+            },
+            itemBuilder: (context, suggestion) {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  trimDescription(suggestion.description),
+                  style: const TextStyle(fontSize: 16.0),
+                ),
+              );
+            },
+            onSuggestionSelected: (suggestion) async {
+              await _placeService
+                  .fetchLatLng(suggestion.placeId, lang, state.sessionToken)
+                  .then((latLng) => state.onLatLng(context, latLng));
+              state.searchController.text = trimDescription(suggestion.description);
+              state.onDescription(suggestion.description);
+            },
+            textFieldConfiguration: TextFieldConfiguration(
+              controller: state.searchController,
+              decoration: InputDecoration(
+                suffixIcon: (state.destinationLatLng != null || state.searchController.text.isNotEmpty)
+                    ? IconButton(
+                        icon: const Icon(Icons.close),
+                        color: Colors.black,
+                        onPressed: () {
+                          state.clearUserLocation();
+                          state.searchController.clear();
+                        })
+                    : null,
+                border: const OutlineInputBorder(borderSide: BorderSide.none),
+                hintText: "Where do you wish to go?",
+                filled: true,
+                fillColor: Colors.white,
               ),
-            );
-          },
-          onSuggestionSelected: (suggestion) async {
-            await _placeService
-                .fetchLatLng(suggestion.placeId, lang, state.sessionToken)
-                .then((latLng) => state.onLatLng(context, latLng));
-            state.searchController.text = trimDescription(suggestion.description);
-            state.onDescription(suggestion.description);
-          },
-          textFieldConfiguration: TextFieldConfiguration(
-            controller: state.searchController,
-            decoration: InputDecoration(
-              suffixIcon: (state.destinationLatLng != null || state.searchController.text.isNotEmpty)
-                  ? IconButton(
-                      icon: const Icon(Icons.close),
-                      color: Colors.black,
-                      onPressed: () {
-                        state.clearUserLocation();
-                        state.searchController.clear();
-                      })
-                  : null,
-              border: const OutlineInputBorder(borderSide: BorderSide.none),
-              hintText: "Where do you wish to go?",
-              filled: true,
-              fillColor: Colors.white,
             ),
           ),
         ),
-      ),
-      const SizedBox(
-        height: 8.0,
-      ),
-      Row(
-        children: [
-          if (state.routeDistance != null)
-            Material(
-              elevation: 4.0,
+        const SizedBox(
+          height: 8.0,
+        ),
+        Row(
+          children: [
+            if (state.routeDistance != null)
+              Material(
+                elevation: 4.0,
                 color: Colors.black,
                 borderRadius: const BorderRadius.all(Radius.circular(25)),
                 child: Padding(
@@ -91,10 +92,11 @@ class SearchBar extends StatelessWidget {
                     "${state.routeDistance!.toStringAsFixed(2)} km",
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
                   ),
-                )),
-          const SizedBox(width: 8.0),
-          if (state.routePrice != null)
-            Material(
+                ),
+              ),
+            const SizedBox(width: 8.0),
+            if (state.routePrice != null)
+              Material(
                 elevation: 4.0,
                 color: Colors.black,
                 borderRadius: const BorderRadius.all(Radius.circular(25)),
@@ -104,9 +106,10 @@ class SearchBar extends StatelessWidget {
                     "RM ${state.routePrice!.toStringAsFixed(2)}",
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
                   ),
-                )),
-          const Spacer(),
-          Material(
+                ),
+              ),
+            const Spacer(),
+            Material(
               elevation: 4.0,
               color: Colors.black,
               borderRadius: const BorderRadius.all(Radius.circular(25)),
@@ -116,16 +119,18 @@ class SearchBar extends StatelessWidget {
                   state.toApu ? "TO APU" : "FROM APU",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
                 ),
-              )),
-          const SizedBox(
-            width: 8.0,
-          ),
-          Switch(
-            value: state.toApu,
-            onChanged: (value) => state.updateToApu(value),
-          ),
-        ],
-      )
-    ]);
+              ),
+            ),
+            const SizedBox(
+              width: 8.0,
+            ),
+            Switch(
+              value: state.toApu,
+              onChanged: (value) => state.updateToApu(value),
+            ),
+          ],
+        )
+      ],
+    );
   }
 }

@@ -100,7 +100,7 @@ class OngoingJourneyPopupState extends ChangeNotifier {
 
   void updateActiveJourney(QueryDocumentSnapshot<Journey> journeySnapshot) async {
     _activeJourney = journeySnapshot;
-    _activeJourneyPassenger = await _userRepo.getUser(journeySnapshot.data().userId);
+    _activeJourneyPassenger = await _userRepo.get(journeySnapshot.data().userId);
 
     if (journeySnapshot.data().isPickedUp) {
       _mapViewState.markers["drop-off"] = Marker(

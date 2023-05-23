@@ -80,7 +80,7 @@ class AuthService extends ChangeNotifier {
     final id = _firebaseAuth.currentUser?.uid;
     final userEmail = _firebaseAuth.currentUser?.email;
 
-    _userRepo.createUser(
+    _userRepo.create(
       model.User(
         id: id!,
         email: userEmail!,

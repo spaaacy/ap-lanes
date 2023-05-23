@@ -7,7 +7,7 @@ class FeedbackRepo {
       .collection("feedback")
       .withConverter(fromFirestore: Feedback.fromFirestore, toFirestore: (Feedback feedback, _) => feedback.toFirestore());
 
-  Future<void> createFeedback(Feedback feedback) async {
+  Future<void> create(Feedback feedback) async {
     _feedbackRef.add(feedback);
   }
 
