@@ -64,7 +64,7 @@ class AuthService extends ChangeNotifier {
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       final id = _firebaseAuth.currentUser?.uid;
       final userEmail = _firebaseAuth.currentUser?.email;
-      _userRepo.createUser(
+      _userRepo.create(
         model.User(
           id: id!,
           email: userEmail!,
