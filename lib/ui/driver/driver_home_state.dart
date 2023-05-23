@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:ap_lanes/data/model/remote/driver.dart';
 import 'package:ap_lanes/data/model/remote/journey.dart';
 import 'package:ap_lanes/data/model/remote/user.dart';
+import 'package:ap_lanes/data/model/remote/vehicle.dart';
 import 'package:ap_lanes/data/repo/driver_repo.dart';
 import 'package:ap_lanes/data/repo/journey_repo.dart';
 import 'package:ap_lanes/data/repo/user_repo.dart';
+import 'package:ap_lanes/data/repo/vehicle_repo.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
@@ -27,28 +29,9 @@ class DriverHomeState extends ChangeNotifier {
 
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Driver>? _driver;
+  QueryDocumentSnapshot<Vehicle>? _vehicle;
+
   DriverState _driverState = DriverState.idle;
-
-  QueryDocumentSnapshot<User>? get user => _user;
-
-  set user(QueryDocumentSnapshot<User>? value) {
-    _user = value;
-    notifyListeners();
-  }
-
-  QueryDocumentSnapshot<Driver>? get driver => _driver;
-
-  set driver(QueryDocumentSnapshot<Driver>? value) {
-    _driver = value;
-    notifyListeners();
-  }
-
-  DriverState get driverState => _driverState;
-
-  set driverState(DriverState value) {
-    _driverState = value;
-    notifyListeners();
-  }
 
   late final StreamController<MapEntry<DriverState, dynamic>> _onDriverStateStreamController;
   late final Stream<MapEntry<DriverState, dynamic>> onDriverStateChanged;
@@ -59,6 +42,7 @@ class DriverHomeState extends ChangeNotifier {
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
+  final _vehicleRepo = VehicleRepo();
 
   DriverHomeState(this._context) {
     _onDriverStateStreamController = StreamController.broadcast();
@@ -83,11 +67,11 @@ class DriverHomeState extends ChangeNotifier {
     _firebaseUser = Provider.of<firebase_auth.User?>(_context, listen: false);
     if (_firebaseUser == null) throw Exception("Firebase user is null!");
 
-    final existingUser = await _userRepo.getUser(_firebaseUser!.uid);
+    final existingUser = await _userRepo.get(_firebaseUser!.uid);
     if (existingUser == null) throw Exception("User profile does not exist!");
     user = existingUser;
 
-    final existingDriver = await _driverRepo.getDriver(_firebaseUser!.uid);
+    final existingDriver = await _driverRepo.get(_firebaseUser!.uid);
     if (existingDriver != null) {
       driver = existingDriver;
     } else {
@@ -124,6 +108,8 @@ class DriverHomeState extends ChangeNotifier {
       return;
     }
 
+    vehicle = await _vehicleRepo.get(driver!.data().id);
+
     final hasPreviousOngoingJourney = await _journeyRepo.hasOngoingJourney(_firebaseUser!.uid);
     if (hasPreviousOngoingJourney) {
       didAcceptJourneyRequest(null);
@@ -141,7 +127,7 @@ class DriverHomeState extends ChangeNotifier {
     );
 
     if (result == 'Save') {
-      var driverSnapshot = await _driverRepo.getDriver(_firebaseUser!.uid);
+      var driverSnapshot = await _driverRepo.get(_firebaseUser!.uid);
       if (driverSnapshot == null) throw Exception("Driver profile does not exist!");
       driver = driverSnapshot;
       return true;
@@ -168,9 +154,18 @@ class DriverHomeState extends ChangeNotifier {
   }
 
   void startSearching() async {
+    if (vehicle == null) {
+      ScaffoldMessenger.of(_context).showSnackBar(
+        const SnackBar(
+          content: Text("No vehicle selected. Please choose one using the search bar above."),
+        ),
+      );
+      return;
+    }
+
     _driverState = DriverState.searching;
 
-    await _driverRepo.updateDriver(driver!, {'isAvailable': true});
+    await _driverRepo.update(driver!, {'isAvailable': true});
 
     _onDriverStateStreamController.add(const MapEntry(DriverState.searching, null));
     notifyListeners();
@@ -179,7 +174,7 @@ class DriverHomeState extends ChangeNotifier {
   void stopSearching() async {
     _driverState = DriverState.idle;
 
-    await _driverRepo.updateDriver(driver!, {'isAvailable': false});
+    await _driverRepo.update(driver!, {'isAvailable': false});
 
     _onDriverStateStreamController.add(const MapEntry(DriverState.idle, null));
 
@@ -202,6 +197,34 @@ class DriverHomeState extends ChangeNotifier {
     _driverState = DriverState.ongoing;
     _onDriverStateStreamController.add(const MapEntry(DriverState.ongoing, null));
     _onJourneyRequestAcceptedStreamController.add(acceptedJourneyRequest);
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<User>? get user => _user;
+
+  set user(QueryDocumentSnapshot<User>? value) {
+    _user = value;
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<Driver>? get driver => _driver;
+
+  set driver(QueryDocumentSnapshot<Driver>? value) {
+    _driver = value;
+    notifyListeners();
+  }
+
+  QueryDocumentSnapshot<Vehicle>? get vehicle => _vehicle;
+
+  set vehicle(QueryDocumentSnapshot<Vehicle>? value) {
+    _vehicle = value;
+    notifyListeners();
+  }
+
+  DriverState get driverState => _driverState;
+
+  set driverState(DriverState value) {
+    _driverState = value;
     notifyListeners();
   }
 }

@@ -2,10 +2,12 @@ import 'package:ap_lanes/ui/common/app_drawer/app_drawer.dart';
 import 'package:ap_lanes/ui/common/app_drawer/app_drawer_state.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view.dart';
 import 'package:ap_lanes/ui/driver/components/driver_go_button.dart';
-import 'package:ap_lanes/ui/driver/components/journey_request_popup.dart';
-import 'package:ap_lanes/ui/driver/components/journey_request_popup_state.dart';
-import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup.dart';
-import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup_state.dart';
+import 'package:ap_lanes/ui/driver/components/driver_vehicle_dropdown/driver_vehicle_dropdown.dart';
+import 'package:ap_lanes/ui/driver/components/driver_vehicle_dropdown/driver_vehicle_dropdown_state.dart';
+import 'package:ap_lanes/ui/driver/components/journey_request_popup/journey_request_popup.dart';
+import 'package:ap_lanes/ui/driver/components/journey_request_popup/journey_request_popup_state.dart';
+import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup/ongoing_journey_popup.dart';
+import 'package:ap_lanes/ui/driver/components/ongoing_journey_popup/ongoing_journey_popup_state.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,8 +27,6 @@ class DriverHome extends StatelessWidget {
             drawer: ChangeNotifierProvider<AppDrawerState>(
               create: (context) => AppDrawerState(context),
               child: AppDrawer(
-                isDriverMode: true,
-                user: state.user,
                 isNavigationLocked: state.driverState != DriverState.idle,
                 onNavigateWhenLocked: () {
                   Navigator.of(context).pop();
@@ -49,6 +49,18 @@ class DriverHome extends StatelessWidget {
               children: [
                 const MapView(),
                 const DriverGoButton(),
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ChangeNotifierProvider<DriverVehicleDropdownState>(
+                        create: (ctx) => DriverVehicleDropdownState(ctx),
+                        child: const DriverVehicleDropdown(),
+                      ),
+                    ),
+                  ),
+                ),
                 ChangeNotifierProvider<JourneyRequestPopupState>(
                   create: (ctx) => JourneyRequestPopupState(ctx),
                   child: const JourneyRequestPopup(),

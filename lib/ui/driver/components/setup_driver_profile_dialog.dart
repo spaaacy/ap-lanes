@@ -1,3 +1,5 @@
+import 'package:ap_lanes/data/model/remote/vehicle.dart';
+import 'package:ap_lanes/data/repo/vehicle_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -20,6 +22,7 @@ class _SetupDriverProfileDialogState extends State<SetupDriverProfileDialog> {
   final _vehicleModelController = TextEditingController();
   final _vehicleColorController = TextEditingController();
   final DriverRepo _driverRepo = DriverRepo();
+  final VehicleRepo _vehicleRepo = VehicleRepo();
   bool isLoading = false;
 
   Future<void> registerDriver(BuildContext context) async {
@@ -32,15 +35,22 @@ class _SetupDriverProfileDialogState extends State<SetupDriverProfileDialog> {
       String vehicleManufacturer = _vehicleManufacturerController.text.trim().toUpperCase();
       String vehicleModel = _vehicleModelController.text.trim().toUpperCase();
       String vehicleColor = _vehicleColorController.text.trim().toUpperCase();
-      await _driverRepo.createDriver(
+      await _driverRepo.create(
         Driver(
-            id: widget.userId,
-            licensePlate: licensePlate,
-            vehicleManufacturer: vehicleManufacturer,
-            vehicleModel: vehicleModel,
-            vehicleColor: vehicleColor,
-            isAvailable: false,
-            isVerified: false),
+          id: widget.userId,
+          isAvailable: false,
+          isVerified: false,
+        ),
+      );
+
+      await _vehicleRepo.create(
+        Vehicle(
+          licensePlate: licensePlate,
+          manufacturer: vehicleManufacturer,
+          model: vehicleModel,
+          color: vehicleColor,
+          driverId: widget.userId
+        ),
       );
 
       if (context.mounted) {
