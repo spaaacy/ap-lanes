@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart';
 
@@ -11,16 +10,23 @@ class PaymentService {
   dynamic paymentIntent;
   final client = Client();
 
-  void createCustomer(String email) async {
+  Future<String> createCustomer(String email, String name, String phone) async {
     try {
-      client.post(
+      Map<String, dynamic> body = {
+        'email': email,
+        'name': name,
+        'phone': phone,
+      };
+      final response = await client.post(
           Uri.parse(
               'https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreateCustomer'),
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: email
+          body: body
       );
+      final result = json.decode(response.body);
+      return result['id'];
     } catch (e) {
       throw Exception(e.toString());
     }
