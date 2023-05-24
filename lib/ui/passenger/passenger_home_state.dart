@@ -8,7 +8,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -25,6 +24,7 @@ import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
 
 class PassengerHomeState extends ChangeNotifier {
+
   PassengerHomeState(this._context) {
     initialize();
   }
@@ -58,7 +58,7 @@ class PassengerHomeState extends ChangeNotifier {
   bool _hasDriver = false;
   bool _toApu = false;
 
-  bool _stripeReady = false;
+  bool _inPayment = false;
 
   String? _driverName;
   String? _driverPhone;
@@ -114,7 +114,6 @@ class PassengerHomeState extends ChangeNotifier {
 
             _driverRepo.get(driverId).then((driver) async {
               if (driver != null) {
-
                 // Get driver details
                 _vehicle = await _vehicleRepo.get(driver.data().id);
                 _hasDriver = true;
@@ -263,9 +262,15 @@ class PassengerHomeState extends ChangeNotifier {
 
   void createJourney(BuildContext context) async {
     if (_routeDistance == null) return;
-    final paymentSuccess = await _paymentService.stripePaymentSheet(_routeDistance!.toStringAsFixed(2));
+    inPayment = true;
+    notifyListeners();
+    final paymentSuccess = await _paymentService.retrieveStripePayment(
+      _routeDistance!.toStringAsFixed(2),
+      _user?.data().customerId ?? '',
+    );
+    inPayment = false;
 
-    if (_context.mounted){
+    if (_context.mounted) {
       if (paymentSuccess) {
         final firebaseUser = context.read<firebase_auth.User?>();
         if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
@@ -289,10 +294,8 @@ class PassengerHomeState extends ChangeNotifier {
           }
         }
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Payment failed!")));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment failed!")));
       }
-
     }
   }
 
@@ -363,6 +366,8 @@ class PassengerHomeState extends ChangeNotifier {
 
   bool get isSearching => _isSearching;
 
+  bool get inPayment => _inPayment;
+
   QueryDocumentSnapshot<Vehicle>? get vehicle => _vehicle;
 
   /*
@@ -420,6 +425,12 @@ class PassengerHomeState extends ChangeNotifier {
 
   set isSearching(bool value) {
     _isSearching = value;
+    notifyListeners();
+  }
+
+
+  set inPayment(bool value) {
+    _inPayment = value;
     notifyListeners();
   }
 

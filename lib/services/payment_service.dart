@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart';
 
@@ -32,17 +33,21 @@ class PaymentService {
     }
   }
 
-  Future<bool> stripePaymentSheet(String distance) async {
+  Future<bool> retrieveStripePayment(String distance, String customerId) async {
     try {
-      // 1. create payment intent on the server
-      paymentIntent = await _createPaymentIntent(distance, 'MYR');
+      // create ephemeral key for customer
+      final ephemeralKey = await _createEphemeralKey(customerId);
 
-      // 2. initialize the payment sheet
+      // create payment intent on the server
+      paymentIntent = await _createPaymentIntent(distance, 'MYR', customerId);
+
+      // initialize the payment sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
+          customerEphemeralKeySecret: ephemeralKey,
           paymentIntentClientSecret: paymentIntent['client_secret'],
           merchantDisplayName: 'APLanes',
-          // style: ThemeMode.dark,
+          style: ThemeMode.dark,
         ),
       );
 
@@ -52,12 +57,13 @@ class PaymentService {
     }
   }
 
-  _createPaymentIntent(String distance, String currency) async {
+  _createPaymentIntent(String distance, String currency, String customerId) async {
     try {
       //Request body
       Map<String, dynamic> body = {
         'distance': distance,
         'currency': currency,
+        'customer': customerId,
       };
 
       //Make post request to Stripe
@@ -70,8 +76,24 @@ class PaymentService {
         body: body,
       );
       return json.decode(response.body);
-    } catch (err) {
-      throw Exception(err.toString());
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  _createEphemeralKey(String customerId) async {
+    try {
+      var response = await client.post(
+        Uri.parse('https://asia-east2-apu-rideshare.cloudfunctions.net/StripeGetEphemeralKey'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {'customerId': customerId},
+      );
+      final result = json.decode(response.body);
+      return result['secret'];
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 

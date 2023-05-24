@@ -13,7 +13,7 @@ class PassengerGoButton extends StatelessWidget {
     final firebaseUser = context.watch<firebase_auth.User?>();
     final state = Provider.of<PassengerHomeState>(context);
 
-    if (state.routeDistance == null && !state.isSearching) return const SizedBox.shrink();
+    if ((state.routeDistance == null && !state.isSearching) || state.inPayment) return const SizedBox.shrink();
 
       return ElevatedButton(
           onPressed: () {
