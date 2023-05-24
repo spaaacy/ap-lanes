@@ -267,13 +267,13 @@ class PassengerHomeState extends ChangeNotifier {
     await _journeyRepo.cancelJourneyAsPassenger(_journey!);
   }
 
-  void createJourney(BuildContext context) async {
+  void createJourney() async {
     if (_routeDistance == null) return;
 
     var paymentSuccess = false;
     await showDialog(
       // barrierDismissible: false,
-        context: context,
+        context: _context,
         builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, setState) {
             return AlertDialog(
