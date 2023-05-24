@@ -24,7 +24,6 @@ import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
 
 class PassengerHomeState extends ChangeNotifier {
-
   PassengerHomeState(this._context) {
     initialize();
   }
@@ -49,6 +48,7 @@ class PassengerHomeState extends ChangeNotifier {
   StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
+  String _paymentMode = PaymentMode.cash;
   double? _routeDistance;
   double? _routePrice;
   LatLng? _destinationLatLng;
@@ -57,7 +57,6 @@ class PassengerHomeState extends ChangeNotifier {
   bool _isPickedUp = false;
   bool _hasDriver = false;
   bool _toApu = false;
-
   bool _inPayment = false;
 
   String? _driverName;
@@ -91,14 +90,17 @@ class PassengerHomeState extends ChangeNotifier {
       _user = (await _userRepo.get(firebaseUser.uid))!;
       notifyListeners();
 
-      _journeyListener = _journeyRepo.listenForJourney(firebaseUser.uid).listen((journey) async {
+      _journeyListener = _journeyRepo
+          .listenForJourney(firebaseUser.uid)
+          .listen((journey) async {
         if (journey.docs.isNotEmpty) {
           _journey = journey.docs.first;
           notifyListeners();
 
           if (_journey!.data().driverId.isNotEmpty) {
             if (!_isPickedUp && _journey!.data().isPickedUp) {
-              notificationService.notifyPassenger("Your driver has picked you up!");
+              notificationService
+                  .notifyPassenger("Your driver has picked you up!");
             }
             _isPickedUp = _journey!.data().isPickedUp == true;
             notifyListeners();
@@ -136,13 +138,16 @@ class PassengerHomeState extends ChangeNotifier {
                 notifyListeners();
 
                 // Used to ensure multiple listen calls are not made
-                _driverListener ??= _driverRepo.listen(driverId).listen((driver) {
+                _driverListener ??=
+                    _driverRepo.listen(driverId).listen((driver) {
                   if (driver.docs.isNotEmpty) {
                     final latLng = driver.docs.first.data().currentLatLng;
-                    if (latLng != null && mapViewState.currentPosition != null) {
+                    if (latLng != null &&
+                        mapViewState.currentPosition != null) {
                       mapViewState.markers["driver"] = Marker(
                         point: latLng,
-                        builder: (_) => const Icon(Icons.drive_eta, size: 35, color: Colors.black),
+                        builder: (_) => const Icon(Icons.drive_eta,
+                            size: 35, color: Colors.black),
                       );
                       mapViewState.shouldCenter = false;
                       mapViewState.setCameraBetweenMarkers(
@@ -203,8 +208,8 @@ class PassengerHomeState extends ChangeNotifier {
           notifyListeners(); // Notifies when route is received
         });
       } on Exception catch (e) {
-        ScaffoldMessenger.of(_context)
-            .showSnackBar(const SnackBar(content: Text("Invalid location! Please use another location.")));
+        ScaffoldMessenger.of(_context).showSnackBar(const SnackBar(
+            content: Text("Invalid location! Please use another location.")));
       }
     }
   }
@@ -240,19 +245,21 @@ class PassengerHomeState extends ChangeNotifier {
         );
         mapViewState.markers["start"] = Marker(
           point: start,
-          builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
+          builder: (_) =>
+              const Icon(Icons.location_pin, size: 35, color: Colors.black),
         );
         mapViewState.markers["destination"] = Marker(
           point: end,
-          builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
+          builder: (_) =>
+              const Icon(Icons.location_pin, size: 35, color: Colors.black),
         );
         _routeDistance = calculateRouteDistance(polylines);
         _routePrice = calculateRoutePrice(_routeDistance!);
         notifyListeners();
       });
     } on Exception catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Invalid location! Please use another location.")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Invalid location! Please use another location.")));
     }
   }
 
@@ -260,20 +267,65 @@ class PassengerHomeState extends ChangeNotifier {
     await _journeyRepo.cancelJourneyAsPassenger(_journey!);
   }
 
-  void createJourney(BuildContext context) async {
+  void createJourney() async {
     if (_routeDistance == null) return;
-    inPayment = true;
-    notifyListeners();
-    final paymentSuccess = await _paymentService.retrieveStripePayment(
-      _routeDistance!.toStringAsFixed(2),
-      _user?.data().customerId ?? '',
-    );
-    inPayment = false;
 
+    var paymentSuccess = false;
+    await showDialog(
+        context: _context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: const Text('Select Payment Mode'),
+              content: DropdownButton(
+                  value: _paymentMode,
+                  onChanged: (value) {
+                    paymentMode = value;
+                    notifyListeners();
+                  },
+                  items: <DropdownMenuItem>[
+                    DropdownMenuItem<String>(
+                        value: PaymentMode.cash, child: Text(PaymentMode.cash)),
+                    DropdownMenuItem<String>(
+                        value: PaymentMode.card, child: Text(PaymentMode.card)),
+                    DropdownMenuItem<String>(
+                        value: PaymentMode.qr, child: Text(PaymentMode.qr)),
+                  ]),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, 'Cancel');
+                    },
+                    child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () {
+                    if (paymentMode != PaymentMode.card) {
+                      paymentSuccess = true;
+                    }
+                    Navigator.pop(context, 'Okay');
+                  },
+                  child: const Text('Okay'),
+                )
+              ]);
+        });
+
+    // Handles payment
+    if (paymentMode == PaymentMode.card) {
+      inPayment = true;
+      notifyListeners();
+      paymentSuccess = await _paymentService.retrieveStripePayment(
+        _routeDistance!.toStringAsFixed(2),
+        _user?.data().customerId ?? '',
+      );
+      inPayment = false;
+    }
+
+    // Handles creation of journey
     if (_context.mounted) {
       if (paymentSuccess) {
-        final firebaseUser = context.read<firebase_auth.User?>();
-        if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
+        final firebaseUser = _context.read<firebase_auth.User?>();
+        if (firebaseUser != null &&
+            _routeDistance != null &&
+            _routePrice != null) {
           if (_routeDistance! <= 7.0) {
             isSearching = true;
             _journeyRepo.create(
@@ -281,20 +333,23 @@ class PassengerHomeState extends ChangeNotifier {
                 userId: firebaseUser.uid,
                 startLatLng: toApu ? _destinationLatLng! : apuLatLng,
                 endLatLng: toApu ? apuLatLng : _destinationLatLng!,
-                startDescription: _toApu ? _destinationDescription! : apuDescription,
-                endDescription: _toApu ? apuDescription : _destinationDescription!,
+                startDescription:
+                    _toApu ? _destinationDescription! : apuDescription,
+                endDescription:
+                    _toApu ? apuDescription : _destinationDescription!,
                 distance: _routeDistance!.toStringAsFixed(2),
                 price: _routePrice!.toStringAsFixed(2),
                 paymentMode: PaymentMode.cash,
               ),
             );
           } else {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text("Journeys are limited to a distance of 7 km")));
+            ScaffoldMessenger.of(_context).showSnackBar(const SnackBar(
+                content: Text("Journeys are limited to a distance of 7 km")));
           }
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment failed!")));
+        ScaffoldMessenger.of(_context)
+            .showSnackBar(const SnackBar(content: Text("Payment failed!")));
       }
     }
   }
@@ -306,7 +361,8 @@ class PassengerHomeState extends ChangeNotifier {
 
   Future<void> resetState() async {
     if (hasDriver) {
-      notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for using APLanes.");
+      notificationService.notifyPassenger("Your journey is now complete!",
+          body: "Thank you for using APLanes.");
       _hasDriver = false;
     }
     _driverName = null;
@@ -340,9 +396,11 @@ class PassengerHomeState extends ChangeNotifier {
 
   QueryDocumentSnapshot<User>? get user => _user;
 
-  StreamSubscription<QuerySnapshot<Journey>>? get journeyListener => _journeyListener;
+  StreamSubscription<QuerySnapshot<Journey>>? get journeyListener =>
+      _journeyListener;
 
-  StreamSubscription<QuerySnapshot<Driver>>? get driverListener => _driverListener;
+  StreamSubscription<QuerySnapshot<Driver>>? get driverListener =>
+      _driverListener;
 
   QueryDocumentSnapshot<Journey>? get journey => _journey;
 
@@ -357,6 +415,8 @@ class PassengerHomeState extends ChangeNotifier {
   String? get driverPhone => _driverPhone;
 
   String? get driverName => _driverName;
+
+  String get paymentMode => _paymentMode;
 
   bool get toApu => _toApu;
 
@@ -418,6 +478,11 @@ class PassengerHomeState extends ChangeNotifier {
     notifyListeners();
   }
 
+  set paymentMode(String value) {
+    _paymentMode = value;
+    notifyListeners();
+  }
+
   set isPickedUp(bool value) {
     _isPickedUp = value;
     notifyListeners();
@@ -427,7 +492,6 @@ class PassengerHomeState extends ChangeNotifier {
     _isSearching = value;
     notifyListeners();
   }
-
 
   set inPayment(bool value) {
     _inPayment = value;
