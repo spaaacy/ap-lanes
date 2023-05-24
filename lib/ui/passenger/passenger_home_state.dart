@@ -267,45 +267,49 @@ class PassengerHomeState extends ChangeNotifier {
     await _journeyRepo.cancelJourneyAsPassenger(_journey!);
   }
 
-  void createJourney() async {
+  void createJourney(BuildContext context) async {
     if (_routeDistance == null) return;
 
     var paymentSuccess = false;
     await showDialog(
-        context: _context,
+      // barrierDismissible: false,
+        context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-              title: const Text('Select Payment Mode'),
-              content: DropdownButton(
-                  value: _paymentMode,
-                  onChanged: (value) {
-                    paymentMode = value;
-                    notifyListeners();
-                  },
-                  items: <DropdownMenuItem>[
-                    DropdownMenuItem<String>(
-                        value: PaymentMode.cash, child: Text(PaymentMode.cash)),
-                    DropdownMenuItem<String>(
-                        value: PaymentMode.card, child: Text(PaymentMode.card)),
-                    DropdownMenuItem<String>(
-                        value: PaymentMode.qr, child: Text(PaymentMode.qr)),
-                  ]),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, 'Cancel');
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+                title: const Text('Select Payment Mode'),
+                content: DropdownButton(
+                    isExpanded: true,
+                    value: _paymentMode,
+                    onChanged: (value) {
+                      setState(() => paymentMode = value);
                     },
-                    child: const Text('Cancel')),
-                TextButton(
-                  onPressed: () {
-                    if (paymentMode != PaymentMode.card) {
-                      paymentSuccess = true;
-                    }
-                    Navigator.pop(context, 'Okay');
-                  },
-                  child: const Text('Okay'),
-                )
-              ]);
+                    items: <DropdownMenuItem>[
+                      DropdownMenuItem<String>(
+                          value: PaymentMode.cash, child: Text(PaymentMode.cash)),
+                      DropdownMenuItem<String>(
+                          value: PaymentMode.card, child: Text(PaymentMode.card)),
+                      DropdownMenuItem<String>(
+                          value: PaymentMode.qr, child: Text(PaymentMode.qr)),
+                    ]),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, 'Cancel');
+                      },
+                      child: const Text('Cancel')),
+                  TextButton(
+                    onPressed: () {
+                      if (paymentMode != PaymentMode.card) {
+                        paymentSuccess = true;
+                      }
+                      Navigator.pop(context, 'Okay');
+                    },
+                    child: const Text('Okay'),
+                  )
+                ]);
+
+          });
         });
 
     // Handles payment
