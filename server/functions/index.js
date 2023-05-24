@@ -43,10 +43,10 @@ exports.StripeGetEphemeralKey = functions.region("asia-east2").https.onRequest(a
 
 
 exports.StripeGetPaymentMethod = async () => {
-	const paymentMethods = await stripe.paymentMethods.list({
-		customer: 'cus_Nwo3kJewde32Bi',
-		// type: 'card',
-	});
+	const paymentMethods = await stripe.customers.listPaymentMethods(
+		'cus_NwnuOelpzQooZo',
+		{type: 'card'},
+	);
 	console.log(paymentMethods);
 };
 
@@ -58,7 +58,7 @@ exports.StripeGetPaymentIntent = functions.region("asia-east2").https.onRequest(
 	const amount = calculatePrice(distance);
 
 	try {
-		const params = {
+		const params = {	
 			amount: amount,
 			currency: currency,
 			customer: customerId,
