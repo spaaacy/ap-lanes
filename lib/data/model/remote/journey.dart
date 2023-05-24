@@ -5,6 +5,8 @@ import '../../../util/location_helpers.dart';
 
 class PaymentMode {
   static String cash = "CASH";
+  static String card = "CARD";
+  static String qr = "QR";
 }
 
 class Journey {
