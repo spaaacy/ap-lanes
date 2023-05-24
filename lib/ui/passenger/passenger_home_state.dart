@@ -272,7 +272,6 @@ class PassengerHomeState extends ChangeNotifier {
 
     var paymentSuccess = false;
     await showDialog(
-      // barrierDismissible: false,
         context: _context,
         builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, setState) {
