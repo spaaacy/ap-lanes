@@ -215,12 +215,10 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void clearUserLocation() {
+    _searchController.clear();
     _destinationLatLng = null;
-    mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
-    _routeDistance = null;
-    _routePrice = null;
-    mapViewState.markers.remove("start");
+    mapViewState.polylines.clear();
     mapViewState.markers.remove("destination");
     if (mapViewState.currentPosition != null) {
       mapViewState.resetCamera();
@@ -350,8 +348,8 @@ class PassengerHomeState extends ChangeNotifier {
                     _toApu ? apuDescription : _destinationDescription!,
                 distance: _routeDistance!.toStringAsFixed(2),
                 price: _routePrice!.toStringAsFixed(2),
-                paymentMode: PaymentMode.cash,
-                paymentIntent: paymentIntent,
+                paymentMode: _paymentMode,
+                paymentIntentId: paymentIntent,
               ),
             );
           } else {
@@ -367,9 +365,17 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void deleteJourney() async {
-    // await _paymentService.createRefund(_journey?.data().paymentIntent ?? '');
-    _journeyRepo.delete(_journey);
-    isSearching = false;
+    try {
+      isSearching = false;
+      clearUserLocation();
+      if (_journey?.data().paymentMode == PaymentMode.card) {
+        final paymentIntentId = _journey?.data().paymentIntentId;
+        _paymentService.createRefund(paymentIntentId ?? '');
+      }
+      _journeyRepo.delete(_journey);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
   }
 
   Future<void> resetState() async {

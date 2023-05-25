@@ -9,7 +9,7 @@ import 'package:http/http.dart';
 
 class PaymentService {
 
-  dynamic _paymentIntent;
+  Map<String, dynamic>? _paymentIntent;
   dynamic setupIntent;
   final client = Client();
 
@@ -26,7 +26,7 @@ class PaymentService {
         paymentSheetParameters: SetupPaymentSheetParameters(
           customerId: customerId,
           customerEphemeralKeySecret: ephemeralKey,
-          paymentIntentClientSecret: _paymentIntent,
+          paymentIntentClientSecret: _paymentIntent!['client_secret'],
           merchantDisplayName: 'APLanes',
           googlePay: const PaymentSheetGooglePay(
             merchantCountryCode: malaysiaCountryCode,
@@ -43,10 +43,10 @@ class PaymentService {
   }
 
   Future<String?> _displayPaymentSheet() async {
-    String? paymentIntent;
+    String? paymentIntentId;
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
-        paymentIntent = _paymentIntent;
+        paymentIntentId = _paymentIntent!['id'];
         _paymentIntent = null;
       }).onError((error, stackTrace) => throw Exception(error));
     } on StripeException catch (e) {
@@ -58,7 +58,7 @@ class PaymentService {
         print('$e');
       }
     }
-    return paymentIntent;
+    return paymentIntentId;
   }
 
   Future<String> createCustomer(String email, String name, String phone) async {
@@ -87,7 +87,7 @@ class PaymentService {
     }
   }
 
-  Future<String> _createPaymentIntent(String distance, String currency, String customerId) async {
+  Future<Map<String, dynamic>> _createPaymentIntent(String distance, String currency, String customerId) async {
     try {
       //Request body
       Map<String, dynamic> body = {
@@ -110,7 +110,7 @@ class PaymentService {
       if (result['error'] != null) {
         throw Exception(result['error']);
       }
-      return result['client_secret'];
+      return result;
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -138,17 +138,13 @@ class PaymentService {
 
   Future<void> createRefund(String paymentIntent) async {
     try {
-      var response = await client.post(
+      client.post(
         Uri.parse('https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreateRefund'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: {'payment_intent': paymentIntent},
       );
-      final result = json.decode(response.body);
-      if (result['error'] != null) {
-        throw Exception(result['error']);
-      }
     } catch (e) {
       throw Exception(e.toString());
     }

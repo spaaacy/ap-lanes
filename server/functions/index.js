@@ -47,7 +47,7 @@ exports.StripeCreatePaymentIntent = functions.region("asia-east2").https.onReque
 	const amount = calculatePrice(distance);
 
 	try {
-		const params = {	
+		const params = {
 			amount: amount,
 			currency: currency,
 			customer: customer,
@@ -59,7 +59,7 @@ exports.StripeCreatePaymentIntent = functions.region("asia-east2").https.onReque
 		console.log(params);
 		const intent = await stripe.paymentIntents.create(params);
 		console.log("Payment intent created");
-		return res.send({ client_secret: intent.client_secret });
+		return res.send({ client_secret: intent.client_secret, id: intent.id, });
 	} catch (e) {
 		return res.send({ error: e.message });
 	}
