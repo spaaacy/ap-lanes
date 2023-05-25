@@ -215,12 +215,10 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void clearUserLocation() {
+    _searchController.clear();
     _destinationLatLng = null;
-    mapViewState.polylines.clear();
     mapViewState.shouldCenter = true;
-    _routeDistance = null;
-    _routePrice = null;
-    mapViewState.markers.remove("start");
+    mapViewState.polylines.clear();
     mapViewState.markers.remove("destination");
     if (mapViewState.currentPosition != null) {
       mapViewState.resetCamera();
@@ -271,6 +269,8 @@ class PassengerHomeState extends ChangeNotifier {
     if (_routeDistance == null) return;
 
     var paymentSuccess = false;
+    String? paymentIntent;
+
     await showDialog(
         context: _context,
         builder: (BuildContext context) {
@@ -316,10 +316,11 @@ class PassengerHomeState extends ChangeNotifier {
       try {
         inPayment = true;
         notifyListeners();
-        paymentSuccess = await _paymentService.displayPaymentSheet(
+        paymentIntent = await _paymentService.displayPaymentSheet(
           _routeDistance!.toStringAsFixed(2),
           _user?.data().customerId ?? '',
         );
+        if (paymentIntent != null) paymentSuccess = true;
       } catch (e) {
         throw Exception(e.toString());
       } finally {
@@ -347,7 +348,8 @@ class PassengerHomeState extends ChangeNotifier {
                     _toApu ? apuDescription : _destinationDescription!,
                 distance: _routeDistance!.toStringAsFixed(2),
                 price: _routePrice!.toStringAsFixed(2),
-                paymentMode: PaymentMode.cash,
+                paymentMode: _paymentMode,
+                paymentIntentId: paymentIntent,
               ),
             );
           } else {
@@ -362,9 +364,18 @@ class PassengerHomeState extends ChangeNotifier {
     }
   }
 
-  void deleteJourney() {
-    isSearching = false;
-    _journeyRepo.delete(_journey);
+  void deleteJourney() async {
+    try {
+      isSearching = false;
+      clearUserLocation();
+      if (_journey?.data().paymentMode == PaymentMode.card) {
+        final paymentIntentId = _journey?.data().paymentIntentId;
+        _paymentService.createRefund(paymentIntentId ?? '');
+      }
+      _journeyRepo.delete(_journey);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
   }
 
   Future<void> resetState() async {

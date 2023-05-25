@@ -9,24 +9,24 @@ import 'package:http/http.dart';
 
 class PaymentService {
 
-  dynamic paymentIntent;
+  Map<String, dynamic>? _paymentIntent;
   dynamic setupIntent;
   final client = Client();
 
-  Future<bool> displayPaymentSheet(String distance, String customerId) async {
+  Future<String?> displayPaymentSheet(String distance, String customerId) async {
     try {
       // create ephemeral key for customer
       final ephemeralKey = await _createEphemeralKey(customerId);
 
       // create payment intent on the server
-      paymentIntent = await _createPaymentIntent(distance, malaysiaCurrencyCode, customerId);
+      _paymentIntent = await _createPaymentIntent(distance, malaysiaCurrencyCode, customerId);
 
       // initialize the payment sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           customerId: customerId,
           customerEphemeralKeySecret: ephemeralKey,
-          paymentIntentClientSecret: paymentIntent,
+          paymentIntentClientSecret: _paymentIntent!['client_secret'],
           merchantDisplayName: 'APLanes',
           googlePay: const PaymentSheetGooglePay(
             merchantCountryCode: malaysiaCountryCode,
@@ -40,6 +40,25 @@ class PaymentService {
     } catch (e) {
       throw Exception(e);
     }
+  }
+
+  Future<String?> _displayPaymentSheet() async {
+    String? paymentIntentId;
+    try {
+      await Stripe.instance.presentPaymentSheet().then((value) {
+        paymentIntentId = _paymentIntent!['id'];
+        _paymentIntent = null;
+      }).onError((error, stackTrace) => throw Exception(error));
+    } on StripeException catch (e) {
+      if (kDebugMode) {
+        print('Error is:---> $e');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('$e');
+      }
+    }
+    return paymentIntentId;
   }
 
   Future<String> createCustomer(String email, String name, String phone) async {
@@ -58,13 +77,17 @@ class PaymentService {
           body: body
       );
       final result = json.decode(response.body);
+
+      if (result['error'] != null) {
+        throw Exception(result['error']);
+      }
       return result['id'];
     } catch (e) {
       throw Exception(e.toString());
     }
   }
 
-  Future<String> _createPaymentIntent(String distance, String currency, String customerId) async {
+  Future<Map<String, dynamic>> _createPaymentIntent(String distance, String currency, String customerId) async {
     try {
       //Request body
       Map<String, dynamic> body = {
@@ -83,7 +106,11 @@ class PaymentService {
         body: body,
       );
       final result = json.decode(response.body);
-      return result['client_secret'];
+
+      if (result['error'] != null) {
+        throw Exception(result['error']);
+      }
+      return result;
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -99,31 +126,28 @@ class PaymentService {
         body: {'customer': customerId},
       );
       final result = json.decode(response.body);
+
+      if (result['error'] != null) {
+        throw Exception(result['error']);
+      }
       return result['secret'];
     } catch (e) {
       throw Exception(e.toString());
     }
   }
 
-  Future<bool> _displayPaymentSheet() async {
-    var success = false;
+  Future<void> createRefund(String paymentIntent) async {
     try {
-      await Stripe.instance.presentPaymentSheet().then((value) {
-        paymentIntent = null;
-        success = true;
-      }).onError((error, stackTrace) => throw Exception(error));
-    } on StripeException catch (e) {
-      if (kDebugMode) {
-        print('Error is:---> $e');
-      }
-      success = false;
+      client.post(
+        Uri.parse('https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreateRefund'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {'payment_intent': paymentIntent},
+      );
     } catch (e) {
-      if (kDebugMode) {
-        print('$e');
-      }
-      success = false;
+      throw Exception(e.toString());
     }
-    return success;
   }
 
 }

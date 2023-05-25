@@ -65,7 +65,6 @@ class SearchBar extends StatelessWidget {
                         color: Colors.black,
                         onPressed: () {
                           state.clearUserLocation();
-                          state.searchController.clear();
                         })
                     : null,
                 border: const OutlineInputBorder(borderSide: BorderSide.none),
