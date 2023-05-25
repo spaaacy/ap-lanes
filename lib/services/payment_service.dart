@@ -30,6 +30,11 @@ class PaymentService {
           customerEphemeralKeySecret: ephemeralKey,
           paymentIntentClientSecret: paymentIntent,
           merchantDisplayName: 'APLanes',
+          googlePay: const PaymentSheetGooglePay(
+            merchantCountryCode: 'MY',
+            currencyCode: defaultCurrency,
+            testEnv: true,
+          )
         ),
       );
 
