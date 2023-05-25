@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:ap_lanes/util/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -9,7 +10,34 @@ import 'package:http/http.dart';
 class PaymentService {
 
   dynamic paymentIntent;
+  dynamic setupIntent;
   final client = Client();
+
+  Future<bool> displayPaymentSheet(String distance, String customerId) async {
+    try {
+      // create ephemeral key for customer
+      final ephemeralKey = await _createEphemeralKey(customerId);
+
+      // create payment intent on the server
+      paymentIntent = await _createPaymentIntent(distance, defaultCurrency, customerId);
+      // setupIntent = await _createSetupIntent(customerId);
+
+      // initialize the payment sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          // setupIntentClientSecret: setupIntent,
+          customerId: customerId,
+          customerEphemeralKeySecret: ephemeralKey,
+          paymentIntentClientSecret: paymentIntent,
+          merchantDisplayName: 'APLanes',
+        ),
+      );
+
+      return await _displayPaymentSheet();
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
 
   Future<String> createCustomer(String email, String name, String phone) async {
     try {
@@ -33,31 +61,7 @@ class PaymentService {
     }
   }
 
-  Future<bool> retrieveStripePayment(String distance, String customerId) async {
-    try {
-      // create ephemeral key for customer
-      final ephemeralKey = await _createEphemeralKey(customerId);
-
-      // create payment intent on the server
-      paymentIntent = await _createPaymentIntent(distance, 'MYR', customerId);
-
-      // initialize the payment sheet
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          customerEphemeralKeySecret: ephemeralKey,
-          paymentIntentClientSecret: paymentIntent['client_secret'],
-          merchantDisplayName: 'APLanes',
-          style: ThemeMode.dark,
-        ),
-      );
-
-      return await _displayPaymentSheet();
-    } catch (e) {
-      throw Exception(e);
-    }
-  }
-
-  _createPaymentIntent(String distance, String currency, String customerId) async {
+  Future<String> _createPaymentIntent(String distance, String currency, String customerId) async {
     try {
       //Request body
       Map<String, dynamic> body = {
@@ -69,13 +73,37 @@ class PaymentService {
       //Make post request to Stripe
       var response = await client.post(
         Uri.parse(
-            'https://asia-east2-apu-rideshare.cloudfunctions.net/StripeGetPaymentIntent'),
+            'https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreatePaymentIntent'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,
       );
-      return json.decode(response.body);
+      final result = json.decode(response.body);
+      return result['client_secret'];
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  Future<String> _createSetupIntent(String customerId) async {
+    try {
+      //Request body
+      Map<String, dynamic> body = {
+        'customer': customerId,
+      };
+
+      //Make post request to Stripe
+      var response = await client.post(
+        Uri.parse(
+            'https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreateSetupIntent'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body,
+      );
+      final result = json.decode(response.body);
+      return result['client_secret'];
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -84,11 +112,11 @@ class PaymentService {
   _createEphemeralKey(String customerId) async {
     try {
       var response = await client.post(
-        Uri.parse('https://asia-east2-apu-rideshare.cloudfunctions.net/StripeGetEphemeralKey'),
+        Uri.parse('https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreateEphemeralKey'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: {'customerId': customerId},
+        body: {'customer': customerId},
       );
       final result = json.decode(response.body);
       return result['secret'];
@@ -102,6 +130,7 @@ class PaymentService {
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
         paymentIntent = null;
+        // setupIntent = null;
         success = true;
       }).onError((error, stackTrace) => throw Exception(error));
     } on StripeException catch (e) {
