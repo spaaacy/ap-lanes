@@ -64,3 +64,16 @@ exports.StripeCreatePaymentIntent = functions.region("asia-east2").https.onReque
 		return res.send({ error: e.message });
 	}
 });
+
+exports.StripeCreateRefund = functions.region("asia-east2").https.onRequest(async (req, res) => {
+	const { payment_intent } = req.body;
+
+	try {
+		const refund = await stripe.refunds.create(
+			{ payment_intent: payment_intent },
+		)
+		console.log('Refund created');
+	} catch (e) {
+		res.send({ error: e.message });
+	}
+});

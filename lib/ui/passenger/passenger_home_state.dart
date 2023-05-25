@@ -271,6 +271,8 @@ class PassengerHomeState extends ChangeNotifier {
     if (_routeDistance == null) return;
 
     var paymentSuccess = false;
+    String? paymentIntent;
+
     await showDialog(
         context: _context,
         builder: (BuildContext context) {
@@ -316,10 +318,11 @@ class PassengerHomeState extends ChangeNotifier {
       try {
         inPayment = true;
         notifyListeners();
-        paymentSuccess = await _paymentService.displayPaymentSheet(
+        paymentIntent = await _paymentService.displayPaymentSheet(
           _routeDistance!.toStringAsFixed(2),
           _user?.data().customerId ?? '',
         );
+        if (paymentIntent != null) paymentSuccess = true;
       } catch (e) {
         throw Exception(e.toString());
       } finally {
@@ -348,6 +351,7 @@ class PassengerHomeState extends ChangeNotifier {
                 distance: _routeDistance!.toStringAsFixed(2),
                 price: _routePrice!.toStringAsFixed(2),
                 paymentMode: PaymentMode.cash,
+                paymentIntent: paymentIntent,
               ),
             );
           } else {
@@ -362,9 +366,10 @@ class PassengerHomeState extends ChangeNotifier {
     }
   }
 
-  void deleteJourney() {
-    isSearching = false;
+  void deleteJourney() async {
+    // await _paymentService.createRefund(_journey?.data().paymentIntent ?? '');
     _journeyRepo.delete(_journey);
+    isSearching = false;
   }
 
   Future<void> resetState() async {

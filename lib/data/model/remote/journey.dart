@@ -23,6 +23,7 @@ class Journey {
   String price;
   String paymentMode;
   DateTime createdAt;
+  String? paymentIntent;
 
   Journey({
     required this.userId,
@@ -38,6 +39,7 @@ class Journey {
     this.isPickedUp = false,
     this.driverId = "",
     DateTime? createdOn,
+    this.paymentIntent,
   }) : createdAt = createdOn ?? DateTime.now();
 
   Map<String, dynamic> toFirestore() {
@@ -54,6 +56,7 @@ class Journey {
       if (distance != null) "distance": distance,
       if (price != null) "price": price,
       if (paymentMode != null) "paymentMode": paymentMode,
+      if (paymentIntent != null) "paymentIntent": paymentIntent,
       if (createdAt != null) "createdAt": createdAt.millisecondsSinceEpoch,
     };
   }
@@ -76,6 +79,7 @@ class Journey {
       distance: data?['distance'],
       price: data?['price'],
       paymentMode: data?['paymentMode'],
+      paymentIntent: data?['paymentIntent'],
       createdOn: DateTime.fromMillisecondsSinceEpoch(data!['createdAt']),
     );
   }
