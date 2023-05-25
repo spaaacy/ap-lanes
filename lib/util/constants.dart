@@ -4,7 +4,10 @@ import 'package:latlong2/latlong.dart';
 const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
 
 // Payments
-const String defaultCurrency = 'MYR';
+// const String malaysiaCurrencyCode = 'MYR';
+// const String malaysiaCountryCode = 'MY';
+const String malaysiaCurrencyCode = 'USD';
+const String malaysiaCountryCode = 'US';
 
 // User Modes
 const String passengerMode = "PASSENGER_MODE";
