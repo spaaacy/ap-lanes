@@ -64,18 +64,3 @@ exports.StripeCreatePaymentIntent = functions.region("asia-east2").https.onReque
 		return res.send({ error: e.message });
 	}
 });
-
-exports.StripeCreateSetupIntent = functions.region("asia-east2").https.onRequest(async (req, res) => {
-	const { customerId } = req.body;
-
-	try {
-		const params = {	
-			customer: customerId,
-		};
-		const intent = await stripe.setupIntents.create(params);
-		console.log("Setup intent created");
-		return res.send({ client_secret: intent.client_secret });
-	} catch (e) {
-		return res.send({ error: e.message });
-	}
-});

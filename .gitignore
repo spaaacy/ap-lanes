@@ -44,4 +44,3 @@ app.*.map.json
 /android/app/release
 /export.ps1
 /assets/.env
-/server/functions/_index.js

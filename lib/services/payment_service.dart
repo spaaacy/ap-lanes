@@ -19,17 +19,20 @@ class PaymentService {
       final ephemeralKey = await _createEphemeralKey(customerId);
 
       // create payment intent on the server
-      paymentIntent = await _createPaymentIntent(distance, defaultCurrency, customerId);
-      // setupIntent = await _createSetupIntent(customerId);
+      paymentIntent = await _createPaymentIntent(distance, malaysiaCurrencyCode, customerId);
 
       // initialize the payment sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          // setupIntentClientSecret: setupIntent,
           customerId: customerId,
           customerEphemeralKeySecret: ephemeralKey,
           paymentIntentClientSecret: paymentIntent,
           merchantDisplayName: 'APLanes',
+          googlePay: const PaymentSheetGooglePay(
+            merchantCountryCode: malaysiaCountryCode,
+            currencyCode:  malaysiaCurrencyCode,
+            testEnv: true, // TODO: Change for production
+          )
         ),
       );
 
@@ -86,29 +89,6 @@ class PaymentService {
     }
   }
 
-  Future<String> _createSetupIntent(String customerId) async {
-    try {
-      //Request body
-      Map<String, dynamic> body = {
-        'customer': customerId,
-      };
-
-      //Make post request to Stripe
-      var response = await client.post(
-        Uri.parse(
-            'https://asia-east2-apu-rideshare.cloudfunctions.net/StripeCreateSetupIntent'),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: body,
-      );
-      final result = json.decode(response.body);
-      return result['client_secret'];
-    } catch (e) {
-      throw Exception(e.toString());
-    }
-  }
-
   _createEphemeralKey(String customerId) async {
     try {
       var response = await client.post(
@@ -130,7 +110,6 @@ class PaymentService {
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
         paymentIntent = null;
-        // setupIntent = null;
         success = true;
       }).onError((error, stackTrace) => throw Exception(error));
     } on StripeException catch (e) {
