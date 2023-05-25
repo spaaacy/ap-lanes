@@ -19,41 +19,30 @@ exports.StripeCreateCustomer = functions.region("asia-east2").https.onRequest(as
 			phone: phone,
 		};
 		const customer = await stripe.customers.create(params);
+		console.log('Customer created');
 		return res.send({ id: customer.id });
 	} catch (e) {
 		return res.send({ error: e.message });
 	}
 });
 
-exports.StripeGetEphemeralKey = functions.region("asia-east2").https.onRequest(async (req, res) => {
-	const { customerId } = req.body;
+exports.StripeCreateEphemeralKey = functions.region("asia-east2").https.onRequest(async (req, res) => {
+	const { customer } = req.body;
 
 	try {
 		const ephemeralKey = await stripe.ephemeralKeys.create(
-			{ customer: customerId },
+			{ customer: customer },
 			{ apiVersion: '2022-11-15' },
 		)
+		console.log('Ephemeral key created');
 		return res.send({ secret: ephemeralKey.secret });
 	} catch (e) {
 		res.send({ error: e.message });
 	}
-
 });
 
-
-
-exports.StripeGetPaymentMethod = async () => {
-	const paymentMethods = await stripe.customers.listPaymentMethods(
-		'cus_NwnuOelpzQooZo',
-		{type: 'card'},
-	);
-	console.log(paymentMethods);
-};
-
-exports.StripeGetPaymentMethod();
-
-exports.StripeGetPaymentIntent = functions.region("asia-east2").https.onRequest(async (req, res) => {
-	const { distance, currency, customerId } = req.body;
+exports.StripeCreatePaymentIntent = functions.region("asia-east2").https.onRequest(async (req, res) => {
+	const { distance, currency, customer } = req.body;
 
 	const amount = calculatePrice(distance);
 
@@ -61,14 +50,30 @@ exports.StripeGetPaymentIntent = functions.region("asia-east2").https.onRequest(
 		const params = {	
 			amount: amount,
 			currency: currency,
-			customer: customerId,
+			customer: customer,
 			automatic_payment_methods: {
 				enabled: true,
 			},
 			setup_future_usage: 'off_session',
 		};
+		console.log(params);
 		const intent = await stripe.paymentIntents.create(params);
-		console.log("Intent ${intent}");
+		console.log("Payment intent created");
+		return res.send({ client_secret: intent.client_secret });
+	} catch (e) {
+		return res.send({ error: e.message });
+	}
+});
+
+exports.StripeCreateSetupIntent = functions.region("asia-east2").https.onRequest(async (req, res) => {
+	const { customerId } = req.body;
+
+	try {
+		const params = {	
+			customer: customerId,
+		};
+		const intent = await stripe.setupIntents.create(params);
+		console.log("Setup intent created");
 		return res.send({ client_secret: intent.client_secret });
 	} catch (e) {
 		return res.send({ error: e.message });

@@ -3,6 +3,9 @@ import 'package:latlong2/latlong.dart';
 // Maps API
 const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
 
+// Payments
+const String defaultCurrency = 'MYR';
+
 // User Modes
 const String passengerMode = "PASSENGER_MODE";
 const String driverMode = "DRIVER_MODE";

@@ -48,7 +48,7 @@ class PassengerHomeState extends ChangeNotifier {
   StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
-  String _paymentMode = PaymentMode.cash;
+  String _paymentMode = PaymentMode.card;
   double? _routeDistance;
   double? _routePrice;
   LatLng? _destinationLatLng;
@@ -313,13 +313,18 @@ class PassengerHomeState extends ChangeNotifier {
 
     // Handles payment
     if (paymentMode == PaymentMode.card) {
-      inPayment = true;
-      notifyListeners();
-      paymentSuccess = await _paymentService.retrieveStripePayment(
-        _routeDistance!.toStringAsFixed(2),
-        _user?.data().customerId ?? '',
-      );
-      inPayment = false;
+      try {
+        inPayment = true;
+        notifyListeners();
+        paymentSuccess = await _paymentService.displayPaymentSheet(
+          _routeDistance!.toStringAsFixed(2),
+          _user?.data().customerId ?? '',
+        );
+      } catch (e) {
+        throw Exception(e.toString());
+      } finally {
+        inPayment = false;
+      }
     }
 
     // Handles creation of journey
