@@ -7,6 +7,7 @@ import 'package:ap_lanes/data/repo/user_repo.dart';
 import 'package:ap_lanes/services/driver_location_service.dart';
 import 'package:ap_lanes/services/notification_service.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
+import 'package:ap_lanes/ui/driver/components/payment_confirmation_page/payment_confirmation_page.dart';
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -217,12 +218,20 @@ class OngoingJourneyPopupState extends ChangeNotifier {
   }
 
   void onJourneyDropOff() async {
-    bool? shouldDropOff = await requestDropOffConfirmation();
-
-    if (shouldDropOff == null || shouldDropOff == false) {
-      return;
-    }
     try {
+      if (_context.mounted) {
+        final paymentResponse = await showModalBottomSheet<bool?>(
+          builder: (context) => PaymentConfirmationPage(
+            journey: _activeJourney,
+          ),
+          elevation: 4,
+          isScrollControlled: true,
+          context: _context,
+        );
+        if (paymentResponse == null || !paymentResponse) {
+          return;
+        }
+      }
       await _journeyRepo.completeJourney(_activeJourney);
       stopOngoingJourneyListenerAndCleanUp();
     } catch (e) {

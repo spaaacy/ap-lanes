@@ -105,25 +105,25 @@ class JourneyRequestPopupState extends ChangeNotifier {
   }
 
   Future<void> updateJourneyRoutePolylines(Journey journey) async {
-      final start = journey.startLatLng;
-      final end = journey.endLatLng;
-      final polylines = await _placeService.fetchRoute(start, end);
-      _mapViewState.polylines.clear();
-      _mapViewState.polylines.add(polylines);
-      _mapViewState.shouldCenter = false;
-      _mapViewState.setCameraToRoute(
-        topOffsetPercentage: 1,
-        bottomOffsetPercentage: 0.2,
-      );
-      _mapViewState.markers["start"] = Marker(
-        point: start,
-        builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
-      );
-      _mapViewState.markers["destination"] = Marker(
-        point: end,
-        builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
-      );
-      _mapViewState.notifyListeners();
+    final start = journey.startLatLng;
+    final end = journey.endLatLng;
+    final polylines = await _placeService.fetchRoute(start, end);
+    _mapViewState.polylines.clear();
+    _mapViewState.polylines.add(polylines);
+    _mapViewState.shouldCenter = false;
+    _mapViewState.setCameraToRoute(
+      topOffsetPercentage: 1,
+      bottomOffsetPercentage: 0.2,
+    );
+    _mapViewState.markers["start"] = Marker(
+      point: start,
+      builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
+    );
+    _mapViewState.markers["destination"] = Marker(
+      point: end,
+      builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
+    );
+    _mapViewState.notifyListeners();
   }
 
   void onRequestPopupNavigate(RequestNavigationDirection direction, BuildContext context) async {

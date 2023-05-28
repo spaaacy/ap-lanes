@@ -32,6 +32,12 @@ class VehicleRepo {
     return null;
   }
 
+  Stream<QuerySnapshot<Vehicle>>? snapshots(String? driverId) {
+    if (driverId == null) return null;
+
+    return _vehicleRef.where('driverId', isEqualTo: driverId).limit(1).snapshots();
+  }
+
   Stream<QuerySnapshot<Vehicle>> getAPUFleetSnapshots() {
     return _vehicleRef.where('isManagedByAPU', isEqualTo: true).where('driverId', isEqualTo: '').snapshots();
   }
