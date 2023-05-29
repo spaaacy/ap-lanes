@@ -39,10 +39,13 @@ class DriverHomeState extends ChangeNotifier {
   late final StreamController<QueryDocumentSnapshot<Journey>?> _onJourneyRequestAcceptedStreamController;
   late final Stream<QueryDocumentSnapshot<Journey>?> onJourneyRequestAccepted;
 
+  StreamSubscription<QuerySnapshot<Vehicle>>? _vehicleListener;
+
   final _userRepo = UserRepo();
   final _driverRepo = DriverRepo();
   final _journeyRepo = JourneyRepo();
   final _vehicleRepo = VehicleRepo();
+
 
   DriverHomeState(this._context) {
     _onDriverStateStreamController = StreamController.broadcast();
@@ -61,6 +64,7 @@ class DriverHomeState extends ChangeNotifier {
 
     await _onDriverStateStreamController.close();
     await _onJourneyRequestAcceptedStreamController.close();
+    await _vehicleListener?.cancel();
   }
 
   Future<void> initializeFirebase() async {
@@ -108,7 +112,13 @@ class DriverHomeState extends ChangeNotifier {
       return;
     }
 
-    vehicle = await _vehicleRepo.get(driver!.data().id);
+    _vehicleListener = _vehicleRepo.snapshots(driver!.data().id)?.listen((snap) {
+      if (snap.size > 0) {
+        vehicle = snap.docs.first;
+      } else {
+        vehicle = null;
+      }
+    });
 
     final hasPreviousOngoingJourney = await _journeyRepo.hasOngoingJourney(_firebaseUser!.uid);
     if (hasPreviousOngoingJourney) {
