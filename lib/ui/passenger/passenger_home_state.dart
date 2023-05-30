@@ -204,7 +204,7 @@ class PassengerHomeState extends ChangeNotifier {
             bottomOffsetPercentage: 0.5,
           );
           _routeDistance = calculateRouteDistance(polylines);
-          _routePrice = calculateRoutePrice(_routeDistance!);
+          _routePrice = calculateRoutePrice(double.parse(_routeDistance!.toStringAsFixed(2)));
           notifyListeners(); // Notifies when route is received
         });
       } on Exception catch (e) {
@@ -219,6 +219,7 @@ class PassengerHomeState extends ChangeNotifier {
     _destinationLatLng = null;
     mapViewState.shouldCenter = true;
     mapViewState.polylines.clear();
+    mapViewState.markers.remove("start");
     mapViewState.markers.remove("destination");
     if (mapViewState.currentPosition != null) {
       mapViewState.resetCamera();
@@ -262,7 +263,15 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   Future<void> cancelJourneyAsPassenger() async {
+    // Deletes journey first before refund to ensure so in case cancel fails
+    final paymentIntentId = _journey?.data().paymentIntentId;
+    String price = _journey!.data().price;
     await _journeyRepo.cancelJourneyAsPassenger(_journey!);
+    if (paymentIntentId != null) {
+      _paymentService.createRefund(paymentIntentId);
+      notificationService.notifyPassenger("Your journey has been cancelled",
+          body: 'Your card will be refunded $price');
+    }
   }
 
   void createJourney() async {
@@ -366,13 +375,17 @@ class PassengerHomeState extends ChangeNotifier {
 
   void deleteJourney() async {
     try {
+      // Deletes journey first before refund to ensure so in case cancel fails
       isSearching = false;
       clearUserLocation();
-      if (_journey?.data().paymentMode == PaymentMode.card) {
-        final paymentIntentId = _journey?.data().paymentIntentId;
-        _paymentService.createRefund(paymentIntentId ?? '');
+      final paymentIntentId = _journey?.data().paymentIntentId;
+      String price = _journey!.data().price;
+      await _journeyRepo.delete(_journey);
+      if (paymentIntentId != null) {
+        _paymentService.createRefund(paymentIntentId);
+        notificationService.notifyPassenger("Your journey has been cancelled",
+            body: 'Your card will be refunded $price');
       }
-      _journeyRepo.delete(_journey);
     } catch (e) {
       throw Exception(e.toString());
     }
