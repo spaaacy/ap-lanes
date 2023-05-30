@@ -118,13 +118,13 @@ class PassengerHomeState extends ChangeNotifier {
               if (driver != null) {
                 // Get driver details
                 _vehicle = await _vehicleRepo.get(driver.data().id);
-                _hasDriver = true;
 
-                if (_hasDriver) {
+                if (!_hasDriver) {
                   notificationService.notifyPassenger("Driver has been found!",
                       body:
                           "Your driver for today is $_driverName. Look for the license plate ${_vehicle?.data().licensePlate} to meet your driver.");
                 }
+                _hasDriver = true;
 
                 // Clear map state
                 _routeDistance = null;
@@ -177,6 +177,7 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void _resetDriverDetails() {
+    mapViewState.markers.remove('driver');
     _hasDriver = false;
     _driverName = null;
     _driverPhone = null;
