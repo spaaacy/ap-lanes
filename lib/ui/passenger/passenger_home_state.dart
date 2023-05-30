@@ -142,10 +142,10 @@ class PassengerHomeState extends ChangeNotifier {
                     _driverRepo.listen(driverId).listen((driver) {
                   if (driver.docs.isNotEmpty) {
                     final latLng = driver.docs.first.data().currentLatLng;
-                    if (latLng != null &&
+                    if (latLng != LatLng(0.0, 0.0) &&
                         mapViewState.currentPosition != null) {
                       mapViewState.markers["driver"] = Marker(
-                        point: latLng,
+                        point: latLng!,
                         builder: (_) => const Icon(Icons.drive_eta,
                             size: 35, color: Colors.black),
                       );
