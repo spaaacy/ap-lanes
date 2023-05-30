@@ -68,7 +68,7 @@ class PlaceService {
     }
   }
 
-  Future<Polyline> fetchRoute(LatLng start, LatLng end) async {
+  Future<Polyline> _fetchRoute(LatLng start, LatLng end) async {
     final request =
         "http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson";
 
@@ -96,4 +96,30 @@ class PlaceService {
       throw Exception('Failed to fetch a route!');
     }
   }
+
+  Future<Polyline> fetchRoute(LatLng start, LatLng end) async {
+    final polylinePoints = PolylinePoints();
+    final points = <LatLng>[];
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      androidApiKey,
+      PointLatLng(start.latitude, start.longitude),
+      PointLatLng(end.latitude, end.longitude),
+      travelMode: TravelMode.driving,
+    );
+
+    if (result.status == "OK") {
+      result.points.forEach((PointLatLng point) {
+        points.add(LatLng(point.latitude, point.longitude));
+      });
+    }
+
+    final polyline = Polyline(
+      points: points,
+      color: Colors.purple,
+      strokeWidth: 5.0,
+    );
+
+    return polyline;
+  }
+
 }
