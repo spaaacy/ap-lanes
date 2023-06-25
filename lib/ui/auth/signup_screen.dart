@@ -57,9 +57,14 @@ class SignUpScreen extends StatelessWidget {
               ),
               TextFormField(
                 validator: (value) {
-                  if (value == null || value.isEmpty) { // || !_emailRegExp.hasMatch(value)) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+
+                  if (!_emailRegExp.hasMatch(value)) {
                     return 'Your email must belong to APU';
                   }
+
                   return null;
                 },
                 controller: emailController,
@@ -67,9 +72,14 @@ class SignUpScreen extends StatelessWidget {
               ),
               TextFormField(
                 validator: (value) {
-                  if (value == null || value.isEmpty || value.length <= 6) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+
+                  if (value.length <= 6) {
                     return 'Your password must be longer than 6 characters';
                   }
+
 
                   return null;
                 },
