@@ -38,7 +38,7 @@ class JourneyDetail extends StatelessWidget {
                           if (!state.hasDriver) {
                             return [
                               Text(
-                                "Finding an driver...",
+                                "Finding a driver...",
                                 style: Theme.of(context).textTheme.titleSmall,
                                 textAlign: TextAlign.center,
                               ),
