@@ -82,14 +82,17 @@ class PassengerHomeState extends ChangeNotifier {
     initializeFirestore();
   }
 
+  // Handles listening to database
   Future<void> initializeFirestore() async {
     final firebaseUser = _context.read<firebase_auth.User?>();
 
+    // Checks if user is logged in
     if (firebaseUser != null) {
-      // Set user and last name
+      // Assigns user from database
       _user = (await _userRepo.get(firebaseUser.uid))!;
       notifyListeners();
 
+      // Begins listening for user created journeys
       _journeyListener = _journeyRepo
           .listenForJourney(firebaseUser.uid)
           .listen((journey) async {
@@ -97,15 +100,17 @@ class PassengerHomeState extends ChangeNotifier {
           _journey = journey.docs.first;
           notifyListeners();
 
+          // Checks if journey has a driver
           if (_journey!.data().driverId.isNotEmpty) {
             if (!_isPickedUp && _journey!.data().isPickedUp) {
+              // Notifies passenger they have been picked up
               notificationService
                   .notifyPassenger("Your driver has picked you up!");
             }
             _isPickedUp = _journey!.data().isPickedUp == true;
             notifyListeners();
 
-            // Get driver name
+            // Gets driver name and phone number
             final driverId = _journey!.data().driverId;
             await _userRepo.get(driverId).then((driver) {
               if (driver != null) {
@@ -114,11 +119,13 @@ class PassengerHomeState extends ChangeNotifier {
               }
             });
 
+            // Get driver details
             _driverRepo.get(driverId).then((driver) async {
               if (driver != null) {
-                // Get driver details
+                // Gets vehicle details
                 _vehicle = await _vehicleRepo.get(driver.data().id);
 
+                // Notifies passenger that a driver has been found
                 if (!_hasDriver) {
                   notificationService.notifyPassenger("Driver has been found!",
                       body:
@@ -126,7 +133,7 @@ class PassengerHomeState extends ChangeNotifier {
                 }
                 _hasDriver = true;
 
-                // Clear map state
+                // Clears map state
                 _routeDistance = null;
                 _routePrice = null;
                 mapViewState.polylines.clear();
@@ -134,10 +141,10 @@ class PassengerHomeState extends ChangeNotifier {
                 mapViewState.markers.remove("start");
                 mapViewState.markers.remove("destination");
                 _isSearching = false;
-
                 notifyListeners();
 
-                // Used to ensure multiple listen calls are not made
+                // Listens to driver's location and updates map
+                // ??= used to ensure multiple listen calls are not made
                 _driverListener ??=
                     _driverRepo.listen(driverId).listen((driver) {
                   if (driver.docs.isNotEmpty) {
@@ -164,11 +171,13 @@ class PassengerHomeState extends ChangeNotifier {
                 });
               }
             });
+          // If driver not yet found
           } else {
             _isSearching = true;
             _resetDriverDetails();
             notifyListeners();
           }
+        // If user has not yet created a journey
         } else if (_journey != null) {
           resetState();
         }
