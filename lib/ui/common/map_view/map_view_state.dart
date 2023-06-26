@@ -29,6 +29,7 @@ class MapViewState2 extends ChangeNotifier {
   * Functions
   * */
   void initializeLocation(BuildContext context) async {
+    // Ensures user has given permission to use phone's location
     final hasPermissions = await handleLocationPermission(context);
 
     if (hasPermissions) {
@@ -37,11 +38,13 @@ class MapViewState2 extends ChangeNotifier {
       ).listen((position) async {
         final latLng = LatLng(position.latitude, position.longitude);
         _currentPosition = latLng;
+        // Updates user location icon on map
         _markers["user"] =
             Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35, color: Colors.black));
         notifyListeners();
 
         if (_shouldCenter) {
+          // Recenter map camera to user's location
           resetCamera();
         }
       });
