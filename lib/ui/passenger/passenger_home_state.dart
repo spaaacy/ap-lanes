@@ -276,9 +276,12 @@ class PassengerHomeState extends ChangeNotifier {
     // Deletes journey first before refund to ensure so in case cancel fails
     final paymentIntentId = _journey?.data().paymentIntentId;
     String price = _journey!.data().price;
-    await _journeyRepo.cancelJourneyAsPassenger(_journey!);
+    // Cancels journey in database
+    await _journeyRepo.cancelJourneyTransaction(_journey!);
     if (paymentIntentId != null) {
+      // Creates refund request in Stripe
       _paymentService.createRefund(paymentIntentId);
+      // Notifies passenger of refund
       notificationService.notifyPassenger("Your journey has been cancelled",
           body: 'Your card will be refunded $price');
     }

@@ -75,7 +75,7 @@ class JourneyRepo {
     return getDefaultJourneyQuery(driverId).endBeforeDocument(lastVisible).limitToLast(3).get();
   }
 
-  Future<void> cancelJourneyAsPassenger(QueryDocumentSnapshot<Journey> journey) async {
+  Future<void> cancelJourneyTransaction(QueryDocumentSnapshot<Journey> journey) async {
     await _firestoreInstance.runTransaction((transaction) async {
       final snapshot = await transaction.get(journey.reference);
       if (snapshot.data()?.isPickedUp != true) {

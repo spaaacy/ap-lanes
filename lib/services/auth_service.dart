@@ -59,21 +59,23 @@ class AuthService extends ChangeNotifier {
     required String phoneNumber,
   }) async {
     try {
+      // Creates customer on Stripe (for card payments)
       final fullName = "${firstName.capitalize()} ${lastName.capitalize()}";
       final customerId = await _paymentService.createCustomer(email, fullName, phoneNumber);
+      // Creates user in database
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-      final id = _firebaseAuth.currentUser?.uid;
-      final userEmail = _firebaseAuth.currentUser?.email;
+      final id = _firebaseAuth.currentUser?.uid; // Fetches id from Firebase Auth
       _userRepo.create(
         model.User(
           id: id!,
-          email: userEmail!,
+          email: email,
           firstName: firstName,
           lastName: lastName,
           phoneNumber: phoneNumber,
           customerId: customerId,
         ),
       );
+      // Sends verification email
       sendEmailVerification();
       return signedIn;
     } on FirebaseAuthException catch (e) {

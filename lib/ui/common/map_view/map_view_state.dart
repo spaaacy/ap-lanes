@@ -34,13 +34,16 @@ class MapViewState2 extends ChangeNotifier {
 
     if (hasPermissions) {
       _locationListener = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
+        locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.bestForNavigation),
       ).listen((position) async {
         final latLng = LatLng(position.latitude, position.longitude);
         _currentPosition = latLng;
         // Updates user location icon on map
-        _markers["user"] =
-            Marker(point: latLng, builder: (context) => const Icon(Icons.account_circle_rounded, size: 35, color: Colors.black));
+        _markers["user"] = Marker(
+            point: latLng,
+            builder: (context) => const Icon(Icons.account_circle_rounded,
+                size: 35, color: Colors.black));
         notifyListeners();
 
         if (_shouldCenter) {
@@ -65,12 +68,13 @@ class MapViewState2 extends ChangeNotifier {
     double rightOffsetPercentage = 0,
   }) {
     if (!isMapReady) return;
-    
+
     double minLat = firstLatLng.latitude;
     double minLng = firstLatLng.longitude;
     double maxLat = secondLatLng.latitude;
     double maxLng = secondLatLng.longitude;
 
+    // Finds the smallest and largest latitude and longitude
     if (secondLatLng.latitude < minLat) {
       maxLat = minLat;
       minLat = secondLatLng.latitude;
@@ -80,6 +84,8 @@ class MapViewState2 extends ChangeNotifier {
       minLng = secondLatLng.longitude;
     }
 
+    // Calculates the difference between the smallest and largest lat, lng
+    // Uses difference to calculate lat, lng to add/subtract to initial values
     final latDifference = maxLat - minLat;
     final topOffsetValue = latDifference * topOffsetPercentage;
     final bottomOffsetValue = latDifference * bottomOffsetPercentage;
@@ -88,6 +94,7 @@ class MapViewState2 extends ChangeNotifier {
     final leftOffsetValue = lngDifference * leftOffsetPercentage;
     final rightOffsetValue = lngDifference * rightOffsetPercentage;
 
+    // Passes lat, lng range to map camera
     final bounds = LatLngBounds(
       LatLng(minLat - bottomOffsetValue, minLng - leftOffsetValue),
       LatLng(maxLat + topOffsetValue, maxLng + rightOffsetValue),
@@ -135,7 +142,6 @@ class MapViewState2 extends ChangeNotifier {
     final centerZoom = _mapController.centerZoomFitBounds(bounds);
 
     mapView?.animateCamera(centerZoom.center, centerZoom.zoom);
-
   }
 
   void resetMap() {
@@ -156,7 +162,7 @@ class MapViewState2 extends ChangeNotifier {
   * Getters
   * */
   MapController get mapController => _mapController;
-  
+
   LatLng? get currentPosition => _currentPosition;
 
   Map<String, Marker> get markers => _markers;
@@ -168,7 +174,6 @@ class MapViewState2 extends ChangeNotifier {
   /*
   * Setters
   * */
-
 
   set shouldCenter(bool value) {
     _shouldCenter = value;
