@@ -1,8 +1,5 @@
 import 'package:latlong2/latlong.dart';
 
-// Maps API
-const String androidApiKey = "AIzaSyCjPRC6yejeI9XzZlCvvcr6qWvaTkqr408";
-
 // Payments
 const String malaysiaCurrencyCode = 'MYR';
 const String malaysiaCountryCode = 'MY';

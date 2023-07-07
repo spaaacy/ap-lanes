@@ -1,5 +1,6 @@
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
@@ -26,6 +27,7 @@ class MapViewState1 extends State<MapView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     mapViewState = context.watch<MapViewState2>();
+    final token = dotenv.env['JAWG_TOKEN']!;
 
     return mapViewState!.currentPosition == null
         ? const Center(
@@ -51,7 +53,7 @@ class MapViewState1 extends State<MapView> with TickerProviderStateMixin {
                       maxZoom: 18,
                       backgroundColor: Colors.white,
                       urlTemplate:
-                          'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=WdQDiqGUjI4uwIVOFpp11bNpyin0ZxbRZ9FTxAB2b9Y0Fq6uFOARf8w297TPqGzJ',
+                          'https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=$token',
                       subdomains: const ['a', 'b', 'c', 'd'],
                       tileProvider: FMTC.instance('mapStore').getTileProvider(),
                     ),
