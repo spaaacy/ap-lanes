@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ap_lanes/ui/common/map_view/map_view.dart';
 import 'package:flutter/material.dart';
@@ -29,13 +30,34 @@ class MapViewState2 extends ChangeNotifier {
   * Functions
   * */
   void initializeLocation(BuildContext context) async {
+    late LocationSettings locationSettings;
+    if (Platform.isAndroid) {
+      locationSettings = AndroidSettings(
+          accuracy: LocationAccuracy.bestForNavigation,
+          distanceFilter: 20,
+          intervalDuration: const Duration(seconds: 5),
+      );
+    } else if (Platform.isIOS) {
+      locationSettings = AppleSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        activityType: ActivityType.automotiveNavigation,
+        distanceFilter: 20,
+        allowBackgroundLocationUpdates: true,
+          showBackgroundLocationIndicator: true
+      );
+    } else {
+      locationSettings = const LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 20,
+      );
+    }
+
     // Ensures user has given permission to use phone's location
     final hasPermissions = await handleLocationPermission(context);
 
     if (hasPermissions) {
       _locationListener = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.bestForNavigation),
+        locationSettings: locationSettings,
       ).listen((position) async {
         final latLng = LatLng(position.latitude, position.longitude);
         _currentPosition = latLng;
