@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -287,100 +288,100 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   void createJourney() async {
-    if (_routeDistance == null) return;
+    // First check if location permissions are granted
+    final locationPermissionsGranted = await handleBasicLocationPermission(_context);
 
-    var paymentSuccess = false;
-    String? paymentIntent;
+    if (_context.mounted && locationPermissionsGranted) {
 
-    await showDialog(
-        context: _context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(builder: (context, setState) {
-            return AlertDialog(
-                title: const Text('Select Payment Mode'),
-                content: DropdownButton(
-                    isExpanded: true,
-                    value: _paymentMode,
-                    onChanged: (value) {
-                      setState(() => paymentMode = value);
-                    },
-                    items: <DropdownMenuItem>[
-                      DropdownMenuItem<String>(
-                          value: PaymentMode.cash, child: Text(PaymentMode.cash)),
-                      // DropdownMenuItem<String>(
-                      //     value: PaymentMode.card, child: Text(PaymentMode.card)),
-                      // DropdownMenuItem<String>(
-                      //     value: PaymentMode.qr, child: Text(PaymentMode.qr)),
-                    ]),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pop(context, 'Cancel');
+      if (_routeDistance == null) return;
+
+      // Mainly used for card payments
+      var paymentSuccess = false;
+      // String? paymentIntent;
+
+      await showDialog(
+          context: _context,
+          builder: (BuildContext context) {
+            return StatefulBuilder(builder: (context, setState) {
+              return AlertDialog(
+                  title: const Text('Select Payment Mode'),
+                  content: DropdownButton(
+                      isExpanded: true,
+                      value: _paymentMode,
+                      onChanged: (value) {
+                        setState(() => paymentMode = value);
                       },
-                      child: const Text('Cancel')),
-                  TextButton(
-                    onPressed: () {
-                      // if (paymentMode != PaymentMode.card) {
+                      items: <DropdownMenuItem>[
+                        DropdownMenuItem<String>(value: PaymentMode.cash, child: Text(PaymentMode.cash)),
+                        // DropdownMenuItem<String>(
+                        //     value: PaymentMode.card, child: Text(PaymentMode.card)),
+                        // DropdownMenuItem<String>(
+                        //     value: PaymentMode.qr, child: Text(PaymentMode.qr)),
+                      ]),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, 'Cancel');
+                        },
+                        child: const Text('Cancel')),
+                    TextButton(
+                      onPressed: () {
+                        // if (paymentMode != PaymentMode.card) {
                         paymentSuccess = true;
-                      // }
-                      Navigator.pop(context, 'Okay');
-                    },
-                    child: const Text('Okay'),
-                  )
-                ]);
-
+                        // }
+                        Navigator.pop(context, 'Okay');
+                      },
+                      child: const Text('Okay'),
+                    )
+                  ]);
+            });
           });
-        });
 
-    // Handles payment
-    // if (paymentMode == PaymentMode.card) {
-    //   try {
-    //     inPayment = true;
-    //     notifyListeners();
-    //     paymentIntent = await _paymentService.displayPaymentSheet(
-    //       _routeDistance!.toStringAsFixed(2),
-    //       _user?.data().customerId ?? '',
-    //     );
-    //     if (paymentIntent != null) paymentSuccess = true;
-    //   } catch (e) {
-    //     throw Exception(e.toString());
-    //   } finally {
-    //     inPayment = false;
-    //   }
-    // }
+      // Handles payment
+      // if (paymentMode == PaymentMode.card) {
+      //   try {
+      //     inPayment = true;
+      //     notifyListeners();
+      //     paymentIntent = await _paymentService.displayPaymentSheet(
+      //       _routeDistance!.toStringAsFixed(2),
+      //       _user?.data().customerId ?? '',
+      //     );
+      //     if (paymentIntent != null) paymentSuccess = true;
+      //   } catch (e) {
+      //     throw Exception(e.toString());
+      //   } finally {
+      //     inPayment = false;
+      //   }
+      // }
 
-    // Handles creation of journey
-    if (_context.mounted) {
-      if (paymentSuccess) {
-        final firebaseUser = _context.read<firebase_auth.User?>();
-        if (firebaseUser != null &&
-            _routeDistance != null &&
-            _routePrice != null) {
-          if (_routeDistance! <= 7.0) {
-            isSearching = true;
-            _journeyRepo.create(
-              Journey(
-                userId: firebaseUser.uid,
-                startLatLng: toApu ? _destinationLatLng! : apuLatLng,
-                endLatLng: toApu ? apuLatLng : _destinationLatLng!,
-                startDescription:
-                    _toApu ? _destinationDescription! : apuDescription,
-                endDescription:
-                    _toApu ? apuDescription : _destinationDescription!,
-                distance: _routeDistance!.toStringAsFixed(2),
-                price: _routePrice!.toStringAsFixed(2),
-                paymentMode: _paymentMode,
-                // paymentIntentId: paymentIntent,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(_context).showSnackBar(const SnackBar(
-                content: Text("Journeys are limited to a distance of 7 km")));
+      // Handles creation of journey
+      if (_context.mounted) {
+        if (paymentSuccess) {
+          final firebaseUser = _context.read<firebase_auth.User?>();
+          if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
+            if (_routeDistance! <= 7.0) {
+              isSearching = true;
+              _journeyRepo.create(
+                Journey(
+                  userId: firebaseUser.uid,
+                  startLatLng: toApu ? _destinationLatLng! : apuLatLng,
+                  endLatLng: toApu ? apuLatLng : _destinationLatLng!,
+                  startDescription: _toApu ? _destinationDescription! : apuDescription,
+                  endDescription: _toApu ? apuDescription : _destinationDescription!,
+                  distance: _routeDistance!.toStringAsFixed(2),
+                  price: _routePrice!.toStringAsFixed(2),
+                  paymentMode: _paymentMode,
+                  // paymentIntentId: paymentIntent,
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(_context)
+                  .showSnackBar(const SnackBar(content: Text("Journeys are limited to a distance of 7 km")));
+            }
           }
+        } else {
+          ScaffoldMessenger.of(_context).showSnackBar(const SnackBar(content: Text("Payment failed!")));
         }
-      } else {
-        ScaffoldMessenger.of(_context)
-            .showSnackBar(const SnackBar(content: Text("Payment failed!")));
       }
     }
   }

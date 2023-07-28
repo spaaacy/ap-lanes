@@ -50,11 +50,8 @@ String trimDescription(String description) {
 }
 
 Future<bool> handleAdditionalLocationPermission(context) async {
-  LocationPermission permission;
-
+  LocationPermission permission = await Geolocator.checkPermission();
   String requiredLocationOption = Platform.isAndroid ? "Allow all the time" : "Always";
-
-  permission = await Geolocator.checkPermission();
 
   if (permission != LocationPermission.always) {
     await showDialog(
@@ -63,7 +60,7 @@ Future<bool> handleAdditionalLocationPermission(context) async {
           return AlertDialog(
               title: const Text("Location permissions"),
               content: Text(
-                  "APLanes uses your location in the background when necessary and is required to use this application. Please select \"$requiredLocationOption\" to continue"),
+                  "APLanes uses your location in the background when necessary and is required to use this application. Please select \"$requiredLocationOption\" in location settings to continue."),
               actions: [
                 TextButton(
                     onPressed: () {
@@ -73,51 +70,15 @@ Future<bool> handleAdditionalLocationPermission(context) async {
               ]);
         });
 
-    Geolocator.openLocationSettings();
-
-    if (permission != LocationPermission.always) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-                title: const Text("Location permissions"),
-                content: Text("\"$requiredLocationOption\" is required to use this application"),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-                      },
-                      child: const Text("Okay")),
-                ]);
-          });
-    }
-  }
-
-  if (permission == LocationPermission.deniedForever) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-              title: const Text("Location permissions"),
-              content: const Text('Location permissions are permanently denied, we cannot request permissions.'),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-                    },
-                    child: const Text("Okay")),
-              ]);
-        });
+    await Geolocator.openLocationSettings();
     return false;
   }
   return true;
 }
 
-Future<bool> handleInitialLocationPermission(context) async {
-  bool serviceEnabled;
-  LocationPermission permission;
+Future<bool> handleBasicLocationPermission(context) async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -127,11 +88,11 @@ Future<bool> handleInitialLocationPermission(context) async {
     return false;
   }
 
-  permission = await Geolocator.checkPermission();
+  LocationPermission permission = await Geolocator.checkPermission();
 
-  if (permission == LocationPermission.denied) {
+  if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
     permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -149,5 +110,6 @@ Future<bool> handleInitialLocationPermission(context) async {
       return false;
     }
   }
+
   return true;
 }

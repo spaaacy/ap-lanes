@@ -53,7 +53,7 @@ class MapViewState2 extends ChangeNotifier {
     }
 
     // Ensures user has given permission to use phone's location
-    final hasPermissions = await handleInitialLocationPermission(context);
+    final hasPermissions = await handleBasicLocationPermission(context);
 
     if (hasPermissions) {
       _locationListener = Geolocator.getPositionStream(

@@ -1,4 +1,5 @@
 import 'package:ap_lanes/ui/driver/driver_home_state.dart';
+import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +17,12 @@ class DriverGoButton extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ElevatedButton(
-          onPressed: state.driverState == DriverState.searching ? state.stopSearching : state.startSearching,
+          onPressed: () async {
+            final locationPermissionsGranted = await handleAdditionalLocationPermission(context);
+            if (locationPermissionsGranted) {
+              state.driverState == DriverState.searching ? state.stopSearching : state.startSearching;
+            }
+          },
           style: ElevatedButtonTheme.of(context).style?.copyWith(
                 shape: const MaterialStatePropertyAll(CircleBorder()),
                 padding: const MaterialStatePropertyAll(EdgeInsets.all(24.0)),
