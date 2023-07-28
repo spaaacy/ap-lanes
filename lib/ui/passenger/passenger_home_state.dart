@@ -18,7 +18,6 @@ import '../../data/model/remote/user.dart';
 import '../../data/repo/journey_repo.dart';
 import '../../data/repo/user_repo.dart';
 import '../../services/notification_service.dart';
-import '../../services/payment_service.dart';
 import '../../services/place_service.dart';
 import '../../util/constants.dart';
 import '../../util/location_helpers.dart';
@@ -40,7 +39,7 @@ class PassengerHomeState extends ChangeNotifier {
   final _userRepo = UserRepo();
   final _vehicleRepo = VehicleRepo();
   final _placeService = PlaceService();
-  final _paymentService = PaymentService();
+  // final _paymentService = PaymentService();
 
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
@@ -48,7 +47,7 @@ class PassengerHomeState extends ChangeNotifier {
   StreamSubscription<QuerySnapshot<Journey>>? _journeyListener;
   StreamSubscription<QuerySnapshot<Driver>>? _driverListener;
 
-  String _paymentMode = PaymentMode.card;
+  String _paymentMode = PaymentMode.cash;
   double? _routeDistance;
   double? _routePrice;
   LatLng? _destinationLatLng;
@@ -274,17 +273,17 @@ class PassengerHomeState extends ChangeNotifier {
 
   Future<void> cancelJourneyAsPassenger() async {
     // Deletes journey first before refund to ensure so in case cancel fails
-    final paymentIntentId = _journey?.data().paymentIntentId;
-    String price = _journey!.data().price;
+    // final paymentIntentId = _journey?.data().paymentIntentId;
+    // String price = _journey!.data().price;
     // Cancels journey in database
     await _journeyRepo.cancelJourneyTransaction(_journey!);
-    if (paymentIntentId != null) {
-      // Creates refund request in Stripe
-      _paymentService.createRefund(paymentIntentId);
-      // Notifies passenger of refund
-      notificationService.notifyPassenger("Your journey has been cancelled",
-          body: 'Your card will be refunded $price');
-    }
+    // if (paymentIntentId != null) {
+    //   // Creates refund request in Stripe
+    //   _paymentService.createRefund(paymentIntentId);
+    //   // Notifies passenger of refund
+    //   notificationService.notifyPassenger("Your journey has been cancelled",
+    //       body: 'Your card will be refunded $price');
+    // }
   }
 
   void createJourney() async {
@@ -308,10 +307,10 @@ class PassengerHomeState extends ChangeNotifier {
                     items: <DropdownMenuItem>[
                       DropdownMenuItem<String>(
                           value: PaymentMode.cash, child: Text(PaymentMode.cash)),
-                      DropdownMenuItem<String>(
-                          value: PaymentMode.card, child: Text(PaymentMode.card)),
-                      DropdownMenuItem<String>(
-                          value: PaymentMode.qr, child: Text(PaymentMode.qr)),
+                      // DropdownMenuItem<String>(
+                      //     value: PaymentMode.card, child: Text(PaymentMode.card)),
+                      // DropdownMenuItem<String>(
+                      //     value: PaymentMode.qr, child: Text(PaymentMode.qr)),
                     ]),
                 actions: [
                   TextButton(
@@ -321,9 +320,9 @@ class PassengerHomeState extends ChangeNotifier {
                       child: const Text('Cancel')),
                   TextButton(
                     onPressed: () {
-                      if (paymentMode != PaymentMode.card) {
+                      // if (paymentMode != PaymentMode.card) {
                         paymentSuccess = true;
-                      }
+                      // }
                       Navigator.pop(context, 'Okay');
                     },
                     child: const Text('Okay'),
@@ -334,21 +333,21 @@ class PassengerHomeState extends ChangeNotifier {
         });
 
     // Handles payment
-    if (paymentMode == PaymentMode.card) {
-      try {
-        inPayment = true;
-        notifyListeners();
-        paymentIntent = await _paymentService.displayPaymentSheet(
-          _routeDistance!.toStringAsFixed(2),
-          _user?.data().customerId ?? '',
-        );
-        if (paymentIntent != null) paymentSuccess = true;
-      } catch (e) {
-        throw Exception(e.toString());
-      } finally {
-        inPayment = false;
-      }
-    }
+    // if (paymentMode == PaymentMode.card) {
+    //   try {
+    //     inPayment = true;
+    //     notifyListeners();
+    //     paymentIntent = await _paymentService.displayPaymentSheet(
+    //       _routeDistance!.toStringAsFixed(2),
+    //       _user?.data().customerId ?? '',
+    //     );
+    //     if (paymentIntent != null) paymentSuccess = true;
+    //   } catch (e) {
+    //     throw Exception(e.toString());
+    //   } finally {
+    //     inPayment = false;
+    //   }
+    // }
 
     // Handles creation of journey
     if (_context.mounted) {
@@ -371,7 +370,7 @@ class PassengerHomeState extends ChangeNotifier {
                 distance: _routeDistance!.toStringAsFixed(2),
                 price: _routePrice!.toStringAsFixed(2),
                 paymentMode: _paymentMode,
-                paymentIntentId: paymentIntent,
+                // paymentIntentId: paymentIntent,
               ),
             );
           } else {
@@ -391,14 +390,14 @@ class PassengerHomeState extends ChangeNotifier {
       // Deletes journey first before refund to ensure so in case cancel fails
       isSearching = false;
       clearUserLocation();
-      final paymentIntentId = _journey?.data().paymentIntentId;
-      String price = _journey!.data().price;
+      // final paymentIntentId = _journey?.data().paymentIntentId;
+      // String price = _journey!.data().price;
       await _journeyRepo.delete(_journey);
-      if (paymentIntentId != null) {
-        _paymentService.createRefund(paymentIntentId);
-        notificationService.notifyPassenger("Your journey has been cancelled",
-            body: 'Your card will be refunded $price');
-      }
+      // if (paymentIntentId != null) {
+      //   _paymentService.createRefund(paymentIntentId);
+      //   notificationService.notifyPassenger("Your journey has been cancelled",
+      //       body: 'Your card will be refunded $price');
+      // }
     } catch (e) {
       throw Exception(e.toString());
     }

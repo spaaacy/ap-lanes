@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:ap_lanes/services/payment_service.dart';
 import 'package:ap_lanes/util/ui_helpers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,7 +12,7 @@ class AuthService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth;
   Timer? timer;
   bool isEmailVerified = false;
-  final _paymentService = PaymentService();
+  // final _paymentService = PaymentService();
 
   void _checkIfEmailVerified() async {
     await FirebaseAuth.instance.currentUser?.reload();
@@ -61,7 +60,7 @@ class AuthService extends ChangeNotifier {
     try {
       // Creates customer on Stripe (for card payments)
       final fullName = "${firstName.capitalize()} ${lastName.capitalize()}";
-      final customerId = await _paymentService.createCustomer(email, fullName, phoneNumber);
+      // final customerId = await _paymentService.createCustomer(email, fullName, phoneNumber);
       // Creates user in database
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       final id = _firebaseAuth.currentUser?.uid; // Fetches id from Firebase Auth
@@ -72,7 +71,7 @@ class AuthService extends ChangeNotifier {
           firstName: firstName,
           lastName: lastName,
           phoneNumber: phoneNumber,
-          customerId: customerId,
+          // customerId: customerId,
         ),
       );
       // Sends verification email

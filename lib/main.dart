@@ -6,7 +6,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 
 import 'color_schemes.g.dart';
@@ -21,8 +20,8 @@ Future<void> main() async {
   );
   await FlutterMapTileCaching.initialise();
   await dotenv.load(fileName: 'assets/.env');
-  Stripe.publishableKey = dotenv.env['STRIPE_TEST_PUBLISHABLE']!;
-  await Stripe.instance.applySettings();
+  // Stripe.publishableKey = dotenv.env['STRIPE_TEST_PUBLISHABLE']!;
+  // await Stripe.instance.applySettings();
   FMTC.instance('mapStore').manage.create();
   runApp(const MyApp());
 }
