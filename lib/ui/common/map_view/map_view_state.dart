@@ -43,7 +43,7 @@ class MapViewState2 extends ChangeNotifier {
         activityType: ActivityType.automotiveNavigation,
         distanceFilter: 20,
         allowBackgroundLocationUpdates: true,
-          showBackgroundLocationIndicator: true
+        showBackgroundLocationIndicator: true
       );
     } else {
       locationSettings = const LocationSettings(
@@ -53,7 +53,7 @@ class MapViewState2 extends ChangeNotifier {
     }
 
     // Ensures user has given permission to use phone's location
-    final hasPermissions = await handleLocationPermission(context);
+    final hasPermissions = await handleInitialLocationPermission(context);
 
     if (hasPermissions) {
       _locationListener = Geolocator.getPositionStream(

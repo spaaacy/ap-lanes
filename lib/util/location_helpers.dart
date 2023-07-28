@@ -37,10 +37,7 @@ double calculateRoutePrice(double distance) {
 LatLng getLatLngFromString(String? latLngString) {
   LatLng latLng;
   if (latLngString != null) {
-    List<double>? latLngList = latLngString
-        .split(',')
-        .map((e) => double.tryParse(e.trim()) ?? 0)
-        .toList();
+    List<double>? latLngList = latLngString.split(',').map((e) => double.tryParse(e.trim()) ?? 0).toList();
     latLng = LatLng(latLngList[0], latLngList[1]);
   } else {
     latLng = LatLng(0.0, 0.0);
@@ -52,7 +49,71 @@ String trimDescription(String description) {
   return description.split(", ").take(3).join(', ');
 }
 
-Future<bool> handleLocationPermission(context) async {
+Future<bool> handleAdditionalLocationPermission(context) async {
+  LocationPermission permission;
+
+  String requiredLocationOption = Platform.isAndroid ? "Allow all the time" : "Always";
+
+  permission = await Geolocator.checkPermission();
+
+  if (permission != LocationPermission.always) {
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: const Text("Location permissions"),
+              content: Text(
+                  "APLanes uses your location in the background when necessary and is required to use this application. Please select \"$requiredLocationOption\" to continue"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, "Okay");
+                    },
+                    child: const Text("Okay")),
+              ]);
+        });
+
+    Geolocator.openLocationSettings();
+
+    if (permission != LocationPermission.always) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                title: const Text("Location permissions"),
+                content: Text("\"$requiredLocationOption\" is required to use this application"),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                      },
+                      child: const Text("Okay")),
+                ]);
+          });
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: const Text("Location permissions"),
+              content: const Text('Location permissions are permanently denied, we cannot request permissions.'),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                    },
+                    child: const Text("Okay")),
+              ]);
+        });
+    return false;
+  }
+  return true;
+}
+
+Future<bool> handleInitialLocationPermission(context) async {
   bool serviceEnabled;
   LocationPermission permission;
 
@@ -60,8 +121,7 @@ Future<bool> handleLocationPermission(context) async {
   if (!serviceEnabled) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content:
-            Text('Location services are disabled. Please enable the services'),
+        content: Text('Location services are disabled. Please enable the services'),
       ),
     );
     return false;
@@ -77,78 +137,17 @@ Future<bool> handleLocationPermission(context) async {
           builder: (BuildContext context) {
             return AlertDialog(
                 title: const Text("Location permissions"),
-                content: const Text(
-                    "Location permissions is required to use this application"),
+                content: const Text("Location permissions is required to use this application"),
                 actions: [
                   TextButton(
                       onPressed: () {
-                        SystemChannels.platform
-                            .invokeMethod('SystemNavigator.pop');
+                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
                       },
                       child: const Text("Okay")),
                 ]);
           });
       return false;
     }
-  }
-
-  if (permission != LocationPermission.always) {
-    await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-              title: const Text("Location permissions"),
-              content: const Text(
-                  "APLanes uses your location in the background when necessary and is required to use this application. Please select \"Allow all the time\" to continue"),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, "Okay");
-                    },
-                    child: const Text("Okay")),
-              ]);
-        });
-
-    permission = await Geolocator.requestPermission();
-    // if (permission != LocationPermission.always) {
-    if (permission != LocationPermission.whileInUse) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-                title: const Text("Location permissions"),
-                content: const Text(
-                    "\"Allow all the time\" is required to use this application"),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        SystemChannels.platform
-                            .invokeMethod('SystemNavigator.pop');
-                      },
-                      child: const Text("Okay")),
-                ]);
-          });
-    }
-  }
-
-  if (permission == LocationPermission.deniedForever) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-              title: const Text("Location permissions"),
-              content: const Text(
-                  'Location permissions are permanently denied, we cannot request permissions.'),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      SystemChannels.platform
-                          .invokeMethod('SystemNavigator.pop');
-                    },
-                    child: const Text("Okay")),
-              ]);
-        });
-    return false;
   }
   return true;
 }

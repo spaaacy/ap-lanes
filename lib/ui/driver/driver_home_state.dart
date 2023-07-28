@@ -11,6 +11,7 @@ import 'package:ap_lanes/data/repo/vehicle_repo.dart';
 import 'package:ap_lanes/ui/common/map_view/map_view_state.dart';
 import 'package:ap_lanes/ui/common/user_wrapper/user_wrapper_state.dart';
 import 'package:ap_lanes/ui/driver/components/setup_driver_profile_dialog.dart';
+import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
@@ -48,6 +49,8 @@ class DriverHomeState extends ChangeNotifier {
 
 
   DriverHomeState(this._context) {
+    handleAdditionalLocationPermission(_context);
+
     _onDriverStateStreamController = StreamController.broadcast();
     onDriverStateChanged = _onDriverStateStreamController.stream;
 
