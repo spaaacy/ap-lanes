@@ -745,42 +745,6 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - Stripe (23.6.0):
-    - StripeApplePay (= 23.6.0)
-    - StripeCore (= 23.6.0)
-    - StripePayments (= 23.6.0)
-    - StripePaymentsUI (= 23.6.0)
-    - StripeUICore (= 23.6.0)
-  - stripe_ios (0.0.1):
-    - Flutter
-    - Stripe (= 23.6.0)
-    - StripeApplePay (= 23.6.0)
-    - StripeFinancialConnections (= 23.6.0)
-    - StripePayments (= 23.6.0)
-    - StripePaymentSheet (= 23.6.0)
-    - StripePaymentsUI (= 23.6.0)
-  - StripeApplePay (23.6.0):
-    - StripeCore (= 23.6.0)
-  - StripeCore (23.6.0)
-  - StripeFinancialConnections (23.6.0):
-    - StripeCore (= 23.6.0)
-    - StripeUICore (= 23.6.0)
-  - StripePayments (23.6.0):
-    - StripeCore (= 23.6.0)
-    - StripePayments/Stripe3DS2 (= 23.6.0)
-  - StripePayments/Stripe3DS2 (23.6.0):
-    - StripeCore (= 23.6.0)
-  - StripePaymentSheet (23.6.0):
-    - StripeApplePay (= 23.6.0)
-    - StripeCore (= 23.6.0)
-    - StripePayments (= 23.6.0)
-    - StripePaymentsUI (= 23.6.0)
-  - StripePaymentsUI (23.6.0):
-    - StripeCore (= 23.6.0)
-    - StripePayments (= 23.6.0)
-    - StripeUICore (= 23.6.0)
-  - StripeUICore (23.6.0):
-    - StripeCore (= 23.6.0)
   - url_launcher_ios (0.0.1):
     - Flutter
 
@@ -797,7 +761,6 @@ DEPENDENCIES:
   - isar_flutter_libs (from `.symlinks/plugins/isar_flutter_libs/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - stripe_ios (from `.symlinks/plugins/stripe_ios/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
@@ -817,14 +780,6 @@ SPEC REPOS:
     - Libuv-gRPC
     - nanopb
     - PromisesObjC
-    - Stripe
-    - StripeApplePay
-    - StripeCore
-    - StripeFinancialConnections
-    - StripePayments
-    - StripePaymentSheet
-    - StripePaymentsUI
-    - StripeUICore
 
 EXTERNAL SOURCES:
   cloud_firestore:
@@ -851,8 +806,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
-  stripe_ios:
-    :path: ".symlinks/plugins/stripe_ios/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
@@ -884,15 +837,6 @@ SPEC CHECKSUMS:
   path_provider_foundation: eaf5b3e458fc0e5fbb9940fb09980e853fe058b8
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   shared_preferences_foundation: e2dae3258e06f44cc55f49d42024fd8dd03c590c
-  Stripe: 097f76ce332ff7dcb8a29ec2a8379bb4f34aa14d
-  stripe_ios: dfb96f1e36a0feb24596e280dfdc33d4106e9e77
-  StripeApplePay: 484761d4760ddb8af8c1510b8735cd9aee94515f
-  StripeCore: 0e83ad26d508e5a8e9eb04d6ddd3cbb08a3f7816
-  StripeFinancialConnections: eb303783458a7e5bd4380cbbf0a6cf44246473f4
-  StripePayments: cdd5222052d541f4daf1d84515f0b9cd18720534
-  StripePaymentSheet: 835aabcac7946d6b6b341055d021428b96894b70
-  StripePaymentsUI: 835b9422f86ceb2ca02b4146db9d3f7bf1acb0d9
-  StripeUICore: 81bac0f54df659ab7c5dd4f5a57719a5fecdcdc9
   url_launcher_ios: 08a3dfac5fb39e8759aeb0abbd5d9480f30fc8b4
 
 PODFILE CHECKSUM: aa3b1d9cb94e8055dc6468141196cf9e4c8e33df
