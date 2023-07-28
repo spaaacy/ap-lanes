@@ -17,7 +17,8 @@ class DriverLocationService {
   static bool isRegistered = false;
 
   @pragma('vm:entry-point')
-  static Future<void> _onStart(ServiceInstance service) async {
+  static Future<bool> _onStart(ServiceInstance service) async {
+    var success = false;
     DartPluginRegistrant.ensureInitialized();
 
     service.on('stopService').listen((event) {
@@ -33,7 +34,9 @@ class DriverLocationService {
       var driverDoc = FirebaseFirestore.instance.doc(driverDocPath);
       var pos = await Geolocator.getCurrentPosition();
       driverDoc.update({'currentLatLng': '${pos.latitude}, ${pos.longitude}'});
+      success = true;
     });
+    return success;
   }
 
   static void unregisterDriverLocationBackgroundService() async {
@@ -79,6 +82,8 @@ class DriverLocationService {
         autoStartOnBoot: false
       ),
       iosConfiguration: IosConfiguration(
+        autoStart: true,
+        onBackground: _onStart,
         onForeground: _onStart,
       ),
     );
