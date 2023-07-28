@@ -11,12 +11,13 @@ import '../../../util/location_helpers.dart';
 
 class MapViewState2 extends ChangeNotifier {
   MapViewState2(BuildContext context) {
-    initializeLocation(context);
+    listenToLocation(context);
   }
 
   /*
   * Variables
   * */
+  bool _locationPermissions = false;
   bool _shouldCenter = true;
   LatLng? _currentPosition;
   StreamSubscription<Position>? _locationListener;
@@ -29,7 +30,7 @@ class MapViewState2 extends ChangeNotifier {
   /*
   * Functions
   * */
-  void initializeLocation(BuildContext context) async {
+  void listenToLocation(BuildContext context) async {
     late LocationSettings locationSettings;
     if (Platform.isAndroid) {
       locationSettings = AndroidSettings(
@@ -53,9 +54,9 @@ class MapViewState2 extends ChangeNotifier {
     }
 
     // Ensures user has given permission to use phone's location
-    final hasPermissions = await handleBasicLocationPermission(context);
+    locationPermissions = await handleBasicLocationPermission(context);
 
-    if (hasPermissions) {
+    if (_locationPermissions) {
       _locationListener = Geolocator.getPositionStream(
         locationSettings: locationSettings,
       ).listen((position) async {
@@ -183,6 +184,9 @@ class MapViewState2 extends ChangeNotifier {
   /*
   * Getters
   * */
+
+  bool get locationPermissions => _locationPermissions;
+
   MapController get mapController => _mapController;
 
   LatLng? get currentPosition => _currentPosition;
@@ -196,6 +200,10 @@ class MapViewState2 extends ChangeNotifier {
   /*
   * Setters
   * */
+  set locationPermissions(bool value) {
+    _locationPermissions = value;
+    notifyListeners();
+  }
 
   set shouldCenter(bool value) {
     _shouldCenter = value;

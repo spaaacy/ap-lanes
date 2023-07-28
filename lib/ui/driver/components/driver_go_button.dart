@@ -20,7 +20,7 @@ class DriverGoButton extends StatelessWidget {
           onPressed: () async {
             final locationPermissionsGranted = await handleAdditionalLocationPermission(context);
             if (locationPermissionsGranted) {
-              state.driverState == DriverState.searching ? state.stopSearching : state.startSearching;
+              state.driverState == DriverState.searching ? state.stopSearching() : state.startSearching();
             }
           },
           style: ElevatedButtonTheme.of(context).style?.copyWith(

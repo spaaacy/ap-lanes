@@ -43,28 +43,28 @@ class PassengerHome extends StatelessWidget {
               ),
             ),
             body: Stack(
-              children: [
-                const MapView(),
-                const JourneyDetail(),
-                Positioned.fill(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: passenger_view.SearchBar(),
-                    ),
-                  ),
-                ),
-                const Positioned.fill(
-                  bottom: 100.0,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: PassengerGoButton(),
-                  ),
-                ),
-                const DriverDetail(),
-              ],
-            ),
+                    children: [
+                      const MapView(),
+                      const JourneyDetail(),
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: passenger_view.SearchBar(),
+                          ),
+                        ),
+                      ),
+                      const Positioned.fill(
+                        bottom: 100.0,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: PassengerGoButton(),
+                        ),
+                      ),
+                      const DriverDetail(),
+                    ],
+                  )
           );
   }
 }

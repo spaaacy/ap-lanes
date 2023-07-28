@@ -240,4 +240,6 @@ class DriverHomeState extends ChangeNotifier {
     _driverState = value;
     notifyListeners();
   }
+
+  MapViewState2 get mapViewState => _mapViewState;
 }

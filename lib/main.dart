@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: "AP Lanes",
+        title: "APLanes",
         debugShowCheckedModeBanner: false,
         darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
         theme: ThemeData(

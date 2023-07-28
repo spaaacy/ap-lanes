@@ -102,7 +102,7 @@ Future<bool> handleBasicLocationPermission(context) async {
                 actions: [
                   TextButton(
                       onPressed: () {
-                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                        Navigator.pop(context, "Okay");
                       },
                       child: const Text("Okay")),
                 ]);

@@ -30,8 +30,18 @@ class MapViewState1 extends State<MapView> with TickerProviderStateMixin {
     final token = dotenv.env['JAWG_TOKEN']!;
 
     return mapViewState!.currentPosition == null
-        ? const Center(
-            child: CircularProgressIndicator(),
+        ? Center(
+            child: (mapViewState!.locationPermissions) ? const CircularProgressIndicator() : const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.location_disabled_rounded, size: 35),
+                SizedBox(
+                  height: 12.0,
+                ),
+                Text("Location has been disabled."),
+                Text("Please enable locations in your settings.")
+              ],
+            ),
           )
         : Stack(
             children: [

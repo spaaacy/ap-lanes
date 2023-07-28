@@ -46,31 +46,31 @@ class DriverHome extends StatelessWidget {
               ),
             ),
             body: Stack(
-              children: [
-                const MapView(),
-                const DriverGoButton(),
-                Positioned.fill(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: ChangeNotifierProvider<DriverVehicleDropdownState>(
-                        create: (ctx) => DriverVehicleDropdownState(ctx),
-                        child: const DriverVehicleDropdown(),
+                    children: [
+                      const MapView(),
+                      const DriverGoButton(),
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: ChangeNotifierProvider<DriverVehicleDropdownState>(
+                              create: (ctx) => DriverVehicleDropdownState(ctx),
+                              child: const DriverVehicleDropdown(),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-                ChangeNotifierProvider<JourneyRequestPopupState>(
-                  create: (ctx) => JourneyRequestPopupState(ctx),
-                  child: const JourneyRequestPopup(),
-                ),
-                ChangeNotifierProvider<OngoingJourneyPopupState>(
-                  create: (ctx) => OngoingJourneyPopupState(ctx),
-                  child: const OngoingJourneyPopup(),
-                ),
-              ],
-            ),
+                      ChangeNotifierProvider<JourneyRequestPopupState>(
+                        create: (ctx) => JourneyRequestPopupState(ctx),
+                        child: const JourneyRequestPopup(),
+                      ),
+                      ChangeNotifierProvider<OngoingJourneyPopupState>(
+                        create: (ctx) => OngoingJourneyPopupState(ctx),
+                        child: const OngoingJourneyPopup(),
+                      ),
+                    ],
+                  )
           );
   }
 }
