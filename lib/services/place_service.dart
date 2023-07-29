@@ -1,9 +1,9 @@
 import 'dart:convert';
 
+import 'package:ap_lanes/util/location_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:http/http.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -14,7 +14,8 @@ class PlaceService {
   final client = Client();
   late String mapsApiKey = dotenv.env['MAPS_API_KEY']!;
 
-  Future<List<Suggestion>> fetchSuggestions(String input, LatLng? currentLocation, String lang, String sessionToken) async {
+  Future<List<Suggestion>> fetchSuggestions(
+      String input, LatLng? currentLocation, String lang, String sessionToken) async {
     if (input.isEmpty) {
       return [];
     }
@@ -40,6 +41,33 @@ class PlaceService {
       throw Exception(result['error_message']);
     } else {
       throw Exception('Failed to fetch suggestion');
+    }
+  }
+
+  Future<Polyline> fetchRoute(LatLng start, LatLng end) async {
+    final request =
+        "https://maps.googleapis.com/maps/api/directions/json?destination=${start.latitude},${start.longitude}&origin=${end.latitude},${end.longitude}&mode=driving&key=$mapsApiKey&region=my";
+
+    final response = await client.get(Uri.parse(request));
+
+    if (response.statusCode == 200) {
+      final result = json.decode(response.body);
+
+      if (result["status"] == "OK" && result["routes"] != null && result["routes"].isNotEmpty) {
+        final List<LatLng> points = decodeEncodedPolyline(result["routes"][0]["overview_polyline"]["points"]);
+
+        final polyline = Polyline(
+          points: points,
+          color: Colors.purple,
+          strokeWidth: 5.0,
+        );
+
+        return polyline;
+      } else {
+        throw Exception('Failed to fetch a route!');
+      }
+    } else {
+      throw Exception('Failed to fetch a route!');
     }
   }
 
@@ -69,60 +97,4 @@ class PlaceService {
       throw Exception('Failed to fetch latitude longitude');
     }
   }
-
-  Future<Polyline> fetchRoute(LatLng start, LatLng end) async {
-    final polylinePoints = PolylinePoints();
-    final points = <LatLng>[];
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      mapsApiKey,
-      PointLatLng(start.latitude, start.longitude),
-      PointLatLng(end.latitude, end.longitude),
-      travelMode: TravelMode.driving,
-    );
-
-    if (result.status == "OK") {
-      result.points.forEach((PointLatLng point) {
-        points.add(LatLng(point.latitude, point.longitude));
-      });
-    }
-
-    final polyline = Polyline(
-      points: points,
-      color: Colors.purple,
-      strokeWidth: 5.0,
-    );
-
-    return polyline;
-  }
-
-
-  Future<Polyline> _fetchRoute(LatLng start, LatLng end) async {
-    final request =
-        "http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson";
-
-    final response = await client.get(Uri.parse(request));
-
-    if (response.statusCode == 200) {
-      final result = json.decode(response.body);
-
-      if (result["code"] == "Ok") {
-        final points = result["routes"][0]["geometry"]["coordinates"].map<LatLng>((coordinate) {
-          return LatLng(coordinate[1], coordinate[0]);
-        }).toList();
-
-        final polyline = Polyline(
-          points: points,
-          color: Colors.purple,
-          strokeWidth: 5.0,
-        );
-
-        return polyline;
-      } else {
-        throw Exception('Failed to fetch a route!');
-      }
-    } else {
-      throw Exception('Failed to fetch a route!');
-    }
-  }
-
 }
