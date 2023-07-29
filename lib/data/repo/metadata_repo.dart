@@ -1,25 +1,18 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../model/remote/metadata.dart' as model;
 
 class MetadataRepo {
+  final _metadataRef = FirebaseFirestore.instance
+      .collection("metadata")
+      .withConverter(fromFirestore: model.Metadata.fromFirestore, toFirestore: (model.Metadata metadata, _) => metadata.toFirestore());
 
-  final _metadataRef = FirebaseDatabase.instance.ref("metadata");
-
-  Future<int?> getBaseRate() async {
-    final snapshot = await _metadataRef.child("base_rate").get();
+  Future<model.Metadata?> getPricing() async {
+    final snapshot = await _metadataRef.doc('pricing').get();
     if (snapshot.exists) {
-      return int.parse('${snapshot.value}');
-    } else {
-      return null;
+      return snapshot.data();
     }
-  }
-
-  Future<int?> getKmRate() async {
-    final snapshot = await _metadataRef.child("km_rate").get();
-    if (snapshot.exists) {
-      return int.parse('${snapshot.value}');
-    } else {
-      return null;
-    }
+    return null;
   }
 
 }

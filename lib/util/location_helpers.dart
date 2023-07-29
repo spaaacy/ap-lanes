@@ -32,10 +32,9 @@ double calculateRouteDistance(Polyline? polylines) {
 
 Future<double?> calculateRoutePrice(double distance) async {
   final metadataRepo = MetadataRepo();
-  final baseRate = await metadataRepo.getBaseRate();
-  final kmRate = await metadataRepo.getKmRate();
-  if (kmRate != null && baseRate != null) {
-    return baseRate + (distance * kmRate);
+  final pricing = await metadataRepo.getPricing();
+  if (pricing != null) {
+    return pricing.baseRate + (distance * pricing.kmRate);
   } else {
     return null;
   }
@@ -54,33 +53,6 @@ LatLng getLatLngFromString(String? latLngString) {
 
 String trimDescription(String description) {
   return description.split(", ").take(3).join(', ');
-}
-
-Future<bool> handleAdditionalLocationPermission(context) async {
-  LocationPermission permission = await Geolocator.checkPermission();
-  String requiredLocationOption = Platform.isAndroid ? "Allow all the time" : "Always";
-
-  if (permission != LocationPermission.always) {
-    await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-              title: const Text("Location permissions"),
-              content: Text(
-                  "APLanes uses your location in the background when necessary and is required to use this application. Please select \"$requiredLocationOption\" in location settings to continue."),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, "Okay");
-                    },
-                    child: const Text("Okay")),
-              ]);
-        });
-
-    await Geolocator.openLocationSettings();
-    return false;
-  }
-  return true;
 }
 
 Future<bool> handleBasicLocationPermission(context) async {
@@ -118,6 +90,33 @@ Future<bool> handleBasicLocationPermission(context) async {
     }
   }
 
+  return true;
+}
+
+Future<bool> handleAdditionalLocationPermission(context) async {
+  LocationPermission permission = await Geolocator.checkPermission();
+  String requiredLocationOption = Platform.isAndroid ? "Allow all the time" : "Always";
+
+  if (permission != LocationPermission.always) {
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: const Text("Location permissions"),
+              content: Text(
+                  "APLanes uses your location in the background when necessary and is required to use this application. Please select \"$requiredLocationOption\" in location settings to continue."),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, "Okay");
+                    },
+                    child: const Text("Okay")),
+              ]);
+        });
+
+    await Geolocator.openLocationSettings();
+    return false;
+  }
   return true;
 }
 
