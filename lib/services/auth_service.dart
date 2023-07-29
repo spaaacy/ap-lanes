@@ -12,7 +12,6 @@ class AuthService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth;
   Timer? timer;
   bool isEmailVerified = false;
-  // final _paymentService = PaymentService();
 
   void _checkIfEmailVerified() async {
     await FirebaseAuth.instance.currentUser?.reload();
@@ -58,9 +57,6 @@ class AuthService extends ChangeNotifier {
     required String phoneNumber,
   }) async {
     try {
-      // Creates customer on Stripe (for card payments)
-      final fullName = "${firstName.capitalize()} ${lastName.capitalize()}";
-      // final customerId = await _paymentService.createCustomer(email, fullName, phoneNumber);
       // Creates user in database
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       final id = _firebaseAuth.currentUser?.uid; // Fetches id from Firebase Auth
@@ -71,7 +67,6 @@ class AuthService extends ChangeNotifier {
           firstName: firstName,
           lastName: lastName,
           phoneNumber: phoneNumber,
-          // customerId: customerId,
         ),
       );
       // Sends verification email

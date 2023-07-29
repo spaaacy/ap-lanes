@@ -2,9 +2,6 @@
 
 <img src="https://i.imgur.com/xlj2qNs.png?raw=true" />
 
-## Important notes
-- The project as provided will make REST requests to the previous Firebase Functions Node.js server. This is exclusively only for enabling Stripe payments. Since Stripe will not be used in the final product, APU will be expected to be change this in the future.
-
 ## Steps:
 
 1. Setup Firebase

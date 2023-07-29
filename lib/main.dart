@@ -20,8 +20,6 @@ Future<void> main() async {
   );
   await FlutterMapTileCaching.initialise();
   await dotenv.load(fileName: 'assets/.env');
-  // Stripe.publishableKey = dotenv.env['STRIPE_TEST_PUBLISHABLE']!;
-  // await Stripe.instance.applySettings();
   FMTC.instance('mapStore').manage.create();
   runApp(const MyApp());
 }

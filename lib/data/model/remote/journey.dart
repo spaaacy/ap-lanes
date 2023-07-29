@@ -5,8 +5,6 @@ import '../../../util/location_helpers.dart';
 
 class PaymentMode {
   static String cash = "CASH";
-  // static String card = "CARD";
-  // static String qr = "QR";
 }
 
 class Journey {
@@ -23,7 +21,6 @@ class Journey {
   String price;
   String paymentMode;
   DateTime createdAt;
-  // String? paymentIntentId;
 
   Journey({
     required this.userId,
@@ -39,7 +36,6 @@ class Journey {
     this.isPickedUp = false,
     this.driverId = "",
     DateTime? createdOn,
-    // this.paymentIntentId,
   }) : createdAt = createdOn ?? DateTime.now();
 
   Map<String, dynamic> toFirestore() {
@@ -56,7 +52,6 @@ class Journey {
       if (distance != null) "distance": distance,
       if (price != null) "price": price,
       if (paymentMode != null) "paymentMode": paymentMode,
-      // if (paymentIntentId != null) "paymentIntentId": paymentIntentId,
       if (createdAt != null) "createdAt": createdAt.millisecondsSinceEpoch,
     };
   }
@@ -79,7 +74,6 @@ class Journey {
       distance: data?['distance'],
       price: data?['price'],
       paymentMode: data?['paymentMode'],
-      // paymentIntentId: data?['paymentIntentId'],
       createdOn: DateTime.fromMillisecondsSinceEpoch(data!['createdAt']),
     );
   }

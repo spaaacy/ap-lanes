@@ -40,8 +40,6 @@ class PassengerHomeState extends ChangeNotifier {
   final _vehicleRepo = VehicleRepo();
   final _placeService = PlaceService();
 
-  // final _paymentService = PaymentService();
-
   QueryDocumentSnapshot<User>? _user;
   QueryDocumentSnapshot<Journey>? _journey;
 
@@ -57,7 +55,6 @@ class PassengerHomeState extends ChangeNotifier {
   bool _isPickedUp = false;
   bool _hasDriver = false;
   bool _toApu = false;
-  bool _inPayment = false;
 
   String? _driverName;
   String? _driverPhone;
@@ -264,29 +261,12 @@ class PassengerHomeState extends ChangeNotifier {
   }
 
   Future<void> cancelJourneyAsPassenger() async {
-    // Deletes journey first before refund to ensure so in case cancel fails
-    // final paymentIntentId = _journey?.data().paymentIntentId;
-    // String price = _journey!.data().price;
     // Cancels journey in database
     await _journeyRepo.cancelJourneyTransaction(_journey!);
-    // if (paymentIntentId != null) {
-    //   // Creates refund request in Stripe
-    //   _paymentService.createRefund(paymentIntentId);
-    //   // Notifies passenger of refund
-    //   notificationService.notifyPassenger("Your journey has been cancelled",
-    //       body: 'Your card will be refunded $price');
-    // }
   }
 
   void createJourney() async {
-    // First check if location permissions are granted
-
     if (_routeDistance == null) return;
-
-    // Mainly used for card payments
-    var paymentSuccess = false;
-    // String? paymentIntent;
-
     await showDialog(
         context: _context,
         builder: (BuildContext context) {
@@ -301,10 +281,6 @@ class PassengerHomeState extends ChangeNotifier {
                     },
                     items: <DropdownMenuItem>[
                       DropdownMenuItem<String>(value: PaymentMode.cash, child: Text(PaymentMode.cash)),
-                      // DropdownMenuItem<String>(
-                      //     value: PaymentMode.card, child: Text(PaymentMode.card)),
-                      // DropdownMenuItem<String>(
-                      //     value: PaymentMode.qr, child: Text(PaymentMode.qr)),
                     ]),
                 actions: [
                   TextButton(
@@ -314,9 +290,6 @@ class PassengerHomeState extends ChangeNotifier {
                       child: const Text('Cancel')),
                   TextButton(
                     onPressed: () {
-                      // if (paymentMode != PaymentMode.card) {
-                      paymentSuccess = true;
-                      // }
                       Navigator.pop(context, 'Okay');
                     },
                     child: const Text('Okay'),
@@ -325,67 +298,37 @@ class PassengerHomeState extends ChangeNotifier {
           });
         });
 
-    // Handles payment
-    // if (paymentMode == PaymentMode.card) {
-    //   try {
-    //     inPayment = true;
-    //     notifyListeners();
-    //     paymentIntent = await _paymentService.displayPaymentSheet(
-    //       _routeDistance!.toStringAsFixed(2),
-    //       _user?.data().customerId ?? '',
-    //     );
-    //     if (paymentIntent != null) paymentSuccess = true;
-    //   } catch (e) {
-    //     throw Exception(e.toString());
-    //   } finally {
-    //     inPayment = false;
-    //   }
-    // }
-
     // Handles creation of journey
     if (_context.mounted) {
-      if (paymentSuccess) {
-        final firebaseUser = _context.read<firebase_auth.User?>();
-        if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
-          if (_routeDistance! <= 7.0) {
-            isSearching = true;
-            _journeyRepo.create(
-              Journey(
-                userId: firebaseUser.uid,
-                startLatLng: toApu ? _destinationLatLng! : apuLatLng,
-                endLatLng: toApu ? apuLatLng : _destinationLatLng!,
-                startDescription: _toApu ? _destinationDescription! : apuDescription,
-                endDescription: _toApu ? apuDescription : _destinationDescription!,
-                distance: _routeDistance!.toStringAsFixed(2),
-                price: _routePrice!.toStringAsFixed(2),
-                paymentMode: _paymentMode,
-                // paymentIntentId: paymentIntent,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(_context)
-                .showSnackBar(const SnackBar(content: Text("Journeys are limited to a distance of 7 km")));
-          }
+      final firebaseUser = _context.read<firebase_auth.User?>();
+      if (firebaseUser != null && _routeDistance != null && _routePrice != null) {
+        if (_routeDistance! <= 7.0) {
+          isSearching = true;
+          _journeyRepo.create(
+            Journey(
+              userId: firebaseUser.uid,
+              startLatLng: toApu ? _destinationLatLng! : apuLatLng,
+              endLatLng: toApu ? apuLatLng : _destinationLatLng!,
+              startDescription: _toApu ? _destinationDescription! : apuDescription,
+              endDescription: _toApu ? apuDescription : _destinationDescription!,
+              distance: _routeDistance!.toStringAsFixed(2),
+              price: _routePrice!.toStringAsFixed(2),
+              paymentMode: _paymentMode,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(_context)
+              .showSnackBar(const SnackBar(content: Text("Journeys are limited to a distance of 7 km")));
         }
-      } else {
-        ScaffoldMessenger.of(_context).showSnackBar(const SnackBar(content: Text("Payment failed!")));
       }
     }
   }
 
   void deleteJourney() async {
     try {
-      // Deletes journey first before refund to ensure so in case cancel fails
       isSearching = false;
       clearUserLocation();
-      // final paymentIntentId = _journey?.data().paymentIntentId;
-      // String price = _journey!.data().price;
       await _journeyRepo.delete(_journey);
-      // if (paymentIntentId != null) {
-      //   _paymentService.createRefund(paymentIntentId);
-      //   notificationService.notifyPassenger("Your journey has been cancelled",
-      //       body: 'Your card will be refunded $price');
-      // }
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -455,8 +398,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   bool get isSearching => _isSearching;
 
-  bool get inPayment => _inPayment;
-
   QueryDocumentSnapshot<Vehicle>? get vehicle => _vehicle;
 
   /*
@@ -519,11 +460,6 @@ class PassengerHomeState extends ChangeNotifier {
 
   set isSearching(bool value) {
     _isSearching = value;
-    notifyListeners();
-  }
-
-  set inPayment(bool value) {
-    _inPayment = value;
     notifyListeners();
   }
 

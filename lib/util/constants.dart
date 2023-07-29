@@ -1,9 +1,5 @@
 import 'package:latlong2/latlong.dart';
 
-// Payments
-const String malaysiaCurrencyCode = 'MYR';
-const String malaysiaCountryCode = 'MY';
-
 // User Modes
 const String passengerMode = "PASSENGER_MODE";
 const String driverMode = "DRIVER_MODE";
