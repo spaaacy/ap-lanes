@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:ap_lanes/util/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+
+import '../data/repo/metadata_repo.dart';
 
 double calculateRouteDistance(Polyline? polylines) {
   if (polylines == null) return 0;
@@ -30,8 +30,15 @@ double calculateRouteDistance(Polyline? polylines) {
   return totalDistance;
 }
 
-double calculateRoutePrice(double distance) {
-  return baseCharge + (distance * kmCharge);
+Future<double?> calculateRoutePrice(double distance) async {
+  final metadataRepo = MetadataRepo();
+  final baseRate = await metadataRepo.getBaseRate();
+  final kmRate = await metadataRepo.getKmRate();
+  if (kmRate != null && baseRate != null) {
+    return baseRate + (distance * kmRate);
+  } else {
+    return null;
+  }
 }
 
 LatLng getLatLngFromString(String? latLngString) {

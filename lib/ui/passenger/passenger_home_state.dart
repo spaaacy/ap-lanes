@@ -198,7 +198,7 @@ class PassengerHomeState extends ChangeNotifier {
       final start = _toApu ? _destinationLatLng! : apuLatLng;
       final end = _toApu ? apuLatLng : _destinationLatLng!;
       try {
-        await _placeService.fetchRoute(start, end).then((polylines) {
+        await _placeService.fetchRoute(start, end).then((polylines) async {
           mapViewState.polylines.clear();
           mapViewState.polylines.add(polylines);
           mapViewState.shouldCenter = false;
@@ -207,7 +207,7 @@ class PassengerHomeState extends ChangeNotifier {
             bottomOffsetPercentage: 0.5,
           );
           _routeDistance = calculateRouteDistance(polylines);
-          _routePrice = calculateRoutePrice(double.parse(_routeDistance!.toStringAsFixed(2)));
+          _routePrice = await calculateRoutePrice(double.parse(_routeDistance!.toStringAsFixed(2)));
           notifyListeners(); // Notifies when route is received
         });
       } on Exception catch (e) {
@@ -238,7 +238,7 @@ class PassengerHomeState extends ChangeNotifier {
       notifyListeners();
       final start = _toApu ? _destinationLatLng! : apuLatLng;
       final end = _toApu ? apuLatLng : _destinationLatLng!;
-      await _placeService.fetchRoute(start, end).then((polylines) {
+      await _placeService.fetchRoute(start, end).then((polylines) async {
         mapViewState.polylines.add(polylines);
         mapViewState.shouldCenter = false;
         mapViewState.setCameraToRoute(
@@ -254,7 +254,7 @@ class PassengerHomeState extends ChangeNotifier {
           builder: (_) => const Icon(Icons.location_pin, size: 35, color: Colors.black),
         );
         _routeDistance = calculateRouteDistance(polylines);
-        _routePrice = calculateRoutePrice(_routeDistance!);
+        _routePrice = await calculateRoutePrice(_routeDistance!);
         notifyListeners();
       });
     } on Exception catch (e) {
