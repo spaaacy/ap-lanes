@@ -393,7 +393,7 @@ class PassengerHomeState extends ChangeNotifier {
 
   Future<void> resetState() async {
     if (hasDriver) {
-      notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for using APLanes.");
+      notificationService.notifyPassenger("Your journey is now complete!", body: "Thank you for choosing APLanes.");
       _hasDriver = false;
     }
     _driverName = null;
