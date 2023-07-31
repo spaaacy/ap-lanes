@@ -249,7 +249,7 @@ class _OngoingJourneyPopupState extends State<OngoingJourneyPopup> {
                       elevation: ongoingState.isLoadingJourneyRequest ? 0.0 : 4.0,
                     ),
                     onPressed: ongoingState.isLoadingJourneyRequest ? null : () => ongoingState.onJourneyPickUp(),
-                    child: const Text('UNDO PICK-UP'),
+                    child: const Text('UNDO'),
                   );
                 } else {
                   return Expanded(
